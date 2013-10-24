@@ -1,13 +1,10 @@
 '''
-Created on Mar 15, 2012
-
-@author: Jacob Frelinger
+Created Oct 24th, 2013
 '''
 
-
+import os,sys
 from distutils.core import setup
 from distutils.extension import Extension
-#from Cython.Distutils import build_ext
 from numpy import get_include
 
 sys.path.append("src")
