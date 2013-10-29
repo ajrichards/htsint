@@ -37,3 +37,7 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+
+# pymc-examples dir
+plots
+plots/*
