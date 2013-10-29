@@ -25,6 +25,21 @@ class Simulate(object):
         
         np.random.seed(seed)
         
+
+    def draw_u(self,M=10,markerIndices=[0,5,9]):
+        """
+        u - the observed imput variables in the system
+        M - the total number of imput variables
+        """
+        
+        allIndices = range(M)
+        for i in markerIndices:
+            if i not in allIndices:
+                raise Exception("Index %s not in range(%s)"%(i,M))
+
+        nonMarkerIndices = set(range(M)).difference(set(markerIndices))
+
+
     def linear_draw(self,n,w0=-0.3,w1=0.5,sigma=0.2):
         """
         draw samples with an approximatly linear relationship
@@ -50,6 +65,7 @@ class Simulate(object):
         trueT = np.sin(trueX) + np.random.normal(0,sigma,n)
 
         return trueX,trueT
+
 
     def random_draw(self,n):
         """
@@ -95,8 +111,9 @@ class Simulate(object):
 ## used to test
 if __name__ == "__main__":
     sim = Simulate()
-    x,y = sim.linear_draw(10)
-    print 'x',x
-    print 'y',y
-    sim.plot_all(10)
+    sim.draw_u()
+    #x,y = sim.linear_draw(10)
+    #print 'x',x
+    #print 'y',y
+    #sim.plot_all(10)
 
