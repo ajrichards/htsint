@@ -25,8 +25,23 @@ class Simulate(object):
         
         np.random.seed(seed)
         
+    def draw_multinomial(self,seed=None,n=10,m=50):
+        """
+        returns a matrix of results
+        where each element is the num. times a category is chosen
 
-    def draw_u(self,M=10,markerIndices=[0,5,9]):
+        m = number of draws (ea. sample totals this number)
+        n = total number of samples       
+        """
+
+        self.set_rseed()
+        proportions = [0.6, 0.3, 1.0]
+        x = np.random.multinomial(m,proportions,size=n)
+
+        return x
+
+
+    def draw_u(self,M=10,markerIndices=[0,5,9],dType='linear'):
         """
         u - the observed imput variables in the system
         M - the total number of imput variables
@@ -38,7 +53,6 @@ class Simulate(object):
                 raise Exception("Index %s not in range(%s)"%(i,M))
 
         nonMarkerIndices = set(range(M)).difference(set(markerIndices))
-
 
     def linear_draw(self,n,w0=-0.3,w1=0.5,sigma=0.2):
         """
@@ -111,7 +125,9 @@ class Simulate(object):
 ## used to test
 if __name__ == "__main__":
     sim = Simulate()
-    sim.draw_u()
+    samples = sim.draw_multinomial()
+    print samples
+    #sim.draw_u()
     #x,y = sim.linear_draw(10)
     #print 'x',x
     #print 'y',y
