@@ -32,6 +32,7 @@ import sys,os,re,time,csv
 from DatabaseTables import Base,Taxon,Gene,Accession,GoTerm,GoAnnotation
 from DatabaseTools import db_connect
 from DatabaseTools import populate_taxon_table,populate_gene_table,populate_accession_table,populate_go_tables
+from config import CONFIG
 
 ## prepare a log file
 fid = open('createdb.log','w')
@@ -53,7 +54,7 @@ Base.metadata.drop_all(engine)
 Base.metadata.create_all(engine) 
 
 ## taxon table
-taxaList = ["7227","10090","9606","4932","5833"]
+taxaList = ["7227"] + CONFIG['taxa']
 
 timeStr,addedStr = populate_taxon_table(taxaList,session)
 push_out(timeStr)

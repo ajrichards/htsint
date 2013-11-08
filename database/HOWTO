@@ -1,0 +1,37 @@
+
+Necessary packages
+__________________
+
+There are a few packages that need to be installed to get the database running
+These are the Ubuntu/Debian packages
+
+* ~$ sudo apt-get install python-sqlalchemy
+* ~$ sudo apt-get install python-psycopg2
+
+Optionally, to produce a schema display of the database install:
+https://pypi.python.org/pypi/sqlalchemy_schemadisplay/
+
+
+To populate the database
+________________________
+
+(1) Create an empty Postgresql database
+(2) Tell htsint your database params
+    * ~$ mv config.py.dist config.py
+    * Then edit the file with the appropriate info
+    * the field 'dbhost' may be 'localhost' or a remote one
+    * edit the taxa field depending on user needs
+
+(3) ~$ python FetchNcbiData.py
+(4) ~$ python CreateDatabase.py
+(5) ~$ python TestDatabase.py
+
+'FetchNcbieData.py' - may take a few hours to download.  
+Do not get rid of the downloaded files, because when the script is run again
+it will keep the up-to-date files and renew only the outdated ones.  
+
+'CreateDatabase.py' - will take some time to run and perhaps it 
+should be planned for overnight.
+
+'TestDatabase.py' - will it will just run simple queries.  Also,
+if sqlalchemy_schemadisplay is installed then a plot will be created.

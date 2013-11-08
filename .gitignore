@@ -44,7 +44,6 @@ plots/*
 
 
 # database dir
-
 database/citations.dmp
 database/delnodes.dmp
 database/division.dmp
@@ -64,3 +63,5 @@ database/names.dmp
 database/nodes.dmp
 database/readme.txt
 database/taxdump.tar.gz
+database/config.py
+database/createdb.log

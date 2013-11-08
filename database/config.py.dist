@@ -1,0 +1,8 @@
+import os
+CONFIG = {'dbname':"",
+         'dbuser':"",
+         'dbpass':"",
+         'dbhost':"",
+	 'dbport':"",
+	 'taxa':["10090","9606","4932","5833"]
+}
