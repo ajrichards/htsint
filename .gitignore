@@ -41,3 +41,26 @@ nosetests.xml
 # pymc-examples dir
 plots
 plots/*
+
+
+# database dir
+
+database/citations.dmp
+database/delnodes.dmp
+database/division.dmp
+database/fetchncbi.log
+database/gc.prt
+database/gencode.dmp
+database/gene2accession.db
+database/gene2accession.gz
+database/gene2go.db
+database/gene2go.gz
+database/gene_history.db
+database/gene_history.gz
+database/gene_info.db
+database/gene_info.gz
+database/merged.dmp
+database/names.dmp
+database/nodes.dmp
+database/readme.txt
+database/taxdump.tar.gz

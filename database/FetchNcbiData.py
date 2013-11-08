@@ -1,6 +1,6 @@
 #!/usr/bin/env python
                                                           
-import os,sys,subprocess,re,time
+import os,sys,subprocess,re,time,csv
 
 ## check for the necessary programs
 for wgetPath in [os.path.join("/","usr","bin","wget"), os.path.join('/','usr','local','bin','wget')]:
@@ -47,6 +47,19 @@ def unzip_file(fileName,trim):
         cmd = "gunzip -c %s > %s.db"%(fileName,fileName[:-trim])
     _run_subprocess(cmd)
 
+
+## prepare a log file
+fid = open('fetchncbi.log','w')
+writer = csv.writer(fid)
+
+def push_out(line):
+    writer.writerow([line])
+    print line
+
+push_out(sys.argv[0])
+push_out(time.asctime())
+push_out("fetching files...")
+
 ## fetch the NCBI databases
 filesToFetch = ["taxdump.tar.gz"]
 
@@ -78,3 +91,5 @@ for fileName in filesToFetch:
         unzip_file(fileName,trim)
 
 print 'done.'
+
+fid.close()
