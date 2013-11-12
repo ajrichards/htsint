@@ -15,16 +15,13 @@ A logfile of the output is automatically created
 
 Next:
     Use TestDatabase.py to make sure tables were filled correctly
-    Use PrimeDatabase.py to further populate the database
 
 For more information about interacting with databases using SQLalchemy
     http://docs.sqlalchemy.org/en/rel_0_8/orm/tutorial.html
 
-
 Because gene names are added/removed/changed on a regular basis
 It is easier when updating to re-run this script and then follow up
 with the PopulateDatabase.py afterwards. 
-
 """
 
 ### make imports

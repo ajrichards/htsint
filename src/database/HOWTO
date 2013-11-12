@@ -1,6 +1,6 @@
 
 Necessary packages
-__________________
+----------------------
 
 There are a few packages that need to be installed to get the database running
 These are the Ubuntu/Debian packages
@@ -13,7 +13,7 @@ https://pypi.python.org/pypi/sqlalchemy_schemadisplay/
 
 
 To populate the database
-________________________
+-------------------------------
 
 (1) Create an empty Postgresql database
 (2) Tell htsint your database params
@@ -35,3 +35,12 @@ should be planned for overnight.
 
 'TestDatabase.py' - will it will just run simple queries.  Also,
 if sqlalchemy_schemadisplay is installed then a plot will be created.
+
+Appending to the database
+-------------------------------
+
+The following scirpt may be used:
+
+    python DatabaseAppend.py -t 8355,8364
+
+Otherwise, append to the config.py file and repopulate the entire database.

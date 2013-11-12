@@ -44,24 +44,25 @@ plots/*
 
 
 # database dir
-database/citations.dmp
-database/delnodes.dmp
-database/division.dmp
-database/fetchncbi.log
-database/gc.prt
-database/gencode.dmp
-database/gene2accession.db
-database/gene2accession.gz
-database/gene2go.db
-database/gene2go.gz
-database/gene_history.db
-database/gene_history.gz
-database/gene_info.db
-database/gene_info.gz
-database/merged.dmp
-database/names.dmp
-database/nodes.dmp
-database/readme.txt
-database/taxdump.tar.gz
-database/config.py
-database/createdb.log
+src/database/citations.dmp
+src/database/delnodes.dmp
+src/database/division.dmp
+src/database/fetchncbi.log
+src/database/gc.prt
+src/database/gencode.dmp
+src/database/gene2accession.db
+src/database/gene2accession.gz
+src/database/gene2go.db
+src/database/gene2go.gz
+src/database/gene_history.db
+src/database/gene_history.gz
+src/database/gene_info.db
+src/database/gene_info.gz
+src/database/merged.dmp
+src/database/names.dmp
+src/database/nodes.dmp
+src/database/readme.txt
+src/database/taxdump.tar.gz
+src/database/config.py
+src/database/createdb.log
+src/database/dbschema.png
