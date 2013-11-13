@@ -43,16 +43,25 @@ class GeneOntology(object):
         
         geneQuery = self.session.query(Gene).filter_by(taxa_id=self.taxQuery.id)
         print "Num. Genes:  %s"%geneQuery.count()
-        #print geneQuery[0]
-        #print len(geneQuery)
+
+        #query.join(Address, User.id==Address.user_id) 
+        query.join(GoAnnotation,Gene.id==GoAnnotation.user_id) 
+        #annotQuery = geneQuery.join(GoAnnotation).filter_by(gene_id=geneQuery.id)
+        #print type(annotQuery)
+        #print annotQuery.count()
+        sys.exit()
+
 
         ## slow way
+        totalAnnots = 0
         for gene in geneQuery:
             annotQuery = self.session.query(GoAnnotation).filter_by(gene_id=gene.id).first()
             if annotQuery == None:
                 continue
+            totalAnnots += 1 
             print dir(annotQuery)
             #sys.exit()
+        print "Total Annotations: %s"%totalAnnots
 
         #print len(geneQuery)
         #print dir(self.taxQuery)

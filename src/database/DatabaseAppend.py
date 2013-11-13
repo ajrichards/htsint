@@ -71,7 +71,6 @@ timeStr,addedStr = populate_accession_table(taxaList,session)
 ## go terms and go annotations tables
 timeStr,addedStr = populate_go_tables(taxaList,session)
 
-
 print("DATABASE - SUMMARY")
 print("There are %s unique taxa "%session.query(Taxon).count())
 print("There are %s unique genes   "%session.query(Gene).count())

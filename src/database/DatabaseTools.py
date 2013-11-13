@@ -76,7 +76,7 @@ def populate_taxon_table(taxonList,session):
         ## only populate a subset of the taxa
         if taxID in taxonList:
             pass
-        elif taxaCount >= 100:
+        else:
             continue
         
         ## determine if record exists and add common names up until 3
@@ -114,6 +114,7 @@ def populate_gene_table(taxonList,session):
     """
     
     print '\n...populating the genes table for %s taxa'%len(taxonList)
+
     ## check that all of the taxa are in the taxon table
     for taxID in taxonList:
         query = session.query(Taxon).filter_by(ncbi_id=taxID).first()
@@ -293,6 +294,10 @@ def populate_go_tables(taxonList,session):
         if taxID not in taxonList:
             continue
 
+        ## determine if record exists and add common names up until 3
+        queryTax = session.query(Taxon).filter_by(ncbi_id=taxID).first()
+        taxa_id = queryTax.id
+        
         ncbi_id = record[1]
         go_id = record[2]
         evidence_code = record[3]
@@ -316,7 +321,7 @@ def populate_go_tables(taxonList,session):
         ## add the annotation
         totalAnnotations+=1
         go_term_id = queryTerm.id
-        someAnnotation = GoAnnotation(go_term_id,evidence_code,pubmed_refs,gene_id)
+        someAnnotation = GoAnnotation(go_term_id,evidence_code,pubmed_refs,gene_id,taxa_id)
         session.add(someAnnotation)
 
     session.commit()

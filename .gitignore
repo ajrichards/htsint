@@ -42,6 +42,8 @@ nosetests.xml
 plots
 plots/*
 
+src/sandbox/*
+
 
 # database dir
 src/database/citations.dmp

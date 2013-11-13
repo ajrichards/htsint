@@ -146,18 +146,21 @@ class GoAnnotation(Base):
     evidence_code = Column(String)
     pubmed_refs = Column(String)
     gene_id = Column(Integer, ForeignKey('genes.id'))
+    taxa_id = Column(Integer,ForeignKey('taxa.id'))
 
-    def __init__(self,go_term_id,evidence_code,pubmed_refs,gene_id):
+    def __init__(self,go_term_id,evidence_code,pubmed_refs,gene_id,taxa_id):
         self.go_term_id = go_term_id
         self.evidence_code = evidence_code
         self.pubmed_refs = pubmed_refs
         self.gene_id = gene_id
-        
+        self.taxa_id = taxa_id
+
     def __repr__(self):
         return "<GoTermInstance('%s','%s','%s','%s')>"%(self.go_term_id,
                                                         self.evidence_code,
                                                         self.pubmed_refs,
-                                                        self.gene_id)
+                                                        self.gene_id,
+                                                        self.taxa_id)
 """
 class Pub(Base):
     '''
