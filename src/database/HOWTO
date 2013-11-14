@@ -11,6 +11,10 @@ These are the Ubuntu/Debian packages
 Optionally, to produce a schema display of the database install:
 https://pypi.python.org/pypi/sqlalchemy_schemadisplay/
 
+NOTE: if the server is not started or was stopped
+
+  ~$ sudo /etc/init.d/postgresql start
+
 
 To populate the database
 -------------------------------
