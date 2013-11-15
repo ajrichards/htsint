@@ -48,3 +48,22 @@ The following scirpt may be used:
     python DatabaseAppend.py -t 8355,8364
 
 Otherwise, append to the config.py file and repopulate the entire database.
+
+
+Adding Gene Ontology information from the GO
+-----------------------------------------------
+
+By default the gene2go.db file is used.  However if the following steps are run
+all GO information contained therein will removed and replaced with information 
+from the GO.
+
+
+Go into your config.py file and add the species specific annotations.  For example,
+This is done by getting the exact name of the file from:
+
+http://www.geneontology.org/GO.downloads.annotations.shtml
+
+
+(1) download the ontology file  
+
+  go_daily-termdb.obo-xml

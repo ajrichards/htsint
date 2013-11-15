@@ -68,3 +68,5 @@ src/database/taxdump.tar.gz
 src/database/config.py
 src/database/createdb.log
 src/database/dbschema.png
+src/database/fetchgo.log
+src/database/go.obo
