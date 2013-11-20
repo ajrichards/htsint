@@ -49,29 +49,88 @@ class GeneOntology(object):
         print "Num. GO Annotations:  %s"%self.annotQuery.count()
         print "\n"
 
-    def create_gograph(self):
+    def create_gograph(self,aspect='biological_process',geneList=None):
+        """
+        creates the go graph for a given species
+        aspect = 'biological_process','molecular_function' or 'cellular_component'
+        geneList = is by default found using the database, however it may also be specified
 
+        A go graph can be created with any gene list
+        The genes have to be present in the database
+        """
 
-        read_ontology_file()
+        shortAspect = {"biological_process":"Process","molecular_function":"Function","cellular_component":"Component"}
+        expEvidCodes = ["EXP","IDA","IPI","IMP","IGI","IEP"]
+        compEvidCodes = ["ISS","ISO","ISA","ISM","IGC","RCA"]
+        statEvidCodes = ["TAS","NAS","IC"]
+        nonCuratedEvidCodes = ["IEA"]
+        _goDict = read_ontology_file()    
+        goDict = _goDict['biological_process']
 
-        ## check to see if ontology file is present
+        ## error checking
+        if aspect not in ['biological_process','molecular_function','cellular_component']:
+            raise Exception("Invalid aspect specified%s"%aspect)
+
+        ## get the gene list
+        if geneList == None:
+            geneList = [g.symbol for g in self.geneQuery.all()]
+
+        ## get the terms associated with each gene
+        go2gene = {}
+        for item in self.annotQuery.all():
+            ## include only certain evidence codes
+            if item.evidence_code  in nonCuratedEvidCodes or item.evidence_code in compEvidCodes:
+                continue
+
+            ## include only the correct aspect
+            termQuery = self.session.query(GoTerm).filter_by(id=item.go_term_id).first()
+            if termQuery.aspect != shortAspect[aspect]:
+                continue
+            
+            ## update the dictionary
+            symbol = self.geneQuery.filter_by(id=item.gene_id).first().symbol
+            if go2gene.has_key(termQuery.go_id) == False:
+                go2gene[termQuery.go_id] = set([])
+            go2gene[termQuery.go_id].update([symbol])
         
+        ## calculate the information content for each term -ln(p(term))
+        total = 0
+        for term,genes in go2gene.iteritems():
+            total += len(list(genes))
 
+        edgeDict = {}
+        for parent,children in goDict.iteritems():
+            if go2gene.has_key(parent) == False:
+                continue
 
-        #edgeDict = {"w4a":("X1","X4"),"w5a":("X1","X5"),"w6a":("X1","X6"),"w7a":("X1","X7"),
-        #            "w4b":("X2","X4"),"w5b":("X2","X5"),"w6b":("X2","X6"),"w7b":("X2","X7"),
-        #            "w4c":("X3","X4"),"w5c":("X3","X5"),"w6c":("X3","X6"),"w7c":("X3","X7"),
-        #            "w1":("X1","T"),"w2":("X2","T"),"w3":("X3","T"),"w4":("X4","T"),
-        #            "w5":("X5","T"),"w6":("X6","T"),"w7":("X7","T")}
+            parentIC = -np.log(float(len(list(go2gene[parent])))  / float(total))
+            for child in list(children):
+                if go2gene.has_key(child) == False:
+                    continue
+
+                childIC = -np.log(float(len(list(go2gene[child])))  / float(total))
+                distance = np.abs(parentIC - childIC)
+                edgeDict[parent+"#"+child] = distance
+
+        print 'total annotations', total
+        print 'done'
 
         ## initialize the graph
-        #G = nx.Graph()
-        #for node in ["X1","X2","X3","X4","X5","X6","X7","T"]:
-        #    G.add_node(node)
-        #
-        #for edgeName,edge in edgeDict.iteritems():
-        #    G.add_edge(edge[0],edge[1],weight=edgeWeights[edgeName])
+        G = nx.DiGraph()
+        for nodes,weight in edgeDict.iteritems():
+            parent,child = nodes.split("#")
+            G.add_edge(parent,child,weight=weight)
+        
+        ## save it to pickle format
+        filePath = os.path.join(__basedir__,'graphs','gograph_%s.pickle'%(self.taxQuery.ncbi_id))
+        nx.write_gpickle(G, filePath)
+        print 'saving pickle graph'                      
 
+
+    def get_weight_by_ic(term):
+        """
+        get the weight of a term
+        """
 
 
 if __name__ == "__main__":
