@@ -13,7 +13,7 @@ A logfile of the output is automatically created
 import sys,os,re,time,csv,getopt
 from DatabaseTables import Base,Taxon,Gene,Accession,GoTerm,GoAnnotation
 from DatabaseTools import db_connect
-from DatabaseTools import populate_taxon_table,populate_gene_table,populate_accession_table,populate_go_tables
+from DatabaseAppend import DatabaseAppend
 
 class PrimeDatabase(object):
     """
@@ -30,8 +30,8 @@ class PrimeDatabase(object):
 
         ## prepare a log file
         resultsHomeDir,fileName = os.path.split(filePath)
-        fid1 = open(os.path.join(resultsDir,'%s_2.log'%re.sub("\_1\.csv","",fileName)),'w')
-        self.writer = csv.writer(fid1)
+        self.fid1 = open(os.path.join(resultsDir,'%s_2.log'%re.sub("\_1\.csv","",fileName)),'w')
+        self.writer = csv.writer(self.fid1)
 
         ## prepare a summary file 
         summaryFilePath = os.path.join(resultsDir,re.sub("\_1","_2",fileName))
@@ -159,50 +159,18 @@ class PrimeDatabase(object):
         fid3.close()
         self.push_out("New results file has been written.")
 
-        ## clean up 
-        self.fid2.close() 
-
-        ## prime database with new taxa
+        ## use DatabaseAppend to append to database
         self.push_out("Getting ready to prime database...")
-        taxaList = []
-        for taxID in uniqueTaxa:
-            query = session.query(Taxon).filter_by(ncbi_id=taxID).first()
-
-            if query == None:
-                taxaList.append(taxID)
-
-        self.push_out("Of the %s taxa there are %s new ones"%(len(uniqueTaxa),len(taxaList)))
-
-        if len(taxaList) == 0:
-            print "All taxa extracted from results file are already present in database."
-            sys.exit()
-
-        ## taxon table
-        timeStr,addedStr = populate_taxon_table(taxaList,session)
-        self.push_out(timeStr)
-        self.push_out(addedStr)
-
-        ## gene table
-        timeStr,addedStr = populate_gene_table(taxaList,session)
-        self.push_out(timeStr)
-        self.push_out(addedStr)
-
-        ## accession table
-        timeStr,addedStr = populate_accession_table(taxaList,session)
-        self.push_out(timeStr)
-        self.push_out(addedStr)
-
-        ## go terms and go annotations tables
-        timeStr,addedStr = populate_go_tables(taxaList,session)
-        self.push_out(timeStr)
-        self.push_out(addedStr)
+        self.push_out(list(uniqueTaxa))
+        da = DatabaseAppend(list(uniqueTaxa))
+        da.run()
 
         self.push_out("DATABASE - SUMMARY")
         self.push_out("There are %s unique taxa "%session.query(Taxon).count())
         self.push_out("There are %s unique genes   "%session.query(Gene).count())
         self.push_out("There are %s unique accessions"%session.query(Accession).count())
-        print "\n"
+        print "\n"        
 
         ## clean up
         self.fid1.close()
-        
+        self.fid2.close() 

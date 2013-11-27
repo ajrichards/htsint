@@ -1,78 +1,115 @@
 #!/usr/bin/env python
 """
 See CreateDatabase.py before running DatabaseAppend.py
+DatabaseAppend takes as input one or more taxon ids
 
-DatabaseAppend.py takes as input one or more taxon ids
+it may be run as a script:
+
+    ~$ python DatabaseAppend -t 8355,8364
+
+or from withing python
+
+    >>> from htsint import DatabaseAppend
+    >>> da = DatabasesAppend([8355,8364])
+    >>> da.run()
+
 """
 
 ### make imports
 import sys,os,re,time,csv,getopt
-from DatabaseTables import Base,Taxon,Gene,Accession,GoTerm,GoAnnotation
 from DatabaseTools import db_connect
-from DatabaseTools import populate_taxon_table,populate_gene_table,populate_accession_table,populate_go_tables
+from DatabaseTools import Taxon,populate_taxon_table,populate_gene_table,populate_accession_table,populate_go_tables
 
-## read in input file
-if len(sys.argv) < 1:
-    print sys.argv[0] + " -t taxa_list"
-    sys.exit()
+class DatabaseAppend(object):
+    """
+    appends taxa to the existing database
+    """
+    
+    def __init__(self,taxa,resultsDir="."):
 
-try:
-    optlist, args = getopt.getopt(sys.argv[1:], 't:')
-except getopt.GetoptError:
-    print sys.argv[0] + " -t taxa_list"
-    sys.exit()
+        ## error checking
+        if type(taxa) != type([]) or len(taxa) == 0:
+            raise Exception("Invalid taxa list provided - must be of type list and must have ids")
 
-taxaList = None
-for o, a in optlist:
-    if o == '-t':
-        taxaList = a
+        ## conect to the database
+        self.session,self.engine = db_connect(verbose=False)
+        print("Appending to database...")
 
-## error checking
-if taxaList == None:
-    print "\nINPUT ERROR: incorrect arguments"
-    print sys.argv[0] + " -t taxa_list"
-    print "For example..."
-    print sys.argv[0] + " -t 8355,8364\n"
-    sys.exit()
+        self.taxaList = list(set(taxa))
 
-print taxaList
-_taxaList = taxaList.split(",")
+    def is_valid_list(self):
+        """
+        checks the taxa list before running
+        """
 
-## prepare a log file
-print("Connecting to the database...")
+        taxaList = []
+        for taxID in self.taxaList:
+            query = self.session.query(Taxon).filter_by(ncbi_id=taxID).first()
+            if query == None:
+                taxaList.append(taxID)
+            else:
+                print("The taxon %s is already present in the database skipping..."%taxID)
 
-## conect to the database
-session,engine = db_connect(verbose=False)
-print("Appending to database...")
+        self.taxaList = taxaList
 
-taxaList = []
-for taxID in _taxaList:
-    query = session.query(Taxon).filter_by(ncbi_id=taxID).first()
-    if query == None:
-        taxaList.append(taxID)
-    else:
-        print("The taxon %s is already present in the database skipping..."%taxID)
+        if len(self.taxaList) == 0:
+            print "All taxa already present in database"
+            return False
+        else:
+            return True
+            
+    def run(self):
+        """
+        runs DatabaseAppend
+        """
+        
+        goFlag = self.is_valid_list()
+        if goFlag == False:
+            return
 
-if len(taxaList) == 0:
-    print "All taxa already present in database"
-    sys.exit()
+        print("adding... %s new ones"%len(self.taxaList))
 
-print("adding... %s"%str(taxaList))
+        ## taxon table
+        timeStr,addedStr = populate_taxon_table(self.taxaList,self.session)
 
-## taxon table
-timeStr,addedStr = populate_taxon_table(taxaList,session)
+        ## gene table 
+        timeStr,addedStr = populate_gene_table(self.taxaList,self.session)
 
-## gene table
-timeStr,addedStr = populate_gene_table(taxaList,session)
+        ## accession table
+        timeStr,addedStr = populate_accession_table(self.taxaList,self.session)
 
-## accession table
-timeStr,addedStr = populate_accession_table(taxaList,session)
+        ## go terms and go annotations tables
+        timeStr,addedStr = populate_go_tables(self.taxaList,self.session)
 
-## go terms and go annotations tables
-timeStr,addedStr = populate_go_tables(taxaList,session)
+        print "database append complete."
 
-print("DATABASE - SUMMARY")
-print("There are %s unique taxa "%session.query(Taxon).count())
-print("There are %s unique genes   "%session.query(Gene).count())
-print("There are %s unique accessions"%session.query(Accession).count())
-print "\n"
+
+if __name__ == "__main__":
+    
+    ## read in input file
+    if len(sys.argv) < 1:
+        print sys.argv[0] + " -t taxa_list"
+        sys.exit()
+
+    try:
+        optlist, args = getopt.getopt(sys.argv[1:], 't:')
+    except getopt.GetoptError:
+        print sys.argv[0] + " -t taxa_list"
+        sys.exit()
+
+    taxaList = None
+    for o, a in optlist:
+        if o == '-t':
+            taxaList = a
+
+    ## error checking
+    if taxaList == None:
+        print "\nINPUT ERROR: incorrect arguments"
+        print sys.argv[0] + " -t taxa_list"
+        print "For example..."
+        print sys.argv[0] + " -t 8355,8364\n"
+        sys.exit()
+
+    taxa = taxaList.split(",")
+    da = DatabaseAppend(taxa)
+    da.run()
