@@ -14,3 +14,4 @@ from ParseNcbiXml import ParseNcbiXml
 from DatabaseAppend import DatabaseAppend
 from PrimeDatabase import PrimeDatabase
 from Blast import Blast
+from GeneOntology import GeneOntology

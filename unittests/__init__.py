@@ -23,3 +23,8 @@ for o, a in optlist:
 from DatabaseTest import *
 DatabaseTestSuite = unittest.TestLoader().loadTestsFromTestCase(DatabaseTest)
 DatabaseSuite = unittest.TestSuite([DatabaseTestSuite])
+
+### GeneOntology tests
+from GeneOntologyTest import *
+GeneOntologyTestSuite = unittest.TestLoader().loadTestsFromTestCase(GeneOntologyTest)
+GeneOntologySuite = unittest.TestSuite([GeneOntologyTestSuite])

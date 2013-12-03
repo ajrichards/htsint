@@ -47,7 +47,6 @@ class DatabaseTest(unittest.TestCase):
         query = self.session.query(Gene).filter_by(ncbi_id='3771877').first() 
         self.assertEqual(query.symbol,'Adh')
         
-
     def testAccession(self):
         """
         test the accession table
@@ -57,7 +56,6 @@ class DatabaseTest(unittest.TestCase):
         accessionQuery = self.session.query(Accession).filter_by(gene_id=geneQuery.id).all()
         self.assertTrue('161077725' in [aq.protein_gi for aq in accessionQuery])
 
-
     def testGoTerm(self):
         """
         test the GoTerm table
@@ -66,7 +64,6 @@ class DatabaseTest(unittest.TestCase):
         termQuery = self.session.query(GoTerm).filter_by(go_id="GO:0008150").first()
         self.assertEqual(termQuery.aspect,"Process")
         self.assertEqual(termQuery.description,"biological_process")
-
 
     def testGoAnnotation(self):
         """

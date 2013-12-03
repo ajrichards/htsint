@@ -1,8 +1,8 @@
-import sys,os
+import sys,os,cPickle
 import numpy as np
 import matplotlib.pyplot as plt
 import networkx as nx
-from htsint import __basedir__
+#from htsint import __basedir__
 from htsint import Base,Taxon,Gene,Accession,GoTerm,GoAnnotation,db_connect
 from GeneOntologyLib import *
 
@@ -47,7 +47,6 @@ class GeneOntology(object):
             self.geneQuery = self.session.query(Gene).filter_by(taxa_id=self.taxQuery.id)
             self.annotQuery = self.session.query(GoAnnotation).filter_by(taxa_id=self.taxQuery.id)
         
-            print self.geneList[:30]
     def check_taxon(self,taxID):
         """
         check if taxon is in database
@@ -78,14 +77,11 @@ class GeneOntology(object):
             print "Num. Genes:  %s"%len(self.geneList)
             print "\n"
 
-    def create_gograph(self,aspect='biological_process',geneList=None):
-        """
-        creates the go graph for a given species
-        aspect = 'biological_process','molecular_function' or 'cellular_component'
-        geneList = is by default found using the database, however it may also be specified
 
-        A go graph can be created with any gene list
-        The genes have to be present in the database
+    def get_terms(self,aspect='biological_process'):
+        """
+        get terms from the database associated with the gene list
+        normally called from get_dicts
         """
 
         shortAspect = {"biological_process":"Process","molecular_function":"Function","cellular_component":"Component"}
@@ -93,22 +89,18 @@ class GeneOntology(object):
         compEvidCodes = ["ISS","ISO","ISA","ISM","IGC","RCA"]
         statEvidCodes = ["TAS","NAS","IC"]
         nonCuratedEvidCodes = ["IEA"]
-        #_goDict = read_ontology_file()    
-        #goDict = _goDict['biological_process']
 
-        ## error checking
-        if aspect not in ['biological_process','molecular_function','cellular_component']:
-            raise Exception("Invalid aspect specified%s"%aspect)
+        geneQueries = self.session.query(Gene).filter(Gene.ncbi_id.in_(self.geneList)).all()
+        if len(geneQueries) != len(self.geneList):
+            print "WARNING: %s/%s genes found in database"%(len(geneQueries),len(self.geneList))
+        if len(geneQueries) == 0:
+            raise Exception("There are no genes in gene list present in the database")
 
-        ## get the terms associated with each gene
-        print "making gene2go"
         gene2go = {}
         totalAnnotations = 0
-        for gene in self.geneList:
-            geneQuery = self.session.query(Gene).filter_by(ncbi_id=gene).first()
-            if geneQuery == None:
-                raise Exception("A specified gene is not in the database%"%gene)
-            annotQuery = self.session.query(GoAnnotation).filter_by(gene_id=geneQuery.id)
+
+        for gq in geneQueries:
+            annotQuery = self.session.query(GoAnnotation).filter_by(gene_id=gq.id)
             
             if annotQuery.count() > 0:
                 annotations = set([])
@@ -125,11 +117,31 @@ class GeneOntology(object):
 
                     annotations.update([termQuery.go_id])
                 if len(annotations) > 0:
-                    gene2go[gene] = list(annotations)
+                    gene2go[gq.ncbi_id] = list(annotations)
                     totalAnnotations += len(annotations)
 
-        ## get the genes associated with each term
-        print "making go2gene"
+        return gene2go
+
+    def get_dicts(self,aspect='biological_process',filePath=None):
+        """
+        get the go2gene and gene2go dictionaries
+        """
+
+        if aspect not in ['biological_process','molecular_function','cellular_component']:
+            raise Exception("Invalid aspect specified%s"%aspect)
+
+        if filePath != None and os.path.exists(filePath):
+            tmp = open(filePath,'r')
+            gene2go,go2gene = cPickle.load(tmp)
+            tmp.close()
+            return gene2go,go2gene
+
+        ## gene2go
+        print "...creating gene2go dictionary -- this may take several minutes or hours depending on the number of genes"
+        gene2go = self.get_terms()
+
+        ## go2gene
+        print "...creating go2gene dictionary -- this may take several minutes"
         go2gene = {}
         for gene,terms in gene2go.iteritems():
             for term in terms:
@@ -139,37 +151,68 @@ class GeneOntology(object):
 
         for term,genes in go2gene.iteritems():
             go2gene[term] = list(genes)
-
-
-        print 'go2gene', go2gene.keys()
-        print 'gene2go', gene2go.keys()
-
-       #print go2gene
-        #print gene2go
-        #print totalAnnotations
-        #
-        #sys.exit()
-
-        ## include only certain evidence codes
-        #if item.evidence_code  in nonCuratedEvidCodes or item.evidence_code in compEvidCodes:
-        #    continue
         
-        ## include only the correct aspect
-        #termQuery = self.session.query(GoTerm).filter_by(id=item.go_term_id).first()
-        #if termQuery.aspect != shortAspect[aspect]:
-        #    continue
-            
-        ## update the dictionary
-        #symbol = self.geneQuery.filter_by(id=item.gene_id).first().symbol
-        #if go2gene.has_key(termQuery.go_id) == False:
-        #    go2gene[termQuery.go_id] = set([])
-        #go2gene[termQuery.go_id].update([symbol])
+        if filePath == None:
+            print "INFO: For large gene list it is useful to specify a file path for the pickle file"
+        else:
+            tmp = open(filePath,'w')
+            cPickle.dump([gene2go,go2gene],tmp)
+            tmp.close()
+
+        return gene2go,go2gene
+
+    def create_gograph(self,aspect='biological_process',termsPath=None,graphPath=None):
+        """
+        creates the go graph for a given species
+        aspect = 'biological_process','molecular_function' or 'cellular_component'
+
+        A go graph can be created with any gene list
+        The genes have to be present in the database
+        """
+
+        ## error checking
+        if aspect not in ['biological_process','molecular_function','cellular_component']:
+            raise Exception("Invalid aspect specified%s"%aspect)
+
+        ## load pickled version if present
+        if graphPath != None and os.path.exists(graphPath):
+            G = nx.read_gpickle(graphPath)
+            return G
+
+        ## load all the ontology related information as a set of dictionaries
+        _goDict = read_ontology_file()    
+        goDict = _goDict[aspect]
+        gene2go,go2gene = self.get_dicts(filePath=termsPath)
+
+        print "...creating go term graph -- this may take several minutes or hours depending on the number of genes"
         
         ## calculate the information content for each term -ln(p(term))
+        edgeDict = self.get_weights_by_ic(goDict,go2gene)
+
+        ## initialize the graph
+        G = nx.DiGraph()
+        for nodes,weight in edgeDict.iteritems():
+            parent,child = nodes.split("#")
+            G.add_edge(parent,child,weight=weight)
+        
+        ## save it to pickle format
+        if graphPath != None:
+            nx.write_gpickle(G, graphPath)
+            print '...saving pickle graph'
+
+        return G
+
+    def get_weights_by_ic(self,goDict,go2gene):
         """
+        get the weight of a term using information content
+        returns a networkx edge dictionary
+        """
+
+        print "...... terms", len(go2gene.keys())
+
         total = 0
         for term,genes in go2gene.iteritems():
-            total += len(list(genes))
+            total += len(genes)
 
         edgeDict = {}
         for parent,children in goDict.iteritems():
@@ -185,25 +228,9 @@ class GeneOntology(object):
                 distance = np.abs(parentIC - childIC)
                 edgeDict[parent+"#"+child] = distance
 
+    
         print 'total annotations', total
-        print 'done'
-
-        ## initialize the graph
-        G = nx.DiGraph()
-        for nodes,weight in edgeDict.iteritems():
-            parent,child = nodes.split("#")
-            G.add_edge(parent,child,weight=weight)
-        
-        ## save it to pickle format
-        filePath = os.path.join(__basedir__,'graphs','gograph_%s.pickle'%(self.taxQuery.ncbi_id))
-        nx.write_gpickle(G, filePath)
-        print 'saving pickle graph'                      
-        """
-
-    def get_weight_by_ic(term):
-        """
-        get the weight of a term
-        """
+        return edgeDict
 
 
 if __name__ == "__main__":
