@@ -10,7 +10,7 @@ sys.path.append(os.path.join(__basedir__,'stats'))
 sys.path.append(os.path.join(__basedir__,'blast'))
 from DatabaseTables import Base,Taxon,Gene,Accession,GoTerm,GoAnnotation
 from DatabaseTools import db_connect
-from ParseNcbiXml import ParseNcbiXml
+from ParseBlast import ParseBlast
 from DatabaseAppend import DatabaseAppend
 from PrimeDatabase import PrimeDatabase
 from Blast import Blast

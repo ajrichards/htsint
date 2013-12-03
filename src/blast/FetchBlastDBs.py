@@ -49,7 +49,7 @@ def unzip_file(fileName,trim):
     _run_subprocess(cmd)
 
 ## fetch the nr and swissprot databases
-filesToFetch = ['nr.gz','swissprot.gz']
+filesToFetch = ['nr.gz','swissprot.gz','nt.gz']
 
 for fileName in filesToFetch:
     filePath = os.path.join(baseDir,fileName)

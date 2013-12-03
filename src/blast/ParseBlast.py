@@ -10,7 +10,7 @@ import sys,os,re,time,csv,getopt
 from Bio.Blast import NCBIXML
 
 
-class ParseNcbiXml(object):
+class ParseBlast(object):
     """
     parse the xml files for BLAST results
     """

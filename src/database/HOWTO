@@ -21,7 +21,7 @@ To populate the database
 
 (1) Create an empty Postgresql database
 (2) Tell htsint your database params
-    * ~$ mv config.py.dist config.py
+    * ~$ cp config.py.dist config.py
     * Then edit the file with the appropriate info
     * the field 'dbhost' may be 'localhost' or a remote one
     * edit the taxa field depending on user needs
@@ -53,17 +53,6 @@ Otherwise, append to the config.py file and repopulate the entire database.
 Adding Gene Ontology information from the GO
 -----------------------------------------------
 
-By default the gene2go.db file is used.  However if the following steps are run
-all GO information contained therein will removed and replaced with information 
-from the GO.
+Also, some Gene Ontology info that is not stored in the db will be necessary.
 
-
-Go into your config.py file and add the species specific annotations.  For example,
-This is done by getting the exact name of the file from:
-
-http://www.geneontology.org/GO.downloads.annotations.shtml
-
-
-(1) download the ontology file  
-
-  go_daily-termdb.obo-xml
+    ~$ python FetchGo.py
