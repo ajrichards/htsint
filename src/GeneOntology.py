@@ -1,9 +1,8 @@
 import sys,os,cPickle
 import numpy as np
-import matplotlib.pyplot as plt
 import networkx as nx
-#from htsint import __basedir__
 from htsint import Base,Taxon,Gene,Accession,GoTerm,GoAnnotation,db_connect
+from htsint import EmpiricalCdf
 from GeneOntologyLib import *
 
 """
@@ -84,7 +83,13 @@ class GeneOntology(object):
         normally called from get_dicts
         """
 
-        shortAspect = {"biological_process":"Process","molecular_function":"Function","cellular_component":"Component"}
+        ## error checking
+        if aspect not in ['biological_process','molecular_function','cellular_component']:
+            raise Exception("Invalid aspect specified%s"%aspect)
+
+        shortAspect = {"biological_process":"Process",
+                       "molecular_function":"Function",
+                       "cellular_component":"Component"}
         expEvidCodes = ["EXP","IDA","IPI","IMP","IGI","IEP"]
         compEvidCodes = ["ISS","ISO","ISA","ISM","IGC","RCA"]
         statEvidCodes = ["TAS","NAS","IC"]
@@ -211,6 +216,7 @@ class GeneOntology(object):
         print "...... terms", len(go2gene.keys())
 
         total = 0
+        allDistances = []
         for term,genes in go2gene.iteritems():
             total += len(genes)
 
@@ -227,9 +233,36 @@ class GeneOntology(object):
                 childIC = -np.log(float(len(list(go2gene[child])))  / float(total))
                 distance = np.abs(parentIC - childIC)
                 edgeDict[parent+"#"+child] = distance
+                allDistances.append(distance)
 
-    
-        print 'total annotations', total
+        ## terms without distances set to max
+        maxDistance = np.array(allDistances).max()
+        for parent,children in goDict.iteritems():
+            for child in list(children):
+                if edgeDict.has_key(parent+"#"+child) or edgeDict.has_key(child+"#"+parent):
+                    continue
+                edgeDict[parent+"#"+child] = maxDistance
+
+        ## add the edges through shared genes
+        eCDF = EmpiricalCdf(allDistances)
+        p5 = eCDF.get_percentile(0.05) 
+        newEdges = 0
+        for termI,genesI in go2gene.iteritems():
+            for termJ,genesJ in go2gene.iteritems():
+
+                if edgeDict.has_key(termI+"#"+termJ) or edgeDict.has_key(termJ+"#"+termI):
+                    continue
+
+                sharedGenes = len(list(set(genesI).intersection(set(genesJ))))
+                if sharedGenes == 0:
+                    continue
+
+                ## add new edge in both directions
+                edgeDict[termI+"#"+termJ] = float(p5) / float(sharedGenes)
+                newEdges += 1
+
+        print 'added %s term-gene-term edges'%newEdges
+        print 'total in dict', len(edgeDict.keys())
         return edgeDict
 
 

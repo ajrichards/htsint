@@ -70,27 +70,23 @@ Database
 
 for more info see /src/database/HOWTO
 
-  (*) Create an empty Postgresql database
-  (1) ~$ cd /src/database
-  (2) Tell htsint your database params
-      * ~$ cp config.py.dist config.py
-      * Then edit the file with the appropriate info
-      * the field 'dbhost' may be 'localhost' or a remote one
-      * edit the taxa field depending on user needs
-        more taxa can be added later
+  1. Create an empty Postgresql database
+  2. ~$ cd /src/database
+  3. Tell htsint your database params
+    * ~$ cp config.py.dist config.py
+    * Then edit the file with the appropriate info
+    * the field 'dbhost' may be 'localhost' or a remote one
+    * edit the taxa field depending on user needs
+      more taxa can be added later
+  4. ~$ python FetchNcbiData.py
+  5. ~$ python FetchGo.py
+  6. ~$ python CreateDatabase.py
+  7. ~$ python TestDatabase.py
 
-  (3) ~$ python FetchNcbiData.py
-  (4) ~$ python CreateDatabase.py
-  (5) ~$ python TestDatabase.py
-
-
-Also, some Gene Ontology info that is not stored in the db will be necessary
-
-  (6) ~$ python FetchGo.py
-
+ 
 BLAST
 ------
 
-  (1) cd /src/blast
-  (2) python FetchBlastDBs.py  
+  1. ~$ cd /src/blast
+  2. ~$ python FetchBlastDBs.py  
 
