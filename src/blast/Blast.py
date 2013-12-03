@@ -13,7 +13,8 @@ class Blast(object):
     A generic class to run blast
     """
 
-
+    pass
+    """
     ## specify the isotig file path
     fastaFilePath = os.path.join(os.getenv("HOME"),'research','mobigen','raw_data',"HP10IZV0-12.adaptorcleaner.454Isotigs.fna")
 
@@ -36,3 +37,4 @@ class Blast(object):
                                          outfmt=5, out="brassicae-pooled-sprot.xml",cmd='blastx')
     stdout, stderr = blastx_cline()
     print "Total run time: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
+    """
