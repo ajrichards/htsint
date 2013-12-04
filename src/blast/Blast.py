@@ -25,69 +25,129 @@ Some useful information
                (gss, sts, pat, est, htg divisions) and wgs 
                 entries. Not non-redundant.
 
+An example of blastx usage is:
+
+blastx -query myfile.fa -db nr -out myfile.xml -evalue 0.001 -outfmt 5
 
 """
 
-
-import sys,os,time
-import Bio
+import sys,os,time,re,getopt
 from Bio import SeqIO
-print "\n...."
-print "Using Biopython version %s"%Bio.__version__
 from Bio.Blast.Applications import NcbiblastxCommandline
 
 class Blast(object):
     """
     A generic class to run blast
-
-
     """
 
-    def __init__(self,targetFile):
+    def __init__(self,queryFile,BLASTDB=None):
         """
         Constructor
-         
-            targetFile - is a fasta file of sequences
-        
+            queryFile - is a fasta file of sequences
         """
         
-        self.targetFile = targetFile
+        ## check the query file
+        self.queryFile = os.path.realpath(queryFile)
+        if os.path.exists(self.queryFile) == False:
+            raise Exception("ERROR: Could not locate the fasta file... \n%s"%self.queryFile)
 
-        if os.path.exists(self.targetFile) == False:
-            print "ERROR: Could not locate the fasta file... exiting"
-            print fastaFilePath
-            sys.exit()
+        ## set the environmental variable if specified
+        if BLASTDB != None:
+            os.environ['BLASTDB'] = BLASTDB
 
-
-    def run(self,targetDB,outXML=None):
+    def get_query_file(self,outDir,start,stop):
         """
-        targetDB - is the database to blast against
+        indexing start = 0 and stop = 2 will return a file with
+        the first and second sequences in it.
+
+        This means that we start at index start and we stop at 
+        the stop index with inclusion.
+
+        """
+
+        handleIn = open(self.queryFile, "rU")
+        queryFileName = os.path.split(self.queryFile)[-1]
+        newQueryFile = os.path.join(outDir,re.sub("\.\w+","",queryFileName,flags=re.IGNORECASE)+"-%s-%s.fasta"%(start,stop))
+        handleOut = open(newQueryFile, "w")
+        toWrite = []
+
+        total = -1
+        for record in SeqIO.parse(handleIn,"fasta") :
+            total += 1
+            if total in range(start,stop+1):
+                toWrite.append(record)
+
+        SeqIO.write(toWrite,handleOut,'fasta')
+        handleIn.close()
+        handleOut.close()
+
+        return newQueryFile
+
+    def run_blastx(self,targetDB,outDir=".",evalue=0.05,
+                   start=None,stop=None):
+        """
+        targetDB - is the protein database to blast against
+        outDir   - a place to put all output files other than cwd
+        evalue   - is the blast evalue
+        start    - index of the first seq
+        stop     - index of the last seq
+
+        """
         
-        """
+        ## error checking
+        outDir = os.path.realpath(outDir)
+        if os.path.isdir(outDir) == False:
+            raise Exception("Output directory does not exist\n%s"%outDir)
+        if start != None and stop == None:
+            raise Exception("'start' and 'stop' must be specified together")
+        if stop != None and start == None:
+            raise Exception("'start' and 'stop' must be specified together")
+
+        outFileName = os.path.split(self.queryFile)[-1]
+        outFile = re.sub("\.\w+","",outFileName,flags=re.IGNORECASE)+".xml"
+
+        ## specify the query file and out file
+        if start != None or stop != None:
+            outFilePath = os.path.join(outDir,re.sub("\.xml","",outFile,flags=re.IGNORECASE)+"-%s-%s.xml"%(start,stop))
+            query = self.get_query_file(outDir,start,stop)
+        else:
+            outFilePath = os.path.join(outDir,outFile)
+            query = self.queryFile
 
         print 'Running blast'
+        timeStart = time.time()
+        blastx_cline = NcbiblastxCommandline(query=query, db=targetDB, evalue=evalue,
+                                             outfmt=5, out=outFilePath,cmd='blastx')
+        stdout, stderr = blastx_cline()
+        print "Total run time: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
 
+if __name__ == "__main__":
 
+    ## read in input file 
+    if len(sys.argv) < 3:
+        print sys.argv[0] + "-f first -l last -q query_file -d database -e evalue -o outdir"
+        sys.exit()
 
+    try:
+        optlist, args = getopt.getopt(sys.argv[1:], 't:')
+    except getopt.GetoptError:
+        print sys.argv[0] + " -t taxa_list"
+        sys.exit()
 
+    first,last,query,database,evalue = None,None,None,None
+    for o,a in optlist:
+        if o == '-f':
+            first = int(a)
+        if o == '-l':
+            last  = int(a)
+        if o == '-q':
+            query = a
+        if o == '-l':
+            database  = a
+        if o == '-e':
+            evalue  = float(a)
+        if o == '-o':
+            outdir  = a
 
-    """
-    ## specify the isotig file path
-    fastaFilePath = os.path.join(os.getenv("HOME"),'research','mobigen','raw_data',"HP10IZV0-12.adaptorcleaner.454Isotigs.fna")
-
-
-    ## count total sequences
-    total = 0
-    handle = open(fastaFilePath, "rU")
-    for record in SeqIO.parse(handle, "fasta") :
-        total+=1
-
-    handle.close()
-    print "Total sequences in FASTA file:", total
-
-    timeStart = time.time()
-    blastx_cline = NcbiblastxCommandline(query=fastaFilePath, db="uniprot_sprot.db", evalue=0.001,
-                                         outfmt=5, out="brassicae-pooled-sprot.xml",cmd='blastx')
-    stdout, stderr = blastx_cline()
-    print "Total run time: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
-    """
+    blast = Blast(query)
+    blast.run_blastx(database,start=first,stop=last,evalue=evalue)

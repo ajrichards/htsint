@@ -58,7 +58,6 @@ The statistical models extensively use the PyMC sampling toolkit.
 
   https://pypi.python.org/pypi/pymc
 
-
 SETUP 
 =====
 
@@ -89,4 +88,8 @@ BLAST
 
   1. ~$ cd /src/blast
   2. ~$ python FetchBlastDBs.py  
+  3. ~$ makeblastdb -in uniprot_trembl.fasta -dbtype prot -out uniprot_trembl
+  4. ~$ makeblastdb -in nr.db -dbtype prot -out nr
+  5. ~$ makeblastdb -in swissprot.db -dbtype prot -out swissprot
 
+These are examples of local databases.  Download and convert any database that fits you user needs.
