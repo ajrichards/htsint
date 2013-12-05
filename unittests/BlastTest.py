@@ -7,12 +7,9 @@ See the README.md file
 
 """
 
-import sys,os,unittest,time,re,time
-import matplotlib as mpl
-if mpl.get_backend() != 'agg':
-    mpl.use('agg')
-
-from htsint import Blast,ParseBlast
+import sys,os,unittest,time,re,shutil
+from Bio import SeqIO
+from htsint import Blast,ParseBlast,ParallelBlast
 
 ## test class for the main window function
 class BlastTest(unittest.TestCase):
@@ -24,19 +21,30 @@ class BlastTest(unittest.TestCase):
         """
         connect to the database
         """
-        
+
         self.queryFile = "opuntia.fasta"
-        self.blast = Blast(self.queryFile)
 
     def testGetQueryFile(self):
         """
         test the function breaks the fasta file in to chunks
         """
+
+        self.blast = Blast(self.queryFile)
+
+        ## index 0 to 2 should return 2 results [0,1]
         start,stop = 0,2
         newQueryFile = self.blast.get_query_file(".",start,stop)
         queryFileName = os.path.split(self.queryFile)[-1]
         queryFilePath = os.path.join(".",re.sub("\.\w+","",queryFileName,flags=re.IGNORECASE)+"-%s-%s.fasta"%(start,stop))
         self.assertTrue(os.path.exists(queryFilePath))
+
+        handleIn = open(newQueryFile, "rU")
+        total = 0
+        for record in SeqIO.parse(handleIn,"fasta") :
+            total += 1
+
+        self.assertEqual(total,2)
+        handleIn.close()
         os.remove(queryFilePath)
 
     def testRunBlastX(self):
@@ -45,6 +53,7 @@ class BlastTest(unittest.TestCase):
         """
      
         ## run the blast
+        self.blast = Blast(self.queryFile)
         outFile = "opuntia-0-2.xml"
         targetDB = "swissprot"
         start,stop = 0,2
@@ -54,11 +63,22 @@ class BlastTest(unittest.TestCase):
         parser = ParseBlast(outFile,resultsDir=".")
         parser.run()
 
-
         ## clean up
         for fn in ["opuntia-0-2_1.csv", "opuntia-0-2_1.log","opuntia-0-2.fasta","opuntia-0-2.xml"]:
             self.assertTrue(os.path.exists(fn))
             os.remove(fn)
+    
+    def testParallelBlast(self):
+        """
+        test that we can create shell scripts to be run in a parallel env
+        """
+
+        parBlast = ParallelBlast(self.queryFile,'swissprot') 
+        parBlast.evalue = 0.05
+        chunks = 3
+        parBlast.create_scripts(chunks,"myemail@somewhere.edu")
+        #parBlast.submit()
+        shutil.rmtree(os.path.join(".","cluster"))
 
 ### Run the tests
 if __name__ == '__main__':

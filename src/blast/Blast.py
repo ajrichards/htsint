@@ -40,7 +40,7 @@ class Blast(object):
     A generic class to run blast
     """
 
-    def __init__(self,queryFile,BLASTDB=None):
+    def __init__(self,queryFile,BLASTDB="/usr/share/blast"):
         """
         Constructor
             queryFile - is a fasta file of sequences
@@ -65,16 +65,22 @@ class Blast(object):
 
         """
 
-        handleIn = open(self.queryFile, "rU")
         queryFileName = os.path.split(self.queryFile)[-1]
         newQueryFile = os.path.join(outDir,re.sub("\.\w+","",queryFileName,flags=re.IGNORECASE)+"-%s-%s.fasta"%(start,stop))
+        handleIn = open(self.queryFile, "rU")
         handleOut = open(newQueryFile, "w")
         toWrite = []
+
+        ## get the total number of queries
+        
+
+        ## we only include the start if it is 0
+        indices = range(start,stop)
 
         total = -1
         for record in SeqIO.parse(handleIn,"fasta") :
             total += 1
-            if total in range(start,stop+1):
+            if total in indices:
                 toWrite.append(record)
 
         SeqIO.write(toWrite,handleOut,'fasta')
@@ -129,12 +135,12 @@ if __name__ == "__main__":
         sys.exit()
 
     try:
-        optlist, args = getopt.getopt(sys.argv[1:], 't:')
+        optlist, args = getopt.getopt(sys.argv[1:], 'f:l:q:d:e:o:')
     except getopt.GetoptError:
-        print sys.argv[0] + " -t taxa_list"
+        raise Exception(sys.argv[0] + "-f first -l last -q query_file -d database -e evalue -o outdir")
         sys.exit()
 
-    first,last,query,database,evalue = None,None,None,None
+    first,last,query,database,evalue = None,None,None,None,None
     for o,a in optlist:
         if o == '-f':
             first = int(a)
@@ -142,12 +148,12 @@ if __name__ == "__main__":
             last  = int(a)
         if o == '-q':
             query = a
-        if o == '-l':
+        if o == '-d':
             database  = a
         if o == '-e':
             evalue  = float(a)
         if o == '-o':
             outdir  = a
 
-    blast = Blast(query)
-    blast.run_blastx(database,start=first,stop=last,evalue=evalue)
+    blast = Blast(query,)
+    blast.run_blastx(database,outDir=outdir,start=first,stop=last,evalue=evalue)

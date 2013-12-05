@@ -15,4 +15,5 @@ from ParseBlast import ParseBlast
 from DatabaseAppend import DatabaseAppend
 from PrimeDatabase import PrimeDatabase
 from Blast import Blast
+from ParallelBlast import ParallelBlast
 from GeneOntology import GeneOntology
