@@ -12,6 +12,7 @@ from EmpiricalCdf import EmpiricalCdf
 from DatabaseTables import Base,Taxon,Gene,Accession,GoTerm,GoAnnotation
 from DatabaseTools import db_connect
 from ParseBlast import ParseBlast
+from ParseParallelBlast import ParseParallelBlast
 from DatabaseAppend import DatabaseAppend
 from PrimeDatabase import PrimeDatabase
 from Blast import Blast

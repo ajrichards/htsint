@@ -60,7 +60,7 @@ class BlastTest(unittest.TestCase):
         self.blast.run_blastx(targetDB,evalue=0.001,start=start,stop=stop)
     
         ## read the blast
-        parser = ParseBlast(outFile,resultsDir=".")
+        parser = ParseBlast(outFile,outDir=".")
         parser.run()
 
         ## clean up
