@@ -10,6 +10,7 @@ See the README.md file
 import sys,os,unittest,time,re,shutil
 from Bio import SeqIO
 from htsint import Blast,ParseBlast,ParallelBlast
+from htsint import __basedir__
 
 ## test class for the main window function
 class BlastTest(unittest.TestCase):
@@ -22,7 +23,7 @@ class BlastTest(unittest.TestCase):
         connect to the database
         """
 
-        self.queryFile = "opuntia.fasta"
+        self.queryFile = os.path.join(os.path.dirname(__file__),"opuntia.fasta")
 
     def testGetQueryFile(self):
         """
