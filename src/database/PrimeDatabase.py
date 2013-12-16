@@ -97,6 +97,34 @@ class PrimeDatabase(object):
             ncbi_id = record[1]
             synonyms = record[4]
 
+            taxID                                 = record[0]
+            GeneID                                = record[1]
+            Symbol                                = record[2]
+            LocusTag                              = record[3]
+            Synonyms                              = record[4]
+            dbXrefs                               = record[5]
+            chromosome                            = record[6]
+            map_location                          = record[7]
+            description                           = record[8]
+            type_of_gene                          = record[9]
+            Symbol_from_nomenclature_authority    = record[10]
+            Full_name_from_nomenclature_authority = record[11]
+            Nomenclature_status                   = record[12]
+            otherDesignations                    = record[13]
+            Modification_date                     = record[14]
+
+            #print "\n"
+            #print "taxID", taxID
+            #print 'GeneID', geneID
+            #print 'Symbol', Symbol
+            #print 'Synonyms', Synonyms
+            #print 'type of gene', type_of_gene
+            #print 'other designations', otherDesignations
+
+            #if otherDesignations != "-":
+            #    print otherDesignations
+            #    sys.exit()
+
             if ncbi_id not in uniqueGeneIds:
                 continue
 
@@ -107,6 +135,9 @@ class PrimeDatabase(object):
         self.push_out("...Genes found      : %s"%len(genesFound))
         self.push_out("...Unique taxa found: %s"%len(uniqueTaxa))
         self.push_out("...Genes not found  : %s"%len(genesNotFound))
+
+        print genesNotFound
+        sys.exit()
 
         ## try to match genes not found to old names
         geneHistoryFile = os.path.join(os.path.split(os.path.abspath(__file__))[0],"gene_history.db")

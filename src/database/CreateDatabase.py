@@ -27,7 +27,7 @@ with the PopulateDatabase.py afterwards.
 ### make imports
 import sys,os,re,time,csv
 from DatabaseTables import Base,Taxon,Gene,Accession,GoTerm,GoAnnotation
-from DatabaseTools import db_connect
+from DatabaseTools import db_connect,get_all_go_taxa
 from DatabaseTools import populate_taxon_table,populate_gene_table,populate_accession_table,populate_go_tables
 from config import CONFIG
 
@@ -51,7 +51,11 @@ Base.metadata.drop_all(engine)
 Base.metadata.create_all(engine) 
 
 ## taxon table
+goTaxa = get_all_go_taxa()
 taxaList = ["7227"] + CONFIG['taxa']
+taxaList = taxaList + goTaxa
+
+push_out("Attempting to populate the database with %s taxa"%(len(taxaList)))
 
 timeStr,addedStr = populate_taxon_table(taxaList,session)
 push_out(timeStr)

@@ -43,12 +43,43 @@ def db_connect(verbose=False):
 
     return session,engine
 
+def get_all_go_taxa():
+    """
+    get the list of all taxa that have gene ontology annotations
+    """
+
+    gene2goFile = os.path.join(os.path.split(os.path.abspath(__file__))[0],"gene2go.db")
+    if os.path.exists(gene2goFile) == False:
+        print "ERROR: populate_gene_table() exiting... could not find geneInfoFile"
+        return
+
+    gene2goFID = open(gene2goFile,'rU')
+    header = gene2goFID.next()
+    totalTerms,totalAnnotations = 0,0
+    timeStart = time.time()
+    toAddTerms = []
+    toAddAnnotations = []
+    allTaxa = set([])
+
+    for record in gene2goFID:
+        record = record.rstrip("\n")
+        record = record.split("\t")
+
+        if re.search("^\#",record[0]) or len(record) != 8:
+            print 'continuing',len(record),record[0]
+            continue
+
+        allTaxa.update([record[0]])
+
+    return list(allTaxa)
+
 def populate_taxon_table(taxonList,session):
     """
     given a list of taxon ids populate the taxon table
     """
 
-    print '\n...populating the taxa table for %s taxa'%len(taxonList)
+    print '\n...populating the taxa table...'
+    taxonList = list(set(taxonList))
     namesFile = os.path.join(os.path.split(os.path.abspath(__file__))[0],"names.dmp")
     if os.path.exists(namesFile) == False:
         print "ERROR: Cannot find names.dmp... exiting"
@@ -57,6 +88,7 @@ def populate_taxon_table(taxonList,session):
     namesFID = open(namesFile,'rU')
     taxaCount = 0
     timeStart = time.time()
+    toAdd = []
 
     for linja in namesFID:
         linja = linja.rstrip("\n")
@@ -86,7 +118,8 @@ def populate_taxon_table(taxonList,session):
         if query == None and scientificName != None:
             taxaCount += 1
             someTaxon = Taxon(taxID,name=scientificName)
-            session.add(someTaxon)
+            #session.add(someTaxon)
+            toAdd.append(someTaxon)
         ## if record exists overwrite 
         elif query != None and scientificName != None:
             taxaCount += 1
@@ -102,6 +135,7 @@ def populate_taxon_table(taxonList,session):
         else:
             continue
 
+    session.add_all(toAdd)
     session.commit()
     namesFID.close()
     timeStr = "...total time taken: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
@@ -113,7 +147,7 @@ def populate_gene_table(taxonList,session):
     given a list of taxon ids populate the gene table
     """
     
-    print '\n...populating the genes table for %s taxa'%len(taxonList)
+    print '\n...populating the genes table for taxa'
 
     ## check that all of the taxa are in the taxon table
     for taxID in taxonList:
@@ -126,12 +160,13 @@ def populate_gene_table(taxonList,session):
     ## update the gene table
     print "...reading original gene_info file"
     print "...this may take some time"
-    
+    taxonList = list(set(taxonList))
     geneInfoFile = os.path.join(os.path.split(os.path.abspath(__file__))[0],"gene_info.db")
     if os.path.exists(geneInfoFile) == False:
         print "ERROR: populate_gene_table() exiting... could not find geneInfoFile"
         return
 
+    toAdd = []
     geneInfoFID = open(geneInfoFile,'rU')
     header = geneInfoFID.next()
     totalRecords = 0
@@ -165,7 +200,7 @@ def populate_gene_table(taxonList,session):
         if queryGene == None:
             totalRecords += 1
             someGene = Gene(ncbi_id,description,symbol,chromosome,map_location,synonyms,taxa_id)
-            session.add(someGene)
+            toAdd.append(someGene)
         ### if record exists overwrite 
         elif queryGene != None:
             taxaCount += 1
@@ -177,6 +212,7 @@ def populate_gene_table(taxonList,session):
             queryGene.synonyms = synonyms
             queryGene.taxa_id = taxa_id
 
+    session.add_all(toAdd)
     session.commit()
     geneInfoFID.close()
     timeStr = "...total time taken: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
@@ -189,6 +225,7 @@ def populate_accession_table(taxonList,session):
     """
     
     print '\n...populating the accession table'
+    taxonList = list(set(taxonList))
     ## check that all of the taxa are in the taxon table
     for taxID in taxonList:
         query = session.query(Taxon).filter_by(ncbi_id=taxID).first()
@@ -210,6 +247,7 @@ def populate_accession_table(taxonList,session):
     header = gene2AccFID.next()
     totalRecords = 0
     timeStart = time.time()
+    toAdd = []
 
     for record in gene2AccFID:
         record = record.rstrip("\n")
@@ -244,8 +282,9 @@ def populate_accession_table(taxonList,session):
         totalRecords += 1
         someAccession = Accession(status,rna_nucleo_gi,protein_gi,genomic_nucleo_gi,genomic_start,
                                   genomic_stop,orientation,assembly,gene_ncbi_id)
-        session.add(someAccession)
+        toAdd.append(someAccession)
 
+    session.add_all(toAdd)
     session.commit()
     gene2AccFID.close()
     timeStr = "...total time taken: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
@@ -258,8 +297,9 @@ def populate_go_tables(taxonList,session):
     given a list of taxon ids populate the go tables
     """
     
-    print '\n...populating the genes table for %s taxa'%len(taxonList)
-    
+    print '\n...populating the genes table for taxa'
+    taxonList = list(set(taxonList))
+
     ## check that all of the taxa are in the taxon table
     for taxID in taxonList:
         query = session.query(Taxon).filter_by(ncbi_id=taxID).first()
@@ -271,7 +311,6 @@ def populate_go_tables(taxonList,session):
     ## update the gene table
     print "...reading original gene2go file"
     print "...this may take some time"
-
     gene2goFile = os.path.join(os.path.split(os.path.abspath(__file__))[0],"gene2go.db")
     if os.path.exists(gene2goFile) == False:
         print "ERROR: populate_gene_table() exiting... could not find geneInfoFile"
@@ -281,6 +320,8 @@ def populate_go_tables(taxonList,session):
     header = gene2goFID.next()
     totalTerms,totalAnnotations = 0,0
     timeStart = time.time()
+    toAddTerms = []
+    toAddAnnotations = []
 
     for record in gene2goFID:
         record = record.rstrip("\n")
@@ -315,15 +356,17 @@ def populate_go_tables(taxonList,session):
         if queryTerm == None:
             totalTerms += 1
             someTerm = GoTerm(go_id,go_aspect,go_term_description)
-            session.add(someTerm)
+            toAddTerms.append(someTerm)
             queryTerm = session.query(GoTerm).filter_by(go_id=go_id).first()
         
         ## add the annotation
         totalAnnotations+=1
         go_term_id = queryTerm.id
         someAnnotation = GoAnnotation(go_term_id,evidence_code,pubmed_refs,gene_id,taxa_id)
-        session.add(someAnnotation)
+        toAddAnnotations.append(someAnnotation)
 
+    session.add_all(toAddTerms)
+    session.add_all(toAddAnnotations)
     session.commit()
     gene2goFID.close()
     timeStr = "...total time taken: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
