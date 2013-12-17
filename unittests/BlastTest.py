@@ -65,9 +65,9 @@ class BlastTest(unittest.TestCase):
         parser.run()
 
         ## clean up
-        #for fn in ["adh-0-2_1.csv", "adh-0-2_1.log","adh-0-2.fasta","adh-0-2.xml"]:
-        #    self.assertTrue(os.path.exists(fn))
-        #    os.remove(fn)
+        for fn in ["adh-0-2_1.csv", "adh-0-2_1.log","adh-0-2.fasta","adh-0-2.xml"]:
+            self.assertTrue(os.path.exists(fn))
+            os.remove(fn)
     
     def testParallelBlast(self):
         """

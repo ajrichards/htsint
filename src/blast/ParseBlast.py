@@ -7,6 +7,13 @@ ParseBlast.py
     can pass file handles for results files 
     instead of file paths if running over 
     multiple files
+
+
+    BLAST against the swissprot database and it returns the protein gi number
+    BLAST against the nr database and it returns the protein gi number
+    
+    The identifier in the results is relevant to the target database.
+
 """
 
 ### make imports
@@ -46,7 +53,7 @@ class ParseBlast(object):
             summaryFilePath = os.path.join(outDir,'%s_1.csv'%re.sub("\.xml","",fileName))
             self.fid2 = open(summaryFilePath,'w')
             self.resultsWriter = csv.writer(self.fid2)
-            self.resultsWriter.writerow(["query","query_length","accession","e-score","bit-score"])
+            self.resultsWriter.writerow(["query","identifier","hit-id","e-score","bit-score"])
         else:
             self.resultsWriter = fhResults
 
@@ -77,22 +84,14 @@ class ParseBlast(object):
             totalResults += 1
             print "\rparsing... %s"%(totalResults),
             if record.alignments:
-                query =  re.split("\s+",record.query)
-                #print query
-                #sys.exit()
-                #queryContig = re.sub("\s+","",query[0])
-                #queryIsogroup = re.sub("\s+","",re.split("\=",query[1])[1])
-                #queryLength   = re.sub("\s+","",re.split("\=",query[2])[1])
-                #print dir(record.alignments[0])
-                queryLength = "nan"
-                bestAccession = record.alignments[0].accession
-                bestEscore = record.alignments[0].hsps[0].expect
-                bestBitScore =  record.alignments[0].hsps[0].score
-                print 'blah1', record.alignments[0].title
-                print 'blah2', record.alignments[0].hit_id
-                print 'blah3', record.alignments[0].hit_def
-
-                self.resultsWriter.writerow([query,bestAccession,bestEscore,bestBitScore])
+                query = record.query
+                identifier = record.alignments[0].accession
+                hitID = record.alignments[0].hit_id
+                escore = record.alignments[0].hsps[0].expect
+                bitScore =  record.alignments[0].hsps[0].score
+                
+                ## remove any commas and write the results
+                self.resultsWriter.writerow([re.sub(",", "", x) for x in [query,str(identifier),hitID]] + [escore,bitScore])
                 hasResults += 1
 
         self.push_out("total blasted sequences: %s"%totalResults)
