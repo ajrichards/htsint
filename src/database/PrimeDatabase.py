@@ -7,6 +7,11 @@ See CreateDatabase.py before running PrimeDatabase.py
     been added previously.
 
 A logfile of the output is automatically created
+
+
+This script in addition to priming the database will map 
+all of the identifiers (e.g. protein gi) to a gene_id
+
 """
 
 ### make imports
@@ -14,6 +19,7 @@ import sys,os,re,time,csv,getopt
 from DatabaseTables import Base,Taxon,Gene,Accession,GoTerm,GoAnnotation
 from DatabaseTools import db_connect
 from DatabaseAppend import DatabaseAppend
+from ConversionTools import convert_gene_ids
 
 class PrimeDatabase(object):
     """
@@ -37,7 +43,7 @@ class PrimeDatabase(object):
         summaryFilePath = os.path.join(resultsDir,re.sub("\_1","_2",fileName))
         self.fid2 = open(summaryFilePath,'w')
         self.resultsWriter = csv.writer(self.fid2)
-        self.resultsWriter.writerow(["query_contig","query_isogroup","query_length","accession","e-score","bit-score","gene_id"])
+        self.resultsWriter.writerow(["query","hit-identifier","hit-identifier-long","e-score","bit-score","gene_id"])
 
     def push_out(self,line):
         """
@@ -47,7 +53,14 @@ class PrimeDatabase(object):
         self.writer.writerow([line])
         print line
 
-    def run(self):
+    def run_protein_gi(self):
+        """
+        assumes the hit identifier from the BLAST results was a
+        protein gi identifier.
+
+        The gene id match is found when possible.
+        """
+
         self.push_out(sys.argv[0])
         self.push_out(time.asctime())
         self.push_out("Connecting to the database...")
@@ -62,116 +75,71 @@ class PrimeDatabase(object):
         reader = csv.reader(fid3)
         header = reader.next()
         total = 0
-        uniqueGeneIds = set([])
+        uniqueGIs = set([])
+        uniqueGenes = set([])
+        giDict = {}
 
         for linja in reader:
-            queryContig = linja[0]
-            queryIsogroup = linja[1]
-            queryLength = linja[2]
-            geneID = re.sub("\s","",linja[3])
-            eScore = linja[4]
-            bitScore = linja[5]
-            uniqueGeneIds.update([geneID])
+            query = linja[0]
+            hitIdentifier = int(linja[1])
+            hitIdentifierLong = (linja[2])
+            eScore = linja[3]
+            bitScore = linja[4]
+
+            ## regular expression to get the gi identifier
+            m = re.findall("gi\|[0-9]+",hitIdentifierLong)
+            giId = int(m[0][3:])
+
+            uniqueGIs.update([giId])
             total += 1
+
+            giDict[giId] = hitIdentifierLong
+
         fid3.close()
-        self.push_out("Total gene ids: %s"%total)
-        self.push_out("Unique gene ids: %s"%len(uniqueGeneIds))
+        self.push_out("Total protein gi identifiers: %s"%total)
+        self.push_out("Unique protein gi identifiers: %s"%len(uniqueGIs))
 
-        geneInfoFile = os.path.join(os.path.split(os.path.abspath(__file__))[0],"gene_info.db")
-        if os.path.exists(geneInfoFile) == False:
-            raise Exception("ERROR: cannot find gene info file")
+        ## read the gene2accesion file to map to the protein gi to a gene id
+        gene2AccFile = os.path.join(os.path.split(os.path.abspath(__file__))[0],"gene2accession.db")
+        if os.path.exists(gene2AccFile) == False:
+            print "ERROR: populate_accession_table() exiting... could not find gene2AccFile"
+            return
 
-        geneInfoFID = open(geneInfoFile,'rU')
-        header = geneInfoFID.next()
+        gene2AccFID = open(gene2AccFile,'rU')
+        header = gene2AccFID.next()
         uniqueTaxa = set([])
-        genesFound = set([])
+        gisFound = set([])
+        gi2gene = {}
 
-        for record in geneInfoFID:
+        for record in gene2AccFID:
             record = record.rstrip("\n")
             record = record.split("\t")
-    
-            if re.search("^\#",record[0]) or len(record) != 15:
+
+            if re.search("^\#",record[0]) or len(record) != 16:
                 continue
 
             taxID = record[0]
-            ncbi_id = record[1]
-            synonyms = record[4]
+            gene_id = int(record[1])
+            protein_gi = record[6]
 
-            taxID                                 = record[0]
-            GeneID                                = record[1]
-            Symbol                                = record[2]
-            LocusTag                              = record[3]
-            Synonyms                              = record[4]
-            dbXrefs                               = record[5]
-            chromosome                            = record[6]
-            map_location                          = record[7]
-            description                           = record[8]
-            type_of_gene                          = record[9]
-            Symbol_from_nomenclature_authority    = record[10]
-            Full_name_from_nomenclature_authority = record[11]
-            Nomenclature_status                   = record[12]
-            otherDesignations                    = record[13]
-            Modification_date                     = record[14]
+            if protein_gi == '-':
+                continue
 
-            #print "\n"
-            #print "taxID", taxID
-            #print 'GeneID', geneID
-            #print 'Symbol', Symbol
-            #print 'Synonyms', Synonyms
-            #print 'type of gene', type_of_gene
-            #print 'other designations', otherDesignations
+            protein_gi = int(protein_gi)
 
-            #if otherDesignations != "-":
-            #    print otherDesignations
-            #    sys.exit()
-
-            if ncbi_id not in uniqueGeneIds:
+            if protein_gi not in uniqueGIs:
                 continue
 
             uniqueTaxa.update([taxID])
-            genesFound.update([ncbi_id])
+            gisFound.update([protein_gi])
+            gi2gene[protein_gi] = gene_id
 
-        genesNotFound = uniqueGeneIds.difference(genesFound)    
-        self.push_out("...Genes found      : %s"%len(genesFound))
-        self.push_out("...Unique taxa found: %s"%len(uniqueTaxa))
-        self.push_out("...Genes not found  : %s"%len(genesNotFound))
+            #print "FOUND: ", protein_gi
+            #print giDict[protein_gi]
+            #print "We have one!", protein_gi
+            #sys.exit()
 
-        print genesNotFound
-        sys.exit()
-
-        ## try to match genes not found to old names
-        geneHistoryFile = os.path.join(os.path.split(os.path.abspath(__file__))[0],"gene_history.db")
-        if os.path.exists(geneHistoryFile) == False:
-            raise Exception("cannot find gene history file")
-            
-        geneHistoryFID = open(geneHistoryFile,'rU')
-        header = geneHistoryFID.next()
-        oldNameMatches = {}
-        for record in geneHistoryFID:
-            record = record.rstrip("\n")
-            record = record.split("\t")
-    
-            if re.search("^\#",record[0]):
-                continue
-
-            tax_id = record[0]
-            geneID = record[1]
-            discontinuedGeneID = record[2]
-
-            if discontinuedGeneID == '-':
-                continue
-
-            if discontinuedGeneID in genesNotFound:
-                if geneID == '-':
-                    geneID = "no_longer_exists"
-
-                oldNameMatches[discontinuedGeneID] = geneID
-                uniqueTaxa.update([tax_id])
-
-        self.push_out("...of the genes not found %s were updated to current names"%len(oldNameMatches.keys()))
-        totalFound = len(genesFound) + len(oldNameMatches.values())
-        self.push_out("...of the original %s unique genes %s were matched to well-documented ids"%(len(uniqueGeneIds),totalFound))
-        self.push_out("The updated number of unique taxa to add to the db is %s"%len(uniqueTaxa))
+        taxaList = convert_gene_ids(gi2gene.values(),'taxid')
 
         ## write the new results summary file with up2date names
         self.push_out("Reading the parsed results file...")
@@ -181,18 +149,22 @@ class PrimeDatabase(object):
         header = reader.next()
 
         for linja in reader:
-            geneID = re.sub("\s","",linja[3])
-
-            if oldNameMatches.has_key(geneID):
-                self.resultsWriter.writerow(linja+[oldNameMatches[geneID]])
+            hitIdentifierLong = (linja[2])
+            m = re.findall("gi\|[0-9]+",hitIdentifierLong)
+            gi = int(m[0][3:])
+            if gi2gene.has_key(gi) == True:
+                self.resultsWriter.writerow(linja+[gi2gene[gi]])
             else:
-                self.resultsWriter.writerow(linja+[geneID])
+                self.resultsWriter.writerow(linja+['-'])
+
         fid3.close()
         self.push_out("New results file has been written.")
 
         ## use DatabaseAppend to append to database
         self.push_out("Getting ready to prime database...")
+        uniqueTaxa = list(set(taxaList))
         self.push_out(list(uniqueTaxa))
+
         da = DatabaseAppend(list(uniqueTaxa))
         da.run()
 

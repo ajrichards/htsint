@@ -57,6 +57,7 @@ taxaList = taxaList + goTaxa
 
 push_out("Attempting to populate the database with %s taxa"%(len(taxaList)))
 
+## taxa table
 timeStr,addedStr = populate_taxon_table(taxaList,session)
 push_out(timeStr)
 push_out(addedStr)

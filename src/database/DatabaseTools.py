@@ -4,7 +4,7 @@ These are helper scripts to populate the database
 """
 
 ### make imports
-import sys,os,re,time
+import sys,os,re,time,csv
 import sqlalchemy
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -73,6 +73,37 @@ def get_all_go_taxa():
 
     return list(allTaxa)
 
+
+def print_go_summary(outfile=os.path.join(".","go_summary.csv")):
+    """
+    print a summary about the organisms with gene ontology information
+    """
+
+    session,engine = db_connect()
+    goTaxa = get_all_go_taxa()
+    fid = open(outfile,'w')
+    writer = csv.writer(fid)
+    writer.writerow(["ncbi_id","name","common_name","total_genes","total_annotations"])
+
+    for taxa in goTaxa:
+        taxQuery = session.query(Taxon).filter_by(ncbi_id=taxa).first()
+        geneQuery = session.query(Gene).filter_by(taxa_id=taxQuery.id)
+        annotQuery = session.query(GoAnnotation).filter_by(taxa_id=taxQuery.id)
+        
+        print "..."
+        print "TaxID:       %s"%taxQuery.ncbi_id
+        print "Species:     %s"%taxQuery.name
+        print "Common Name 1: %s"%taxQuery.common_name_1
+        print "Common Name 2: %s"%taxQuery.common_name_2
+        print "Common Name 3: %s"%taxQuery.common_name_3
+        print "Num. Genes:  %s"%geneQuery.count()
+        print "Num. GO Annotations:  %s"%annotQuery.count()
+
+        writer.writerow([taxQuery.ncbi_id,taxQuery.name,taxQuery.common_name_1,
+                         geneQuery.count(),annotQuery.count()])
+
+    fid.close()
+
 def populate_taxon_table(taxonList,session):
     """
     given a list of taxon ids populate the taxon table
@@ -118,8 +149,7 @@ def populate_taxon_table(taxonList,session):
         if query == None and scientificName != None:
             taxaCount += 1
             someTaxon = Taxon(taxID,name=scientificName)
-            #session.add(someTaxon)
-            toAdd.append(someTaxon)
+            session.add(someTaxon)
         ## if record exists overwrite 
         elif query != None and scientificName != None:
             taxaCount += 1
@@ -135,7 +165,6 @@ def populate_taxon_table(taxonList,session):
         else:
             continue
 
-    session.add_all(toAdd)
     session.commit()
     namesFID.close()
     timeStr = "...total time taken: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
@@ -212,6 +241,10 @@ def populate_gene_table(taxonList,session):
             queryGene.synonyms = synonyms
             queryGene.taxa_id = taxa_id
 
+        if len(toAdd) > 10000:
+            session.add_all(toAdd)
+            toAdd = []
+
     session.add_all(toAdd)
     session.commit()
     geneInfoFID.close()
@@ -284,6 +317,10 @@ def populate_accession_table(taxonList,session):
                                   genomic_stop,orientation,assembly,gene_ncbi_id)
         toAdd.append(someAccession)
 
+        if len(toAdd) > 1000:
+            session.add_all(toAdd)
+            toAdd = []
+
     session.add_all(toAdd)
     session.commit()
     gene2AccFID.close()
@@ -296,8 +333,8 @@ def populate_go_tables(taxonList,session):
     """
     given a list of taxon ids populate the go tables
     """
-    
-    print '\n...populating the genes table for taxa'
+
+    print '\n...populating the go term and annotation tables for taxa'
     taxonList = list(set(taxonList))
 
     ## check that all of the taxa are in the taxon table
@@ -320,7 +357,6 @@ def populate_go_tables(taxonList,session):
     header = gene2goFID.next()
     totalTerms,totalAnnotations = 0,0
     timeStart = time.time()
-    toAddTerms = []
     toAddAnnotations = []
 
     for record in gene2goFID:
@@ -356,16 +392,19 @@ def populate_go_tables(taxonList,session):
         if queryTerm == None:
             totalTerms += 1
             someTerm = GoTerm(go_id,go_aspect,go_term_description)
-            toAddTerms.append(someTerm)
+            session.add(someTerm)
             queryTerm = session.query(GoTerm).filter_by(go_id=go_id).first()
-        
+
         ## add the annotation
         totalAnnotations+=1
         go_term_id = queryTerm.id
         someAnnotation = GoAnnotation(go_term_id,evidence_code,pubmed_refs,gene_id,taxa_id)
         toAddAnnotations.append(someAnnotation)
 
-    session.add_all(toAddTerms)
+        if len(toAddAnnotations) > 1000:
+            session.add_all(toAddAnnotations)
+            toAddAnnotations = []
+
     session.add_all(toAddAnnotations)
     session.commit()
     gene2goFID.close()

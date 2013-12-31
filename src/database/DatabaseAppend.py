@@ -44,12 +44,16 @@ class DatabaseAppend(object):
 
         taxaList = []
         for taxID in self.taxaList:
+            if not re.search("\d",str(taxID)) or re.search("\D",str(taxID)):
+                print("The taxon %s is not a valid one skipping..."%taxID)
+                continue
             query = self.session.query(Taxon).filter_by(ncbi_id=taxID).first()
             if query == None:
                 taxaList.append(taxID)
             else:
                 print("The taxon %s is already present in the database skipping..."%taxID)
 
+        print 'list', taxaList
         self.taxaList = taxaList
 
         if len(self.taxaList) == 0:
@@ -57,7 +61,7 @@ class DatabaseAppend(object):
             return False
         else:
             return True
-            
+    
     def run(self):
         """
         runs DatabaseAppend

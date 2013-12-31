@@ -10,7 +10,8 @@ sys.path.append(os.path.join(__basedir__,'stats'))
 sys.path.append(os.path.join(__basedir__,'blast'))
 from EmpiricalCdf import EmpiricalCdf
 from DatabaseTables import Base,Taxon,Gene,Accession,GoTerm,GoAnnotation
-from DatabaseTools import db_connect
+from DatabaseTools import db_connect,get_all_go_taxa,print_go_summary
+from ConversionTools import convert_gene_ids
 from ParseBlast import ParseBlast
 from ParseParallelBlast import ParseParallelBlast
 from DatabaseAppend import DatabaseAppend

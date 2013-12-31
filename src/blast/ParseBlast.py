@@ -8,7 +8,6 @@ ParseBlast.py
     instead of file paths if running over 
     multiple files
 
-
     BLAST against the swissprot database and it returns the protein gi number
     BLAST against the nr database and it returns the protein gi number
     
@@ -53,7 +52,7 @@ class ParseBlast(object):
             summaryFilePath = os.path.join(outDir,'%s_1.csv'%re.sub("\.xml","",fileName))
             self.fid2 = open(summaryFilePath,'w')
             self.resultsWriter = csv.writer(self.fid2)
-            self.resultsWriter.writerow(["query","identifier","hit-id","e-score","bit-score"])
+            self.resultsWriter.writerow(["query","hit-identifier","hit-identifier-long","e-score","bit-score"])
         else:
             self.resultsWriter = fhResults
 
@@ -86,12 +85,12 @@ class ParseBlast(object):
             if record.alignments:
                 query = record.query
                 identifier = record.alignments[0].accession
-                hitID = record.alignments[0].hit_id
+                hitIdLong = record.alignments[0].title
                 escore = record.alignments[0].hsps[0].expect
                 bitScore =  record.alignments[0].hsps[0].score
                 
                 ## remove any commas and write the results
-                self.resultsWriter.writerow([re.sub(",", "", x) for x in [query,str(identifier),hitID]] + [escore,bitScore])
+                self.resultsWriter.writerow([re.sub(",", "", x) for x in [query,str(identifier),hitIdLong]] + [escore,bitScore])
                 hasResults += 1
 
         self.push_out("total blasted sequences: %s"%totalResults)
