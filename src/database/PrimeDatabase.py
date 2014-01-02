@@ -165,7 +165,7 @@ class PrimeDatabase(object):
         uniqueTaxa = list(set(taxaList))
         self.push_out(list(uniqueTaxa))
 
-        da = DatabaseAppend(list(uniqueTaxa))
+        da = DatabaseAppend(list(uniqueTaxa),force=True)
         da.run()
 
         self.push_out("DATABASE - SUMMARY")

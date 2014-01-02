@@ -55,27 +55,32 @@ class GeneOntology(object):
         if taxQuery == None:
             raise Exception("Taxon:%s not found in database"%taxID)
         
-    def print_summary(self):
+    def print_summary(self,show=True):
         """
         Print a summary of all Gene Ontology related information in database
         """
 
-        if self.taxID != None:
-            print "\nSummary"
-            print "----------------------------------"
-            print "TaxID:       %s"%self.taxQuery.ncbi_id
-            print "Species:     %s"%self.taxQuery.name
-            print "Common Name: %s"%self.taxQuery.common_name_1
-            print "Num. Genes:  %s"%self.geneQuery.count()
-            print "Num. GO Annotations:  %s"%self.annotQuery.count()
-            print "\n"
-        else:
-            print "\nSummary"
-            print "----------------------------------"
-            print "TaxID:       mixed taxa"
-            print "Num. Genes:  %s"%len(self.geneList)
-            print "\n"
+        if self.taxID != None:        
+            summary = "\nSummary"
+            summary += "\n----------------------------------"
+            summary += "\nTaxID:       %s"%self.taxQuery.ncbi_id
+            summary += "\nSpecies:     %s"%self.taxQuery.name
+            summary += "\nCommon Name: %s"%self.taxQuery.common_name_1
+            summary += "\nNum. Genes:  %s"%self.geneQuery.count()
+            summary += "\nNum. GO Annotations:  %s"%self.annotQuery.count()
+            summary += "\n"
 
+        else:
+            summary = "\nSummary"
+            summary += "\n----------------------------------"
+            summary += "\nTaxID:       mixed taxa"
+            summary += "\nNum. Genes:  %s"%len(self.geneList)
+            summary += "\n"
+
+        if show == True:
+            print summary
+
+        return summary
 
     def get_terms(self,aspect='biological_process'):
         """
@@ -175,6 +180,7 @@ class GeneOntology(object):
         The genes have to be present in the database
         """
 
+        print '...creating gograph'
         ## error checking
         if aspect not in ['biological_process','molecular_function','cellular_component']:
             raise Exception("Invalid aspect specified%s"%aspect)
@@ -191,11 +197,40 @@ class GeneOntology(object):
 
         print "...creating go term graph -- this may take several minutes or hours depending on the number of genes"
         
-        ## calculate the information content for each term -ln(p(term))
+        ## calculate the term-term edges using term IC (-ln(p(term)))
         edgeDict = self.get_weights_by_ic(goDict,go2gene)
 
+        ## terms without distances set to max
+        print "...finding term-term distances"
+        allDistances = np.array(edgeDict.values())
+        maxDistance = allDistances.max()
+        for parent,children in goDict.iteritems():
+            for child in list(children):
+                if edgeDict.has_key(parent+"#"+child) or edgeDict.has_key(child+"#"+parent):
+                    continue
+                edgeDict[parent+"#"+child] = maxDistance
+
+        ## add the edges through shared genes
+        print '...adding term-term edges through shared genes'
+        eCDF = EmpiricalCdf(allDistances)
+        p5 = eCDF.get_percentile(0.05) 
+        newEdges = 0
+        for termI,genesI in go2gene.iteritems():
+            for termJ,genesJ in go2gene.iteritems():
+
+                if edgeDict.has_key(termI+"#"+termJ) or edgeDict.has_key(termJ+"#"+termI):
+                    continue
+
+                sharedGenes = len(list(set(genesI).intersection(set(genesJ))))
+                if sharedGenes == 0:
+                    continue
+
+                ## add new edge in both directions
+                edgeDict[termI+"#"+termJ] = float(p5) / float(sharedGenes)
+                newEdges += 1
+
         ## initialize the graph
-        G = nx.DiGraph()
+        G = nx.Graph()
         for nodes,weight in edgeDict.iteritems():
             parent,child = nodes.split("#")
             G.add_edge(parent,child,weight=weight)
@@ -216,7 +251,6 @@ class GeneOntology(object):
         print "...... terms", len(go2gene.keys())
 
         total = 0
-        allDistances = []
         for term,genes in go2gene.iteritems():
             total += len(genes)
 
@@ -233,38 +267,8 @@ class GeneOntology(object):
                 childIC = -np.log(float(len(list(go2gene[child])))  / float(total))
                 distance = np.abs(parentIC - childIC)
                 edgeDict[parent+"#"+child] = distance
-                allDistances.append(distance)
-
-        ## terms without distances set to max
-        maxDistance = np.array(allDistances).max()
-        for parent,children in goDict.iteritems():
-            for child in list(children):
-                if edgeDict.has_key(parent+"#"+child) or edgeDict.has_key(child+"#"+parent):
-                    continue
-                edgeDict[parent+"#"+child] = maxDistance
-
-        ## add the edges through shared genes
-        eCDF = EmpiricalCdf(allDistances)
-        p5 = eCDF.get_percentile(0.05) 
-        newEdges = 0
-        for termI,genesI in go2gene.iteritems():
-            for termJ,genesJ in go2gene.iteritems():
-
-                if edgeDict.has_key(termI+"#"+termJ) or edgeDict.has_key(termJ+"#"+termI):
-                    continue
-
-                sharedGenes = len(list(set(genesI).intersection(set(genesJ))))
-                if sharedGenes == 0:
-                    continue
-
-                ## add new edge in both directions
-                edgeDict[termI+"#"+termJ] = float(p5) / float(sharedGenes)
-                newEdges += 1
-
-        print 'added %s term-gene-term edges'%newEdges
-        print 'total in dict', len(edgeDict.keys())
+        
         return edgeDict
-
 
 if __name__ == "__main__":
     """

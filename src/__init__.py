@@ -19,3 +19,4 @@ from PrimeDatabase import PrimeDatabase
 from Blast import Blast
 from ParallelBlast import ParallelBlast
 from GeneOntology import GeneOntology
+from GeneDistances import GeneDistances

@@ -4,6 +4,7 @@ library of functions for use with the GeneOntology class
 """
 
 import os,re
+import networkx as nx
 from htsint import __basedir__
 
 def get_ontology_file():

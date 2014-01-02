@@ -25,7 +25,10 @@ class DatabaseAppend(object):
     appends taxa to the existing database
     """
     
-    def __init__(self,taxa,resultsDir="."):
+    def __init__(self,taxa,resultsDir=".",force=False):
+
+        ## variables
+        self.force = force
 
         ## error checking
         if type(taxa) != type([]) or len(taxa) == 0:
@@ -33,8 +36,8 @@ class DatabaseAppend(object):
 
         ## conect to the database
         self.session,self.engine = db_connect(verbose=False)
-        print("Appending to database...")
 
+        print("Appending to database...")
         self.taxaList = list(set(taxa))
 
     def is_valid_list(self):
@@ -47,13 +50,15 @@ class DatabaseAppend(object):
             if not re.search("\d",str(taxID)) or re.search("\D",str(taxID)):
                 print("The taxon %s is not a valid one skipping..."%taxID)
                 continue
+            if self.force == True:
+                taxaList.append(taxID)
+                continue
             query = self.session.query(Taxon).filter_by(ncbi_id=taxID).first()
             if query == None:
                 taxaList.append(taxID)
             else:
                 print("The taxon %s is already present in the database skipping..."%taxID)
 
-        print 'list', taxaList
         self.taxaList = taxaList
 
         if len(self.taxaList) == 0:

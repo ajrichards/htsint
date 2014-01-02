@@ -18,7 +18,7 @@ from htsint import Blast
 class ParallelBlast(object):
     
     def __init__(self,queryFile,database,BLASTDB=None,resultsDir=os.path.join(".","cluster")):
-        """                                                                                                                                                                                                       
+        """ 
         Constructor
         queryFile - is a fasta file of sequences
         resultsDir - is a directory that is purged and filled

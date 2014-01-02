@@ -99,6 +99,9 @@ def print_go_summary(outfile=os.path.join(".","go_summary.csv")):
         print "Num. Genes:  %s"%geneQuery.count()
         print "Num. GO Annotations:  %s"%annotQuery.count()
 
+        if taxQuery.common_name_1 == '':
+            taxQuery.common_name_1 = 'None'
+
         writer.writerow([taxQuery.ncbi_id,taxQuery.name,taxQuery.common_name_1,
                          geneQuery.count(),annotQuery.count()])
 
@@ -109,8 +112,8 @@ def populate_taxon_table(taxonList,session):
     given a list of taxon ids populate the taxon table
     """
 
-    print '\n...populating the taxa table...'
-    taxonList = list(set(taxonList))
+    print '\n...populating the taxa table for %s taxa...'%(len(taxonList))
+    taxonList = list(set([str(tax) for tax in taxonList]))
     namesFile = os.path.join(os.path.split(os.path.abspath(__file__))[0],"names.dmp")
     if os.path.exists(namesFile) == False:
         print "ERROR: Cannot find names.dmp... exiting"
@@ -175,8 +178,9 @@ def populate_gene_table(taxonList,session):
     """
     given a list of taxon ids populate the gene table
     """
-    
-    print '\n...populating the genes table for taxa'
+
+    taxonList = list(set([str(tax) for tax in taxonList]))
+    print '\n...populating the genes table for %s taxa'%len(taxonList)
 
     ## check that all of the taxa are in the taxon table
     for taxID in taxonList:
@@ -232,7 +236,6 @@ def populate_gene_table(taxonList,session):
             toAdd.append(someGene)
         ### if record exists overwrite 
         elif queryGene != None:
-            taxaCount += 1
             queryGene.ncbi_id = ncbi_id
             queryGene.description = description
             queryGene.symbol = symbol
@@ -258,7 +261,8 @@ def populate_accession_table(taxonList,session):
     """
     
     print '\n...populating the accession table'
-    taxonList = list(set(taxonList))
+    taxonList = list(set([str(tax) for tax in taxonList]))
+
     ## check that all of the taxa are in the taxon table
     for taxID in taxonList:
         query = session.query(Taxon).filter_by(ncbi_id=taxID).first()
@@ -335,7 +339,7 @@ def populate_go_tables(taxonList,session):
     """
 
     print '\n...populating the go term and annotation tables for taxa'
-    taxonList = list(set(taxonList))
+    taxonList = list(set([str(tax) for tax in taxonList]))
 
     ## check that all of the taxa are in the taxon table
     for taxID in taxonList:
