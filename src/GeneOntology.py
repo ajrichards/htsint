@@ -1,8 +1,8 @@
 import sys,os,cPickle
 import numpy as np
 import networkx as nx
-from htsint import Base,Taxon,Gene,Accession,GoTerm,GoAnnotation,db_connect
-from htsint import EmpiricalCdf
+from htsint.database import Base,Taxon,Gene,Accession,GoTerm,GoAnnotation,db_connect
+from htsint.stats import EmpiricalCdf
 from GeneOntologyLib import *
 
 """

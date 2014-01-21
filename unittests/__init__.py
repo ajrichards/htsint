@@ -30,6 +30,6 @@ GeneOntologyTestSuite = unittest.TestLoader().loadTestsFromTestCase(GeneOntology
 GeneOntologySuite = unittest.TestSuite([GeneOntologyTestSuite])
 
 ## Blast Tests
-from BlastTest import *
-BlastTestSuite = unittest.TestLoader().loadTestsFromTestCase(BlastTest)
-BlastSuite = unittest.TestSuite([BlastTestSuite])
+#from BlastTest import *
+#BlastTestSuite = unittest.TestLoader().loadTestsFromTestCase(BlastTest)
+#BlastSuite = unittest.TestSuite([BlastTestSuite])

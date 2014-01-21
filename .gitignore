@@ -70,3 +70,16 @@ src/database/createdb.log
 src/database/dbschema.png
 src/database/fetchgo.log
 src/database/go.obo
+
+## blast directory
+src/blast/nr.db
+src/blast/nr.gz
+src/blast/nt.db
+src/blast/nt.gz
+src/blast/swissprot.db
+src/blast/swissprot.gz
+src/blast/uniprot_trembl.fasta
+src/blast/uniprot_trembl.fasta.gz
+
+## stats directory
+src/stats/spectral-clustering-test.png

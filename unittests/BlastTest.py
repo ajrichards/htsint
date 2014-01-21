@@ -9,7 +9,7 @@ See the README.md file
 
 import sys,os,unittest,time,re,shutil
 from Bio import SeqIO
-from htsint import Blast,ParseBlast,ParallelBlast
+from htsint.blast import Blast,ParseBlast,ParallelBlast
 from htsint import __basedir__
 
 ## test class for the main window function

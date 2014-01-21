@@ -8,7 +8,7 @@ import shutil,os,sys,re,csv
 import numpy as np
 from Bio import SeqIO
 from htsint import __basedir__
-from htsint import ParseBlast
+from htsint.blast import ParseBlast
 
 class ParseParallelBlast(object):
     

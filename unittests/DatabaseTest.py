@@ -10,8 +10,8 @@ import matplotlib as mpl
 if mpl.get_backend() != 'agg':
     mpl.use('agg')
 
-from htsint import db_connect
-from htsint import Taxon,Gene,Accession,GoTerm,GoAnnotation
+from htsint.database import db_connect
+from htsint.database import Taxon,Gene,Accession,GoTerm,GoAnnotation
 
 ## test class for the main window function
 class DatabaseTest(unittest.TestCase):

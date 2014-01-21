@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-A generic template
+Calcuates the pairwise distances between genes 
 """
 
 __author__ = "Adam Richards"

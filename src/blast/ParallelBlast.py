@@ -13,7 +13,7 @@ import shutil,os,sys
 import numpy as np
 from Bio import SeqIO
 from htsint import __basedir__
-from htsint import Blast
+from htsint.blast import Blast
 
 class ParallelBlast(object):
     
