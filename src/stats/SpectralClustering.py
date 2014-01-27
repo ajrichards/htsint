@@ -32,7 +32,7 @@ class SpectralCluster(object):
             
         self.M = M
 
-    def run(self,k,sigma):
+    def run(self,k,sigma=0.1):
         """
         run spectral clustering
         given a number of clusters (k) and bandwidth param (sigma) 
@@ -79,9 +79,8 @@ class SpectralCluster(object):
         minDistortion = 1e08
         bestClusters = None
         bestKmeanLabels = None
-        repeats = 5
+        repeats = 10
 
-        
         bestRepeat = (None,None,-2.0)
         for repeat in range(repeats):
             kmeanResults, kmeanLabels = kmeans2(self.Y,k,minit='points')
@@ -133,7 +132,7 @@ if __name__ == "__main__":
     
     ## scatter plot
     sc = SpectralCluster(dataScatter,similarity=False)
-    sc.run(2,10.0)
+    sc.run(2,sigma=10.0)
 
     ax = fig.add_subplot(131)
     for c in np.unique(dataScatterLabels):
@@ -147,7 +146,7 @@ if __name__ == "__main__":
     
     ## circle plot
     sc = SpectralCluster(dataCircle,similarity=False)
-    sc.run(2,0.1)
+    sc.run(2,sigma=0.1)
 
     ax = fig.add_subplot(132)
     for c in np.unique(dataCircleLabels):
@@ -162,7 +161,7 @@ if __name__ == "__main__":
 
     ## letters plot
     sc = SpectralCluster(dataLetters,similarity=False)
-    sc.run(3,0.0001)
+    sc.run(3,sigma=5)
 
     ax = fig.add_subplot(133)
     for c in np.unique(dataLettersLabels):
