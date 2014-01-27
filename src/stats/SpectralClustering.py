@@ -99,10 +99,9 @@ class SpectralCluster(object):
             raise Exception('Kmeans on Y matrix -- did not obtain results')
             return None
 
-        labels = bestRepeat[1]
-        avgSilVal = bestRepeat[2]
-
-   
+        self.labels = bestRepeat[1]
+        self.avgSilValue = bestRepeat[2]
+        
     def similarity_to_affinity(self,dMat,sigma):
         """
         transform a similarity matrix into an affinity matrix
@@ -128,25 +127,54 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
 
     ## setup
-    colors = ['blue','orange','red','green','yellow','magenta','cyan','black']
+    colors = ['cyan','orange','red','green','yellow','magenta','blue','black']
+    markers = ["x",".","*","^"]
     fig = plt.figure()
     
     ## scatter plot
     sc = SpectralCluster(dataScatter,similarity=False)
-    sc.run(2,0.1)
+    sc.run(2,10.0)
 
-    ax = fig.add_subplot(121)
+    ax = fig.add_subplot(131)
     for c in np.unique(dataScatterLabels):
         inds = np.where(dataScatterLabels == c)[0]
         ax.plot([dataScatter[inds,0]],[dataScatter[inds,1]],marker='o',color=colors[c],markersize=8.0)
-    ax.set_aspect(1./ax.get_data_ratio())
+    for c in np.unique(sc.labels):
+        inds = np.where(sc.labels == c)[0]
+        ax.plot([dataScatter[inds,0]],[dataScatter[inds,1]],marker=markers[c],color='k',markersize=8.0)        
 
+    ax.set_aspect(1./ax.get_data_ratio())    
     
-    
-    ax = fig.add_subplot(122)
+    ## circle plot
+    sc = SpectralCluster(dataCircle,similarity=False)
+    sc.run(2,0.1)
+
+    ax = fig.add_subplot(132)
     for c in np.unique(dataCircleLabels):
         inds = np.where(dataCircleLabels == c)[0]
         ax.plot([dataCircle[inds,0]],[dataCircle[inds,1]],marker='o',color=colors[c],markersize=8.0)
+    for c in np.unique(sc.labels):
+        inds = np.where(sc.labels == c)[0]
+        ax.plot([dataCircle[inds,0]],[dataCircle[inds,1]],marker=markers[c],color='k',markersize=8.0)        
+
+    ax.set_ylim([2.5,7.5])
     ax.set_aspect(1./ax.get_data_ratio())
+
+    ## letters plot
+    sc = SpectralCluster(dataLetters,similarity=False)
+    sc.run(3,0.0001)
+
+    ax = fig.add_subplot(133)
+    for c in np.unique(dataLettersLabels):
+        inds = np.where(dataLettersLabels == c)[0]
+        ax.plot([dataLetters[inds,0]],[dataLetters[inds,1]],marker='o',color=colors[c],markersize=8.0)
+    for c in np.unique(sc.labels):
+        inds = np.where(sc.labels == c)[0]
+        ax.plot([dataLetters[inds,0]],[dataLetters[inds,1]],marker=markers[c],color='k',markersize=8.0)        
+
+    ax.set_ylim([3,4])
+    ax.set_aspect(1./ax.get_data_ratio())
+
+    print "letters avg sil value", sc.avgSilValue
 
     fig.savefig("spectral-clustering-test.png")
