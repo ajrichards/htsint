@@ -18,6 +18,7 @@ class SpectralCluster(object):
     M - similarity matrix
     k - the number of clusters
     sigma - bandwidth parameter for the kernel
+    similarity - default is a similarity matrix
 
     """
 
