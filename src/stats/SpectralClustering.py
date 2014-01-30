@@ -23,7 +23,6 @@ class SpectralCluster(object):
     """
 
     def __init__(self,M,similarity=True):
-        
 
         if similarity == False:
             _M = M.copy()
@@ -33,7 +32,7 @@ class SpectralCluster(object):
             
         self.M = M
 
-    def run(self,k,sigma=0.1):
+    def run(self,k,sigma=0.1,verbose=False):
         """
         run spectral clustering
         given a number of clusters (k) and bandwidth param (sigma) 
@@ -41,12 +40,21 @@ class SpectralCluster(object):
         """
 
         ## create the affinity matrix
+        if verbose == True:
+            print "\tsimilarity to affinity matrix..."
+
         self.A = self.similarity_to_affinity(self.M,sigma)
         
         ## create the diagonal matrix D
+        if verbose == True:
+            print "\tcreating diagonal matrix..."
+
         self.D = np.diag(self.A.sum(axis=1)**-0.5)
         
         ## create the L matrix
+        if verbose == True:
+            print "\tcreating laplacian matrix..."
+
         _L = np.dot(self.D,self.A)                      # multiply A and D^{-1/2}
         self.L = np.dot(_L,self.D)                      # multiply the above result times D^{-1/2}
      
@@ -60,13 +68,18 @@ class SpectralCluster(object):
             print "WARNING: failed nan check"
 
         ## find the k largest eigenvectors of L
-        eigVals, eigVecs = np.linalg.eig(self.L)
+        if verbose == True:
+            print "\tfinding eigenvalues and eigenvectors..."
 
+        eigVals, eigVecs = np.linalg.eig(self.L)
         eigVecs = -1.0 * eigVecs
         sortedEigInds = np.argsort(np.sum(abs(eigVecs),0))
         self.X = eigVecs[:,sortedEigInds[-k:]]
 
         ## compute normalized matrix Y from X
+        if verbose == True:
+            print "\tnormalizing Y matrix..."
+
         n,k = np.shape(self.X)
         self.Y = np.zeros([n,k])
         unitLengths = np.sum(self.X**2,axis=0)**(0.5)
@@ -75,6 +88,9 @@ class SpectralCluster(object):
             self.Y[:,col] = self.X[:,col] / unitLengths[col]
 
         ## cluster the rows of Y using Kmeans
+        if verbose == True:
+            print "\tkmeans clustering to get labels..."
+
         tries = 0
         iters = 0
         minDistortion = 1e08
@@ -101,6 +117,8 @@ class SpectralCluster(object):
 
         self.labels = bestRepeat[1]
         self.avgSilValue = bestRepeat[2]
+
+        return self.avgSilValue
         
     def similarity_to_affinity(self,dMat,sigma):
         """
