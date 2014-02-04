@@ -1,6 +1,19 @@
 #!/usr/bin/env python
 """
-A generic template
+A spectral clustering algorithm 
+
+Originally proposed by Andrew Ng et al.
+
+A. Ng, M. Jordan and Y. Weiss 
+On spectral clustering: Analysis and an algorithm
+In Advances in Neural Information Processing Systems 14, 2001
+
+Modified for self-tuning of sigma and k by Zelnik-Manor et al.
+
+L. Zelnik-manor and P. Perona
+Self-tuning spectral clustering
+In Advances in Neural Information Processing Systems 17, 2004
+
 """
 
 __author__ = "Adam Richards"
@@ -8,7 +21,6 @@ __author__ = "Adam Richards"
 import numpy as np
 from scipy.spatial.distance import pdist,cdist,squareform
 from scipy.cluster.vq import kmeans2
-
 from htsint.stats import get_silhouette_values
 
 class SpectralCluster(object):
@@ -22,17 +34,26 @@ class SpectralCluster(object):
 
     """
 
-    def __init__(self,M,similarity=True):
+    def __init__(self,M,dtype='distance'):
+        """
+        M - matrix 
+        dtype - matrix type [points|distance|similarity|]
+        """
 
-        if similarity == False:
+        dtype = dtype.lower()
+
+        if dtype == 'points':
             _M = M.copy()
             _M = pdist(_M,'sqeuclidean')
             M = squareform(_M)
-            M = 1.0/(1.0+M)
-            
+            dtype == 'distance'
+
+        if dtype == 'similarity':
+            M = np.sqrt(1.0-M)
+
         self.M = M
 
-    def run(self,k,sigma=0.1,verbose=False):
+    def run(self,k,verbose=False):
         """
         run spectral clustering
         given a number of clusters (k) and bandwidth param (sigma) 
@@ -43,7 +64,7 @@ class SpectralCluster(object):
         if verbose == True:
             print "\tsimilarity to affinity matrix..."
 
-        self.A = self.similarity_to_affinity(self.M,sigma)
+        self.A = self.similarity_to_affinity(self.M)
         
         ## create the diagonal matrix D
         if verbose == True:
@@ -78,7 +99,7 @@ class SpectralCluster(object):
 
         ## compute normalized matrix Y from X
         if verbose == True:
-            print "\tnormalizing Y matrix..."
+             print "\tnormalizing Y matrix..."
 
         n,k = np.shape(self.X)
         self.Y = np.zeros([n,k])
@@ -120,7 +141,7 @@ class SpectralCluster(object):
 
         return self.avgSilValue
         
-    def similarity_to_affinity(self,dMat,sigma):
+    def similarity_to_affinity(self,dMat,k=7):
         """
         transform a similarity matrix into an affinity matrix
         """
@@ -129,7 +150,19 @@ class SpectralCluster(object):
             print "ERROR: distance matrix is None cannot find affinity"
             return None
 
-        A = np.exp(-1.0 * (self.M**2.0)  /  2.0 * (sigma**2.0))
+        ## Zelnik-Manor et al. method
+        sK = 7
+        skVal = None
+        print dMat.shape
+
+        for element in range(dMat.shape[0]):
+            row = dMat[element,:] 
+            valueSk = np.sort(row)[6]
+            print 'row', element, valueSk, np.sort(row)[:10]
+            
+
+        ## Ng et al. method
+        #A = np.exp(-1.0 * (self.M**2.0)  /  2.0 * (sigma**2.0))
 
         return A
 
@@ -150,8 +183,8 @@ if __name__ == "__main__":
     fig = plt.figure()
     
     ## scatter plot
-    sc = SpectralCluster(dataScatter,similarity=False)
-    sc.run(2,sigma=10.0)
+    sc = SpectralCluster(dataScatter,dtype='points')
+    sc.run(2)
 
     ax = fig.add_subplot(131)
     for c in np.unique(dataScatterLabels):
@@ -163,8 +196,9 @@ if __name__ == "__main__":
 
     ax.set_aspect(1./ax.get_data_ratio())    
     
+    """
     ## circle plot
-    sc = SpectralCluster(dataCircle,similarity=False)
+    sc = SpectralCluster(dataCircle,dtype='points')
     sc.run(2,sigma=0.1)
 
     ax = fig.add_subplot(132)
@@ -179,7 +213,7 @@ if __name__ == "__main__":
     ax.set_aspect(1./ax.get_data_ratio())
 
     ## letters plot
-    sc = SpectralCluster(dataLetters,similarity=False)
+    sc = SpectralCluster(dataLetters,dtype='points')
     sc.run(3,sigma=5)
 
     ax = fig.add_subplot(133)
@@ -194,5 +228,5 @@ if __name__ == "__main__":
     ax.set_aspect(1./ax.get_data_ratio())
 
     print "letters avg sil value", sc.avgSilValue
-
+    """
     fig.savefig("spectral-clustering-test.png")
