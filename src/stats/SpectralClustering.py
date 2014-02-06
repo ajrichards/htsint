@@ -52,23 +52,15 @@ class SpectralCluster(object):
             M = squareform(_M)
             dtype == 'distance'
 
-        #if dtype == 'distance':
-        #    M = 1.0 / (1.0 + M)
-
-        #print M.max(), M.min()
-        #sys.exit()
-
         if dtype == 'similarity':
-            M = M.max() - M
+            M = np.sqrt(M.max()-M)
 
         ## add eps to avoid divide by zero
         M = M + np.spacing(1)
 
-        #M = np.sqrt(1.0-M)
-
         self.M = M
 
-    def run(self,k,sk=7,verbose=False):
+    def run(self,k,sk=7,sigma=None,verbose=False):
         """
         run spectral clustering
         given a number of clusters (k) and bandwidth param (sigma) 
@@ -79,7 +71,9 @@ class SpectralCluster(object):
         if verbose == True:
             print "\tsimilarity to affinity matrix..."
 
-        self.A = self.similarity_to_affinity(self.M,sk=sk)
+        k = int(round(k))
+
+        self.A = self.similarity_to_affinity(self.M,sk=sk,sigma=sigma)
         
         ## create the diagonal matrix D
         if verbose == True:
@@ -156,36 +150,42 @@ class SpectralCluster(object):
 
         return self.avgSilValue
         
-    def similarity_to_affinity(self,dMat,sk=7):
+    def similarity_to_affinity(self,dMat,sk=7,sigma=None):
         """
         transform a similarity matrix into an affinity matrix
 
-        using method proposed by Zelnik-Manor et al. method
         """
 
-        A = np.zeros(dMat.shape)
-
-        if dMat == None:
-            print "ERROR: distance matrix is None cannot find affinity"
-            return None
-
-        ## get sigma k for each row
-        sigmaK = np.zeros(dMat.shape[0])
-        for i in range(dMat.shape[0]):
-            row = dMat[i,:]
-            sigmaK[i] = np.sort(row)[sk-1]
-
-        ## there is prob a faster was of doing this
-        for i in range(dMat.shape[0]):
-            for j in range(dMat.shape[0]):
-                A[i,j] = np.exp((-1.0 * (dMat[i,j]**2.0))  /  (sigmaK[i] * sigmaK[j]))
-
-        A = A - np.diag(np.diag(A))
-
-        print sigmaK
-
         ## Ng et al. method
-        #A = np.exp(-1.0 * (self.M**2.0)  /  2.0 * (sigma**2.0))
+        if sk == None:
+            if sigma == None:
+                raise Exception("If using Ng et al method must specify sigma")
+        
+            A = np.exp(-1.0 * (self.M**2.0)  /  2.0 * (sigma**2.0))
+
+
+        ## using method proposed by Zelnik-Manor et al. method
+        else:
+            A = np.zeros(dMat.shape)
+
+            if dMat == None:
+                print "ERROR: distance matrix is None cannot find affinity"
+                return None
+
+            ## get sigma k for each row
+            sigmaK = np.zeros(dMat.shape[0])
+            for i in range(dMat.shape[0]):
+                row = dMat[i,:]
+                sigmaK[i] = np.sort(row)[sk-1]
+
+            ## there is prob a faster was of doing this
+            for i in range(dMat.shape[0]):
+                for j in range(dMat.shape[0]):
+                    A[i,j] = np.exp((-1.0 * (dMat[i,j]**2.0))  /  (sigmaK[i] * sigmaK[j]))
+
+        
+        ## ensure diag is zeros
+        A = A - np.diag(np.diag(A))
 
         return A
 
