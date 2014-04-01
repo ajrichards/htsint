@@ -24,13 +24,13 @@ covariates.
 """
 
 def get_files(dirPath):
-    notIncluded = ["\.pyc"]
+    included = ["\.py"]
     allFiles = []
     for fileName in os.listdir(dirPath):
-        include = True
-        for pat in notIncluded:
+        include = False
+        for pat in included:
             if re.search(pat,fileName):
-                include = False
+                include = True
         filePath = os.path.join(dirPath,fileName)
         if include == True and os.path.isfile(filePath):
             allFiles.append(os.path.realpath(filePath))
@@ -74,8 +74,9 @@ if __name__ == '__main__':
           version=FULLVERSION,
           license=LICENSE,
           url=URL,
-          package_dir={'': 'htsint'},
+          packages=['htsint'],
           long_description=LONG_DESCRIPTION,
           classifiers=CLASSIFIERS,
           package_data= FILES,
+          data_files= [(os.path.join('htsint',dn),get_files(os.path.join('htsint',dn))) for dn in DATADIRS],
           platforms='any')
