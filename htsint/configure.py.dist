@@ -1,0 +1,9 @@
+CONFIGURE = {'BLASTDB':'/usr/share/blast',
+             'NCBIDB':'/usr/share/ncbi',
+ 	     'dbname':"",
+	     'dbuser':"",
+             'dbpass':"",
+             'dbhost':"",
+             'dbport':"",
+             'taxa':["10090","9606","4932","5833"]
+ }
