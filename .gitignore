@@ -42,44 +42,51 @@ nosetests.xml
 plots
 plots/*
 
-src/sandbox/*
+htsint/sandbox/*
 
 
 # database dir
-src/database/citations.dmp
-src/database/delnodes.dmp
-src/database/division.dmp
-src/database/fetchncbi.log
-src/database/gc.prt
-src/database/gencode.dmp
-src/database/gene2accession.db
-src/database/gene2accession.gz
-src/database/gene2go.db
-src/database/gene2go.gz
-src/database/gene_history.db
-src/database/gene_history.gz
-src/database/gene_info.db
-src/database/gene_info.gz
-src/database/merged.dmp
-src/database/names.dmp
-src/database/nodes.dmp
-src/database/readme.txt
-src/database/taxdump.tar.gz
-src/database/config.py
-src/database/createdb.log
-src/database/dbschema.png
-src/database/fetchgo.log
-src/database/go.obo
+htsint/database/citations.dmp
+htsint/database/delnodes.dmp
+htsint/database/division.dmp
+htsint/database/fetchncbi.log
+htsint/database/gc.prt
+htsint/database/gencode.dmp
+htsint/database/gene2accession.db
+htsint/database/gene2accession.gz
+htsint/database/gene2go.db
+htsint/database/gene2go.gz
+htsint/database/gene_history.db
+htsint/database/gene_history.gz
+htsint/database/gene_info.db
+htsint/database/gene_info.gz
+htsint/database/merged.dmp
+htsint/database/names.dmp
+htsint/database/nodes.dmp
+htsint/database/readme.txt
+htsint/database/taxdump.tar.gz
+htsint/database/config.py
+htsint/database/createdb.log
+htsint/database/dbschema.png
+htsint/database/fetchgo.log
+htsint/database/go.obo
 
 ## blast directory
-src/blast/nr.db
-src/blast/nr.gz
-src/blast/nt.db
-src/blast/nt.gz
-src/blast/swissprot.db
-src/blast/swissprot.gz
-src/blast/uniprot_trembl.fasta
-src/blast/uniprot_trembl.fasta.gz
+htsint/blast/nr.db
+htsint/blast/nr.gz
+htsint/blast/nt.db
+htsint/blast/nt.gz
+htsint/blast/swissprot.db
+htsint/blast/swissprot.gz
+htsint/blast/uniprot_trembl.fasta
+htsint/blast/uniprot_trembl.fasta.gz
+
+htsint/blast/*.fa
+htsint/blast/*.phr
+htsint/blast/*.pin
+htsint/blast/*.psq
+
+
 
 ## stats directory
-src/stats/spectral-clustering-test.png
+htsint/stats/spectral-clustering-test.png
