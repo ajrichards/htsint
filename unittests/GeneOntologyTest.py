@@ -2,7 +2,7 @@
 """
 GeneOntology class specific tests
 The database must be up and running for these tests to pass
-See /src/database/HOWTO
+See /htsint/database/HOWTO
 """
 
 import sys,os,unittest,time,re,time
@@ -10,7 +10,11 @@ import matplotlib as mpl
 if mpl.get_backend() != 'agg':
     mpl.use('agg')
 
+from htsint.database import ask_upass
 from htsint import GeneOntology
+
+## global variables
+UPASS = ask_upass()
 
 ## test class for the main window function
 class GeneOntologyTest(unittest.TestCase):
@@ -20,7 +24,7 @@ class GeneOntologyTest(unittest.TestCase):
 
     def setUp(self):
         """
-        connect to the database
+        simple setup
         """
 
         self.taxID = 7227
@@ -33,12 +37,12 @@ class GeneOntologyTest(unittest.TestCase):
         """
         
         ## via taxid method
-        go = GeneOntology(taxID=self.taxID)
+        go = GeneOntology(taxID=self.taxID,upass=UPASS)
         self.assertTrue(len(go.geneList) > 1e04)
         self.assertEqual(go.taxID,self.taxID)
 
         ## via a gene list (mixed taxa mode)
-        go = GeneOntology(geneList=self.geneList)
+        go = GeneOntology(geneList=self.geneList,upass=UPASS)
         self.assertEqual(len(go.geneList),len(self.geneList))
         self.assertEqual(go.taxID,None)
 
@@ -47,7 +51,7 @@ class GeneOntologyTest(unittest.TestCase):
         ensure taxon check works
         """
 
-        go = GeneOntology(taxID=self.taxID)
+        go = GeneOntology(taxID=self.taxID,upass=UPASS)
         go.check_taxon(self.taxID)
     
     def testGetTerms(self):
@@ -55,7 +59,7 @@ class GeneOntologyTest(unittest.TestCase):
         fetch term-gene relations from db
         """
 
-        go = GeneOntology(geneList=self.geneList)
+        go = GeneOntology(geneList=self.geneList,upass=UPASS)
         gene2go = go.get_terms()
         self.assertTrue(len(gene2go.keys()) > 10)
 
@@ -68,7 +72,7 @@ class GeneOntologyTest(unittest.TestCase):
         if os.path.exists(dictsPickle) == True:
             os.remove(dictsPickle)
 
-        go = GeneOntology(geneList=self.geneList)
+        go = GeneOntology(geneList=self.geneList,upass=UPASS)
         gene2go1,go2gene1 = go.get_dicts(filePath=dictsPickle)
         gene2go2,go2gene2 = go.get_dicts(filePath=dictsPickle)
 
@@ -89,7 +93,7 @@ class GeneOntologyTest(unittest.TestCase):
             if os.path.exists(picklePath) == True:
                 os.remove(picklePath)
 
-        go = GeneOntology(geneList=self.geneList)
+        go = GeneOntology(geneList=self.geneList,upass=UPASS)
         G = go.create_gograph(termsPath=termsPickle,graphPath=graphPickle)
         
         print 'nodes', len(G.nodes())

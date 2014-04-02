@@ -1,5 +1,5 @@
-CONFIGURE = {'BLASTDB':'/usr/share/blast',
-             'NCBIDB':'/usr/share/ncbi',
+CONFIGURE = {'BLASTDB':'/usr/local/share/blast',
+             'data':'/usr/local/share/htsint',
  	     'dbname':"",
 	     'dbuser':"",
              'dbpass':"",

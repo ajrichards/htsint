@@ -3,9 +3,14 @@
 library of functions for use with the GeneOntology class
 """
 
-import os,re
-import networkx as nx
+import os,sys,re
 from htsint import __basedir__
+
+sys.path.append(__basedir__)
+try:
+    from configure import CONFIG
+except:
+    CONFIG = None
 
 def get_ontology_file():
     """
@@ -14,7 +19,12 @@ def get_ontology_file():
     return the file path
     """
 
-    ontologyFile = os.path.join(__basedir__,'database','go.obo')
+    if CONFIG == None:
+        raise Exception("You must create a configure.py before GeneOntology")
+
+    dataDir = CONFIG['data']
+
+    ontologyFile = os.path.join(dataDir,'go.obo')
     if os.path.exists(ontologyFile) == False:
         raise Exception("Could not find 'go.obo' -- did you run FetchGo.py?")
 

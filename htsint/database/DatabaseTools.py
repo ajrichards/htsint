@@ -6,10 +6,17 @@ These are helper scripts to populate the database
 ### make imports
 import sys,os,re,time,csv
 import sqlalchemy
+import getpass
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from DatabaseTables import Base,Taxon,Gene,Accession,GoTerm,GoAnnotation
-from config import CONFIG
+
+from htsint import __basedir__
+sys.path.append(__basedir__)
+try:
+    from configure import CONFIG
+except:
+    CONFIG = None
 
 def check_version():
     """
@@ -19,20 +26,45 @@ def check_version():
         print "ERROR: SQLAlchemy version is less than required version"
         sys.exit()
 
-def db_connect(verbose=False):
+def ask_upass():
+    """
+    returns the pass word for the database
+
+    """
+
+    if CONFIG == None:
+        raise Exception("You must create a configure.py file and database before using database functions")
+    
+    check_version()
+    upass = CONFIG['dbpass']
+    if upass == '':
+        upass = getpass.getpass()
+
+    return upass
+
+def db_connect(verbose=False,upass=''):
     """
     generic function to connect to db
     """
+
+    if CONFIG == None:
+        raise Exception("You must create a configure.py file and database before using database functions")
     
     check_version()
 
     ## declare variables
     uname = CONFIG['dbuser']
-    upass = CONFIG['dbpass']
     dbhost = CONFIG['dbhost']
     dbname = CONFIG['dbname']
     port = CONFIG['dbport']
 
+    ## get data base parameters
+    if upass == '':
+        upass = ask_upass()
+
+    if dbname == '' or port == '' or dbhost == '' or uname=='':
+        raise Exception("Invalid database parameters")
+            
     ## create connection to db and create necessary tables 
     print "connecting to database: %s"%dbname
     engine = create_engine('postgres://%s:%s@%s:%s/%s'%(uname,upass,dbhost,port,dbname),echo=verbose)

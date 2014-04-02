@@ -13,7 +13,7 @@ The data is stored in the htsint database
 class GeneOntology(object):
     "A class to interact with Gene Ontology data"
     
-    def __init__(self,taxID=None,geneList=None,verbose=False):
+    def __init__(self,taxID=None,geneList=None,verbose=False,upass=''):
         """
         Constructor
         
@@ -32,7 +32,7 @@ class GeneOntology(object):
             raise Exception("If taxid is not supplied a 'geneList' is required")
 
         ## start a database session
-        self.session,self.engine = db_connect(verbose=verbose)
+        self.session,self.engine = db_connect(verbose=verbose,upass=upass)
 
         if geneList != None:
             self.geneList = geneList

@@ -42,8 +42,11 @@ nosetests.xml
 plots
 plots/*
 
-htsint/sandbox/*
 
+
+## main
+htsint/sandbox/*
+htsint/configure.py
 
 # database dir
 htsint/database/citations.dmp

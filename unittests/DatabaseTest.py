@@ -10,8 +10,12 @@ import matplotlib as mpl
 if mpl.get_backend() != 'agg':
     mpl.use('agg')
 
-from htsint.database import db_connect
+from htsint.database import db_connect,ask_upass
 from htsint.database import Taxon,Gene,Accession,GoTerm,GoAnnotation
+
+## global variables
+UPASS = ask_upass()
+
 
 ## test class for the main window function
 class DatabaseTest(unittest.TestCase):
@@ -24,7 +28,7 @@ class DatabaseTest(unittest.TestCase):
         connect to the database
         """
 
-        self.session, self.engine = db_connect()
+        self.session, self.engine = db_connect(upass=UPASS)
         self.testID = '7227'
 
     def testTaxa(self):
@@ -74,7 +78,7 @@ class DatabaseTest(unittest.TestCase):
         annotationQuery = self.session.query(GoAnnotation).filter_by(gene_id=geneQuery.id).all()
         annotations = [aq.go_term_id for aq in annotationQuery]
         terms = [self.session.query(GoTerm).filter_by(id = a).first().go_id for a in annotations]
-        self.assertTrue("GO:0004022" in terms)        
+        self.assertTrue("GO:0004022" in terms)
 
 ### Run the tests
 if __name__ == '__main__':

@@ -4,6 +4,25 @@ fetch gene ontology files
 """
                                                           
 import os,sys,subprocess,re,time,csv
+from htsint import __basedir__
+sys.path.append(__basedir__)
+
+try:
+    from configure import CONFIG
+except:
+    CONFIG = None
+
+if CONFIG == None:
+    raise Exception("You must create a configure.py before running FetchGo.py")
+
+dataDir = CONFIG['data']
+
+if not os.path.isdir(dataDir):
+    raise Exception("Specified htsint data directory does not exist %s"%dataDir)
+
+## move into specified directory
+cwd = os.getcwd()
+os.chdir(dataDir)
 
 ## check for the necessary programs
 for wgetPath in [os.path.join("/","usr","bin","wget"), os.path.join('/','usr','local','bin','wget')]:
@@ -69,3 +88,6 @@ for fileName in filesToFetch:
     fetchTime = time.time() - timeStart
 
 fid.close()
+
+## move back to original directory
+os.chdir(cwd)

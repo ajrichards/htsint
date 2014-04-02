@@ -37,7 +37,7 @@ def get_files(dirPath):
             
     return allFiles
 
-REQUIRES = ['numpy', 'matplotlib','pymc']
+REQUIRES = ['numpy', 'matplotlib','pymc','networkx','sqlalchemy','biopython']
 DISTNAME = 'htsint'
 LICENSE = 'BSD 3-Clause'
 AUTHOR = "Adam J Richards"
