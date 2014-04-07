@@ -2,8 +2,8 @@ import sys,os,cPickle
 import numpy as np
 import networkx as nx
 from htsint.database import Base,Taxon,Gene,Accession,GoTerm,GoAnnotation,db_connect
+from htsint.database import read_ontology_file
 from htsint.stats import EmpiricalCdf
-from GeneOntologyLib import *
 
 """
 Classes used to interact with gene ontology data
@@ -191,7 +191,7 @@ class GeneOntology(object):
             return G
 
         ## load all the ontology related information as a set of dictionaries
-        _goDict = read_ontology_file()    
+        _goDict = read_ontology_file()
         goDict = _goDict[aspect]
         gene2go,go2gene = self.get_dicts(filePath=termsPath)
 

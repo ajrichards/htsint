@@ -27,10 +27,15 @@ To populate the database
     * edit the taxa field depending on user needs
 
 (3) ~$ python FetchNcbiData.py
-(4) ~$ python CreateDatabase.py
-(5) ~$ python TestDatabase.py
+(4) ~$ python FetchGo.py
+(5) ~$ python CreateDatabase.py
+(6) ~$ python TestDatabase.py
 
-'FetchNcbieData.py' - may take a few hours to download.  
+
+Notes
+-------------------------------
+
+'FetchNcbiData.py' - may take a few hours to download.  
 Do not get rid of the downloaded files, because when the script is run again
 it will keep the up-to-date files and renew only the outdated ones.  
 
@@ -40,19 +45,3 @@ should be planned for overnight.
 'TestDatabase.py' - will it will just run simple queries.  Also,
 if sqlalchemy_schemadisplay is installed then a plot will be created.
 
-Appending to the database
--------------------------------
-
-The following scirpt may be used:
-
-    python DatabaseAppend.py -t 8355,8364
-
-Otherwise, append to the config.py file and repopulate the entire database.
-
-
-Adding Gene Ontology information from the GO
------------------------------------------------
-
-Also, some Gene Ontology info that is not stored in the db will be necessary.
-
-    ~$ python FetchGo.py

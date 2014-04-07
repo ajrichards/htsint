@@ -79,12 +79,13 @@ push_out(time.asctime())
 push_out("fetching files...")
 
 ## fetch the go term database
-filesToFetch = ["go.obo"]
-for fileName in filesToFetch:
-    urlBase = "http://geneontology.org/ontology/"
-    fetchURL = urlBase + fileName
+filesToFetch = ["ftp://ftp.geneontology.org/pub/go/ontology/go.obo","ftp://ftp.geneontology.org/pub/go/gene-associations/gene_association.goa_uniprot_noiea.gz"]
+for fetchURL in filesToFetch:
+    fileName = os.path.split(fetchURL)[-1]
     timeStart = time.time()
     fetch_file(fetchURL)
+    if re.search("\.gz",fileName):
+        unzip_file(fileName)
     fetchTime = time.time() - timeStart
 
 fid.close()

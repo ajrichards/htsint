@@ -93,3 +93,33 @@ def read_ontology_file():
         #    add_term(goNamespace,goId,part_of_sink)
             
     return goDict
+
+def get_annotation_file():
+    """
+    check for presence of the annotation file
+    raise exception when not found
+    return the file path
+    """
+
+    if CONFIG == None:
+        raise Exception("You must create a configure.py before GeneOntology")
+
+    dataDir = CONFIG['data']
+
+    annotationFile = os.path.join(dataDir,'gene_association.goa_uniprot_noiea.db')
+    if os.path.exists(ontologyFile) == False:
+        raise Exception("Could not find 'go.obo' -- did you run FetchGo.py?")
+
+    return annotationFile
+
+    
+def read_annotation_file():
+    """
+    read the annotation file into a dictionary
+    This will take some time
+    This function is intended for use with database population
+    """
+    
+    pass
+
+    return None
