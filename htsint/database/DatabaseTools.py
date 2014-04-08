@@ -80,7 +80,7 @@ def get_all_go_taxa():
     get the list of all taxa that have gene ontology annotations
     """
 
-    gene2goFile = os.path.join(os.path.split(os.path.abspath(__file__))[0],"gene2go.db")
+    gene2goFile = os.path.join(CONFIG['data'],"gene2go.db")
     if os.path.exists(gene2goFile) == False:
         print "ERROR: populate_gene_table() exiting... could not find geneInfoFile"
         return
@@ -146,7 +146,7 @@ def populate_taxon_table(taxonList,session):
 
     print '\n...populating the taxa table for %s taxa...'%(len(taxonList))
     taxonList = list(set([str(tax) for tax in taxonList]))
-    namesFile = os.path.join(os.path.split(os.path.abspath(__file__))[0],"names.dmp")
+    namesFile = os.path.join(CONFIG['data'],"names.dmp")
     if os.path.exists(namesFile) == False:
         print "ERROR: Cannot find names.dmp... exiting"
         sys.exit()
@@ -206,27 +206,37 @@ def populate_taxon_table(taxonList,session):
     addedStr =  "...%s unique taxa were added."%taxaCount
     return timeStr, addedStr
 
-def populate_gene_table(taxonList,session):
+def populate_gene_table(annotations):
     """
     given a list of taxon ids populate the gene table
     """
 
-    taxonList = list(set([str(tax) for tax in taxonList]))
-    print '\n...populating the genes table for %s taxa'%len(taxonList)
+    #taxonList = list(set([str(tax) for tax in taxonList]))
+    #print '\n...populating the genes table for %s taxa'%len(taxonList)
 
     ## check that all of the taxa are in the taxon table
-    for taxID in taxonList:
-        query = session.query(Taxon).filter_by(ncbi_id=taxID).first()
-        if query == None:
-            print "ERROR: populate_gene_table() exiting - not all taxa are present"
-            print "...", taxID
-            return
+    #for taxID in taxonList:
+    #    query = session.query(Taxon).filter_by(ncbi_id=taxID).first()
+    #    if query == None:
+    #        print "ERROR: populate_gene_table() exiting - not all taxa are present"
+    #        print "...", taxID
+    #        return
 
+    for geneId, items in annotations.iteritems():
+        
+
+
+
+    session.add_all(toAdd)
+    session.commit()
+    
+
+    '''
     ## update the gene table
     print "...reading original gene_info file"
     print "...this may take some time"
     taxonList = list(set(taxonList))
-    geneInfoFile = os.path.join(os.path.split(os.path.abspath(__file__))[0],"gene_info.db")
+    geneInfoFile = os.path.join(CONFIG['data'],"gene_info.db")
     if os.path.exists(geneInfoFile) == False:
         print "ERROR: populate_gene_table() exiting... could not find geneInfoFile"
         return
@@ -283,9 +293,12 @@ def populate_gene_table(taxonList,session):
     session.add_all(toAdd)
     session.commit()
     geneInfoFID.close()
+    '''
+
     timeStr = "...total time taken: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
     addedStr = "...%s unique genes were added."%totalRecords
     return timeStr,addedStr
+    
 
 def populate_accession_table(taxonList,session):
     """
@@ -307,7 +320,7 @@ def populate_accession_table(taxonList,session):
     print "...reading original gene2accession file"
     print "...this may take a minute"
     
-    gene2AccFile = os.path.join(os.path.split(os.path.abspath(__file__))[0],"gene2accession.db")
+    gene2AccFile = os.path.join(CONFIG['data'],"gene2accession.db")
     if os.path.exists(gene2AccFile) == False:
         print "ERROR: populate_accession_table() exiting... could not find gene2AccFile"
         return
@@ -384,7 +397,7 @@ def populate_go_tables(taxonList,session):
     ## update the gene table
     print "...reading original gene2go file"
     print "...this may take some time"
-    gene2goFile = os.path.join(os.path.split(os.path.abspath(__file__))[0],"gene2go.db")
+    gene2goFile = os.path.join(CONFIG['data'],"gene2go.db")
     if os.path.exists(gene2goFile) == False:
         print "ERROR: populate_gene_table() exiting... could not find geneInfoFile"
         return

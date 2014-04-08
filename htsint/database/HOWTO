@@ -27,7 +27,7 @@ To populate the database
     * edit the taxa field depending on user needs
 
 (3) ~$ python FetchNcbiData.py
-(4) ~$ python FetchGo.py
+(4) ~$ python FetchGoData.py
 (5) ~$ python CreateDatabase.py
 (6) ~$ python TestDatabase.py
 

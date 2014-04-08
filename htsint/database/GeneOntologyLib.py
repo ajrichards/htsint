@@ -107,7 +107,7 @@ def get_annotation_file():
     dataDir = CONFIG['data']
 
     annotationFile = os.path.join(dataDir,'gene_association.goa_uniprot_noiea.db')
-    if os.path.exists(ontologyFile) == False:
+    if os.path.exists(annotationFile) == False:
         raise Exception("Could not find 'go.obo' -- did you run FetchGo.py?")
 
     return annotationFile
@@ -118,8 +118,47 @@ def read_annotation_file():
     read the annotation file into a dictionary
     This will take some time
     This function is intended for use with database population
-    """
-    
-    pass
 
-    return None
+    http://www.geneontology.org/GO.format.gaf-2_0.shtml
+    """
+
+    annotationFile = get_annotation_file()
+
+
+    annotationFid = open(annotationFile,'rU')
+    result = {}
+    allTaxa = set([])
+
+    for record in annotationFid:
+        record = record[:-1].split("\t")
+
+        ## check that it is a uniprot entry
+        if record[0][0] == "!":
+            continue
+        if record[0] != 'UniProtKB':
+            print "houston!!", record[0]
+            continue
+        
+        dbObjectId = record[1]
+        dbObjectSymbol = record[2]
+        goID = record[4]
+        dbReference = record[5]
+        evidenceCode = record[6]
+        aspect = record[8]
+        dbObjectType = record[11]
+        taxon = re.sub("taxon:","",record[12])
+        date = record[13]
+        assignedBy = record[14]
+
+        ## ignore annotations with multiple species
+        if re.search("\|",taxon):
+            continue
+
+        if not result.has_key(dbObjectId):
+            result[dbObjectId] = {'names':set([]),'annots':{},'taxon':taxon}
+
+        result[dbObjectId]['annots'][goID] = [aspect,evidenceCode]
+        result[dbObjectId]['names'].update(dbObjectSymbol)
+        allTaxa.update([taxon])
+
+    return list(allTaxa),result

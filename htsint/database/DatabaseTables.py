@@ -45,6 +45,7 @@ class Gene(Base):
     __tablename__ = 'genes'
 
     id = Column(Integer, Sequence('gene_id_seq'),primary_key=True)
+    uniprot_id = Column(String)
     ncbi_id = Column(String)
     description = Column(String,nullable=False)
     symbol = Column(String)
@@ -53,8 +54,9 @@ class Gene(Base):
     synonyms = Column(String)
     taxa_id = Column(Integer,ForeignKey('taxa.id'))
     
-    def __init__(self,ncbi_id,description,symbol,chromosome,map_location,
+    def __init__(self,uniprot_id,ncbi_id,description,symbol,chromosome,map_location,
                  synonyms,taxa_id):
+        self.uniprot_id = uniprot_id
         self.ncbi_id = ncbi_id
         self.description = description
         self.symbol = symbol
@@ -64,7 +66,8 @@ class Gene(Base):
         self.taxa_id = taxa_id
                
     def __repr__(self):
-        return "Gene('%s','%s','%s','%s','%s','%s')>"%(self.ncbi_id,
+        return "Gene('%s','%s','%s','%s','%s','%s')>"%(self.uniprot_id,
+                                                       self.ncbi_id,
                                                        self.description,
                                                        self.symbol,
                                                        self.chromosome,

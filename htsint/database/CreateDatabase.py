@@ -29,7 +29,10 @@ import sys,os,re,time,csv
 from DatabaseTables import Base,Taxon,Gene,Accession,GoTerm,GoAnnotation
 from DatabaseTools import db_connect,get_all_go_taxa
 from DatabaseTools import populate_taxon_table,populate_gene_table,populate_accession_table,populate_go_tables
-from config import CONFIG
+from htsint import __basedir__
+sys.path.append(__basedir__)
+
+from GeneOntologyLib import read_annotation_file
 
 ## prepare a log file
 fid = open('createdb.log','w')
@@ -50,11 +53,34 @@ session,engine = db_connect(verbose=False)
 Base.metadata.drop_all(engine)
 Base.metadata.create_all(engine) 
 
+## read the annotation file
+taxaList,annotations = read_annotation_file()
+
+## taxa table
+print "total", len(taxaList)
+taxaList = taxaList[:1]
+print taxaList
+push_out("Attempting to populate the database with %s taxa"%(len(taxaList)))
+timeStr,addedStr = populate_taxon_table(taxaList,session)
+push_out(timeStr)
+push_out(addedStr)
+
+## gene table
+timeStr,addedStr = populate_gene_table(taxaList,session)
+push_out(timeStr)
+push_out(addedStr)
+
+
+print 'here we go'
+
+sys.exit()
+
+
+
 ## taxon table
 goTaxa = get_all_go_taxa()
 taxaList = ["7227"] + CONFIG['taxa']
 taxaList = taxaList + goTaxa
-
 push_out("Attempting to populate the database with %s taxa"%(len(taxaList)))
 
 ## taxa table
