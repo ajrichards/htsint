@@ -26,7 +26,7 @@ def get_ontology_file():
 
     ontologyFile = os.path.join(dataDir,'go.obo')
     if os.path.exists(ontologyFile) == False:
-        raise Exception("Could not find 'go.obo' -- did you run FetchGo.py?")
+        raise Exception("Could not find 'go.obo' -- did you run FetchGoData.py?")
 
     return ontologyFile
 
@@ -158,7 +158,7 @@ def read_annotation_file():
             result[dbObjectId] = {'names':set([]),'annots':{},'taxon':taxon}
 
         result[dbObjectId]['annots'][goID] = [aspect,evidenceCode]
-        result[dbObjectId]['names'].update(dbObjectSymbol)
+        result[dbObjectId]['names'].update([dbObjectSymbol])
         allTaxa.update([taxon])
 
     return list(allTaxa),result

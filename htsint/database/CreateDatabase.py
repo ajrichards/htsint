@@ -26,11 +26,11 @@ with the PopulateDatabase.py afterwards.
 
 ### make imports
 import sys,os,re,time,csv
-from DatabaseTables import Base,Taxon,Gene,Accession,GoTerm,GoAnnotation
-from DatabaseTools import db_connect,get_all_go_taxa
-from DatabaseTools import populate_taxon_table,populate_gene_table,populate_accession_table,populate_go_tables
 from htsint import __basedir__
 sys.path.append(__basedir__)
+from DatabaseTables import Base,Taxon,Gene,Accession,GoTerm,GoAnnotation
+from DatabaseTools import db_connect
+from DatabaseTools import populate_taxon_table,populate_gene_table,populate_accession_table,populate_go_tables
 
 from GeneOntologyLib import read_annotation_file
 
@@ -66,7 +66,7 @@ push_out(timeStr)
 push_out(addedStr)
 
 ## gene table
-timeStr,addedStr = populate_gene_table(taxaList,session)
+timeStr,addedStr = populate_gene_table(taxaList,annotations,session)
 push_out(timeStr)
 push_out(addedStr)
 

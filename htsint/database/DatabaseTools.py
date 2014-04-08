@@ -75,69 +75,6 @@ def db_connect(verbose=False,upass=''):
 
     return session,engine
 
-def get_all_go_taxa():
-    """
-    get the list of all taxa that have gene ontology annotations
-    """
-
-    gene2goFile = os.path.join(CONFIG['data'],"gene2go.db")
-    if os.path.exists(gene2goFile) == False:
-        print "ERROR: populate_gene_table() exiting... could not find geneInfoFile"
-        return
-
-    gene2goFID = open(gene2goFile,'rU')
-    header = gene2goFID.next()
-    totalTerms,totalAnnotations = 0,0
-    timeStart = time.time()
-    toAddTerms = []
-    toAddAnnotations = []
-    allTaxa = set([])
-
-    for record in gene2goFID:
-        record = record.rstrip("\n")
-        record = record.split("\t")
-
-        if re.search("^\#",record[0]) or len(record) != 8:
-            print 'continuing',len(record),record[0]
-            continue
-
-        allTaxa.update([record[0]])
-
-    return list(allTaxa)
-
-
-def print_go_summary(outfile=os.path.join(".","go_summary.csv")):
-    """
-    print a summary about the organisms with gene ontology information
-    """
-
-    session,engine = db_connect()
-    goTaxa = get_all_go_taxa()
-    fid = open(outfile,'w')
-    writer = csv.writer(fid)
-    writer.writerow(["ncbi_id","name","common_name","total_genes","total_annotations"])
-
-    for taxa in goTaxa:
-        taxQuery = session.query(Taxon).filter_by(ncbi_id=taxa).first()
-        geneQuery = session.query(Gene).filter_by(taxa_id=taxQuery.id)
-        annotQuery = session.query(GoAnnotation).filter_by(taxa_id=taxQuery.id)
-        
-        print "..."
-        print "TaxID:       %s"%taxQuery.ncbi_id
-        print "Species:     %s"%taxQuery.name
-        print "Common Name 1: %s"%taxQuery.common_name_1
-        print "Common Name 2: %s"%taxQuery.common_name_2
-        print "Common Name 3: %s"%taxQuery.common_name_3
-        print "Num. Genes:  %s"%geneQuery.count()
-        print "Num. GO Annotations:  %s"%annotQuery.count()
-
-        if taxQuery.common_name_1 == '':
-            taxQuery.common_name_1 = 'None'
-
-        writer.writerow([taxQuery.ncbi_id,taxQuery.name,taxQuery.common_name_1,
-                         geneQuery.count(),annotQuery.count()])
-
-    fid.close()
 
 def populate_taxon_table(taxonList,session):
     """
@@ -206,14 +143,16 @@ def populate_taxon_table(taxonList,session):
     addedStr =  "...%s unique taxa were added."%taxaCount
     return timeStr, addedStr
 
-def populate_gene_table(annotations):
+def populate_gene_table(taxonList,annotations,session):
     """
-    given a list of taxon ids populate the gene table
+    use the annotation data to populate all of the genes in the 
+    original gene_association.goa_uniprot.gz file.
+    
+    use the gene_info.gz and gene2unigene
     """
 
     #taxonList = list(set([str(tax) for tax in taxonList]))
     #print '\n...populating the genes table for %s taxa'%len(taxonList)
-
     ## check that all of the taxa are in the taxon table
     #for taxID in taxonList:
     #    query = session.query(Taxon).filter_by(ncbi_id=taxID).first()
@@ -222,14 +161,65 @@ def populate_gene_table(annotations):
     #        print "...", taxID
     #        return
 
+    timeStart = time.time()
+    gene2unigeneFile = os.path.join(CONFIG['data'],"gene2unigene")
+    geneInfoFile = os.path.join(CONFIG['data'],"gene_info.db")
+    
+    for fileName in [gene2unigeneFile,geneInfoFile]:
+        if not os.path.exists(fileName):
+            raise Exception("Could not find the data did you run FetchDbData.py? \n%s"%fileName)
+
+    ## read in the gene2unigene mappings
+    gene2unigeneFid = open(gene2unigeneFile,'rU')
+    unigene2gene = {}
+    for record in gene2unigeneFid:
+        record = record[:-1].split("\t")
+        if record[0][0] == "#":
+            continue
+        unigene2gene[record[1]] = record[0]
+    gene2unigeneFid.close()
+
+    debug = 0 
     for geneId, items in annotations.iteritems():
+        debug += 1
+        print geneId, items.keys()
+
+        if debug == 10:
+            sys.exit()
+
+        print "\t", items['names']
+
+        #someGene = Gene(ncbi_id,description,symbol,chromosome,map_location,synonyms,taxa_id)
+        
+
+    ## read in the gene info file
+    #geneInfoDict = {}
+    #geneInfoFid = open(geneInfoFile,'rU')
+    #header = geneInfoFid.next()
+    #totalRecords = 0
+    #
+    #for record in geneInfoFid:
+    #    record = record.rstrip("\n")
+    #    record = record.split("\t")
+    #
+    #    if re.search("^\#",record[0]) or len(record) != 15:
+    #        continue
+    #
+    #    taxID = record[0]
+    #    if taxID not in taxonList:
+    #        continue
+    #    
+    #print 'done'
         
 
 
+    sys.exit()
 
     session.add_all(toAdd)
     session.commit()
-    
+    geneInfoFid.close()
+
+
 
     '''
     ## update the gene table
@@ -460,3 +450,78 @@ def populate_go_tables(taxonList,session):
     timeStr = "...total time taken: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
     addedStr = "...%s unique terms and %s unique annotations were added."%(totalTerms,totalAnnotations)
     return timeStr,addedStr
+
+
+
+
+
+
+
+def print_go_summary(outfile=os.path.join(".","go_summary.csv")):
+    """
+    print a summary about the organisms with gene ontology information
+    """
+
+    session,engine = db_connect()
+    goTaxa = []#get_all_go_taxa()
+    fid = open(outfile,'w')
+    writer = csv.writer(fid)
+    writer.writerow(["ncbi_id","name","common_name","total_genes","total_annotations"])
+
+    for taxa in goTaxa:
+        taxQuery = session.query(Taxon).filter_by(ncbi_id=taxa).first()
+        geneQuery = session.query(Gene).filter_by(taxa_id=taxQuery.id)
+        annotQuery = session.query(GoAnnotation).filter_by(taxa_id=taxQuery.id)
+        
+        print "..."
+        print "TaxID:       %s"%taxQuery.ncbi_id
+        print "Species:     %s"%taxQuery.name
+        print "Common Name 1: %s"%taxQuery.common_name_1
+        print "Common Name 2: %s"%taxQuery.common_name_2
+        print "Common Name 3: %s"%taxQuery.common_name_3
+        print "Num. Genes:  %s"%geneQuery.count()
+        print "Num. GO Annotations:  %s"%annotQuery.count()
+
+        if taxQuery.common_name_1 == '':
+            taxQuery.common_name_1 = 'None'
+
+        writer.writerow([taxQuery.ncbi_id,taxQuery.name,taxQuery.common_name_1,
+                         geneQuery.count(),annotQuery.count()])
+
+    fid.close()
+
+
+## the following are deprecated
+
+
+'''
+def get_all_go_taxa():
+    """
+    get the list of all taxa that have gene ontology annotations
+    """
+
+    gene2goFile = os.path.join(CONFIG['data'],"gene2go.db")
+    if os.path.exists(gene2goFile) == False:
+        print "ERROR: populate_gene_table() exiting... could not find geneInfoFile"
+        return
+
+    gene2goFID = open(gene2goFile,'rU')
+    header = gene2goFID.next()
+    totalTerms,totalAnnotations = 0,0
+    timeStart = time.time()
+    toAddTerms = []
+    toAddAnnotations = []
+    allTaxa = set([])
+
+    for record in gene2goFID:
+        record = record.rstrip("\n")
+        record = record.split("\t")
+
+        if re.search("^\#",record[0]) or len(record) != 8:
+            print 'continuing',len(record),record[0]
+            continue
+
+        allTaxa.update([record[0]])
+
+    return list(allTaxa)
+'''

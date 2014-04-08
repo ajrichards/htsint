@@ -1,9 +1,8 @@
-CONFIGURE = {'BLASTDB':'/usr/local/share/blast',
+CONFIG = {'BLASTDB':'/usr/local/share/blast',
              'data':'/usr/local/share/htsint',
  	     'dbname':"",
 	     'dbuser':"",
              'dbpass':"",
              'dbhost':"",
-             'dbport':"",
-             'taxa':["10090","9606","4932","5833"]
+             'dbport':""
  }

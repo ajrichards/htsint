@@ -94,10 +94,13 @@ for fileName in filesToFetch:
     if fetchTime > 10:
         unzip_file(fileName,trim)
 
-filesToFetch = ["gene2accession.gz",
-                "gene_info.gz",
-                "gene2go.gz",
+filesToFetch = ["gene_info.gz",
                 "gene_history.gz"]
+
+#filesToFetch = ["gene2accession.gz",
+#                "gene_info.gz",
+#                "gene2go.gz",
+#                "gene_history.gz"]
 
 for fileName in filesToFetch:
     urlBase = "ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/"
