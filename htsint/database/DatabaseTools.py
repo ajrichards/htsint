@@ -180,9 +180,18 @@ def populate_gene_table(taxonList,annotations,session):
     gene2unigeneFid.close()
 
     debug = 0 
-    for geneId, items in annotations.iteritems():
+    print unigene2gene.keys()[:10]
+    for uniprotId, items in annotations.iteritems():
         debug += 1
-        print geneId, items.keys()
+
+        geneId = None
+        for unigeneName in items['names']:
+            if unigene2gene.has_key(unigeneName):
+                geneId = unigene2gene[unigeneName]
+
+        print uniprotId, geneId, items.keys()
+
+
 
         if debug == 10:
             sys.exit()

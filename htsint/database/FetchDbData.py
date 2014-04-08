@@ -79,15 +79,18 @@ push_out(time.asctime())
 push_out("fetching files...")
 
 ## fetch the go term database
-filesToFetch = ["ftp://ftp.geneontology.org/pub/go/ontology/go.obo","ftp://ftp.geneontology.org/pub/go/gene-associations/gene_association.goa_uniprot.gz",
-'ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene2unigene']
+filesToFetch = ["ftp://ftp.geneontology.org/pub/go/ontology/go.obo",
+                "ftp://ftp.geneontology.org/pub/go/gene-associations/gene_association.goa_uniprot.gz",
+                "ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene_info.gz",
+                "ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/idmapping/idmapping.tb.gz"]
 for fetchURL in filesToFetch:
     fileName = os.path.split(fetchURL)[-1]
     timeStart = time.time()
     fetch_file(fetchURL)
-    if re.search("\.gz",fileName):
-        unzip_file(fileName)
     fetchTime = time.time() - timeStart
+    
+    if fetchTime > 8 and re.search("\.gz",fileName):
+        unzip_file(fileName)
 
 fid.close()
 
