@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-fetch gene ontology files
+fetch all data files for htsint
 """
                                                           
 import os,sys,subprocess,re,time,csv
@@ -79,17 +79,26 @@ push_out(time.asctime())
 push_out("fetching files...")
 
 ## fetch the go term database
+## dep ftp://ftp.geneontology.org/pub/go/gene-associations/gene_association.goa_uniprot.gz
+
+uniprotUrl = "ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/"
 filesToFetch = ["ftp://ftp.geneontology.org/pub/go/ontology/go.obo",
-                "ftp://ftp.geneontology.org/pub/go/gene-associations/gene_association.goa_uniprot.gz",
                 "ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene_info.gz",
-                "ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/idmapping/idmapping.tb.gz"]
+                uniprotUrl + "idmapping/idmapping.tb.gz",
+                uniprotUrl + "idmapping/LICENSE",
+                uniprotUrl + "complete/uniprot_sprot.fasta.gz"]
+
 for fetchURL in filesToFetch:
     fileName = os.path.split(fetchURL)[-1]
     timeStart = time.time()
     fetch_file(fetchURL)
     fetchTime = time.time() - timeStart
     
-    if fetchTime > 8 and re.search("\.gz",fileName):
+    ## unzip the gz files
+    if not re.search("\.gz",fileName):
+        continue
+
+    if os.path.exists(fileName[:-3]+".db") == False or fetchTime > 10):
         unzip_file(fileName)
 
 fid.close()

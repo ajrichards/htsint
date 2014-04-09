@@ -75,8 +75,6 @@ print 'here we go'
 
 sys.exit()
 
-
-
 ## taxon table
 goTaxa = get_all_go_taxa()
 taxaList = ["7227"] + CONFIG['taxa']
