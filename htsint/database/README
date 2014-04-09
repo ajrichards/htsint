@@ -1,0 +1,39 @@
+http://www.geneontology.org/gene-associations/readme/goa.README
+
+The database is built around the following file.
+   
+    gene_association.goa_uniprot
+
+This file contains all GO annotations and protein information for
+proteins in the UniProt KnowledgeBase (UniProtKB). If a particular
+protein accession is not annotated with GO, then it will not appear in
+this file. The file is provided as GAF2.0 format.
+
+    http://www.geneontology.org/GO.format.gaf-2_0.shtml
+
+There are 17 tab delimited fields.  Many databases are used to
+populate the goa file and the abbreviations can be found at
+
+    http://www.geneontology.org/cgi-bin/xrefs.cgi
+
+  * Column 2 is the unique identifier
+  * Column 3 contains a UniGene entry
+
+http://www.uniprot.org/faq/44
+
+UniProt creates a RefSeq protein centric mapping
+
+If a UniProtKB protein does not map to a RefSeq Protein, this entry
+will not have a GeneID cross-reference.
+
+Id mapping in UniProtKb 
+
+ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/idmapping/README
+
+
+
+We map UniGene entries to a NCBI GeneID with
+
+    ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene2unigene
+
+Multiple unigene identifiers may map to a single GeneID
