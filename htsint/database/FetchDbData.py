@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """
 fetch all data files for htsint
+At least 20GB of free space is recommended
 """
                                                           
 import os,sys,subprocess,re,time,csv
@@ -86,7 +87,8 @@ filesToFetch = ["ftp://ftp.geneontology.org/pub/go/ontology/go.obo",
                 "ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene_info.gz",
                 uniprotUrl + "idmapping/idmapping.tb.gz",
                 uniprotUrl + "idmapping/LICENSE",
-                uniprotUrl + "complete/uniprot_sprot.fasta.gz"]
+                uniprotUrl + "complete/uniprot_sprot.fasta.gz",
+                uniprotUrl + "complete/uniprot_trembl.fasta.gz"]
 
 for fetchURL in filesToFetch:
     fileName = os.path.split(fetchURL)[-1]
@@ -98,7 +100,7 @@ for fetchURL in filesToFetch:
     if not re.search("\.gz",fileName):
         continue
 
-    if os.path.exists(fileName[:-3]+".db") == False or fetchTime > 10):
+    if os.path.exists(fileName[:-3]+".db") == False or fetchTime > 10:
         unzip_file(fileName)
 
 fid.close()
