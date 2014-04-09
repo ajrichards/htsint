@@ -1,7 +1,7 @@
 import sys,os,cPickle
 import numpy as np
 import networkx as nx
-from htsint.database import Base,Taxon,Gene,Accession,GoTerm,GoAnnotation,db_connect
+from htsint.database import Base,Taxon,Gene,Uniprot,GoTerm,GoAnnotation,db_connect
 from htsint.database import read_ontology_file
 from htsint.stats import EmpiricalCdf
 

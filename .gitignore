@@ -48,48 +48,11 @@ plots/*
 htsint/sandbox/*
 htsint/configure.py
 
-# database dir
-htsint/database/citations.dmp
-htsint/database/delnodes.dmp
-htsint/database/division.dmp
-htsint/database/fetchncbi.log
-htsint/database/gc.prt
-htsint/database/gencode.dmp
-htsint/database/gene2accession.db
-htsint/database/gene2accession.gz
-htsint/database/gene2go.db
-htsint/database/gene2go.gz
-htsint/database/gene_history.db
-htsint/database/gene_history.gz
-htsint/database/gene_info.db
-htsint/database/gene_info.gz
-htsint/database/merged.dmp
-htsint/database/names.dmp
-htsint/database/nodes.dmp
-htsint/database/readme.txt
-htsint/database/taxdump.tar.gz
-htsint/database/config.py
+## docs
+docs/_sphinx/*
+
+## database directory
 htsint/database/createdb.log
-htsint/database/dbschema.png
-htsint/database/fetchgo.log
-htsint/database/go.obo
-
-## blast directory
-htsint/blast/nr.db
-htsint/blast/nr.gz
-htsint/blast/nt.db
-htsint/blast/nt.gz
-htsint/blast/swissprot.db
-htsint/blast/swissprot.gz
-htsint/blast/uniprot_trembl.fasta
-htsint/blast/uniprot_trembl.fasta.gz
-
-htsint/blast/*.fa
-htsint/blast/*.phr
-htsint/blast/*.pin
-htsint/blast/*.psq
-
-
 
 ## stats directory
 htsint/stats/spectral-clustering-test.png

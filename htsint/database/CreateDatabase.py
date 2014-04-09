@@ -32,7 +32,7 @@ from DatabaseTables import Base,Taxon,Gene,Accession,GoTerm,GoAnnotation
 from DatabaseTools import db_connect
 from DatabaseTools import populate_taxon_table,populate_gene_table,populate_accession_table,populate_go_tables
 
-from GeneOntologyLib import read_annotation_file
+from GeneOntologyLib import read_idmapping_file
 
 ## prepare a log file
 fid = open('createdb.log','w')
@@ -54,7 +54,7 @@ Base.metadata.drop_all(engine)
 Base.metadata.create_all(engine) 
 
 ## read the annotation file
-taxaList,annotations = read_annotation_file()
+taxaList,annotations = read_idmapping_file()
 
 ## taxa table
 print "total", len(taxaList)

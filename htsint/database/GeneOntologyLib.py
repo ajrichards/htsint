@@ -26,7 +26,7 @@ def get_ontology_file():
 
     ontologyFile = os.path.join(dataDir,'go.obo')
     if os.path.exists(ontologyFile) == False:
-        raise Exception("Could not find 'go.obo' -- did you run FetchGoData.py?")
+        raise Exception("Could not find 'go.obo' -- did you run FetchDbData.py?")
 
     return ontologyFile
 
@@ -94,7 +94,7 @@ def read_ontology_file():
             
     return goDict
 
-def get_annotation_file():
+def get_idmapping_file():
     """
     check for presence of the annotation file
     raise exception when not found
@@ -105,32 +105,69 @@ def get_annotation_file():
         raise Exception("You must create a configure.py before GeneOntology")
 
     dataDir = CONFIG['data']
+    idmappingFile = os.path.join(dataDir,'idmapping.tb.db')
+    if os.path.exists(idmappingFile) == False:
+        raise Exception("Could not find 'idmapping.tb.db' -- did you run FetchDbData.py?")
 
-    annotationFile = os.path.join(dataDir,'gene_association.goa_uniprot_noiea.db')
-    if os.path.exists(annotationFile) == False:
-        raise Exception("Could not find 'go.obo' -- did you run FetchGo.py?")
-
-    return annotationFile
+    return idmappingFile
 
     
-def read_annotation_file():
+def read_idmapping_file():
     """
-    read the annotation file into a dictionary
-    This will take some time
-    This function is intended for use with database population
+    read the idmapping file into a dictionary
+    ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/idmapping/README
+    
+    target file is idmapping.tb from the uniprot knowledgebase
 
-    http://www.geneontology.org/GO.format.gaf-2_0.shtml
+    1. UniProtKB-AC
+    2. UniProtKB-ID
+    3. GeneID (EntrezGene)
+    4. RefSeq
+    5. GI
+    6. PDB
+    7. GO
+    8. IPI
+    9. UniRef100
+    10. UniRef90
+    11. UniRef50
+    12. UniParc
+    13. PIR
+    14. NCBI-taxon
+    15. MIM
+    16. UniGene
+    17. PubMed
+    18. EMBL
+    19. EMBL-CDS
+    20. Ensembl
+    21. Ensembl_TRS
+    22. Ensembl_PRO
+    23. Additional PubMed
     """
 
-    annotationFile = get_annotation_file()
-
-
-    annotationFid = open(annotationFile,'rU')
+    idmappingFile = get_idmapping_file()
+    idmappingFid = open(idmappingFile,'rU')
     result = {}
     allTaxa = set([])
 
-    for record in annotationFid:
+    debug = 0
+
+    for record in idmappingFid:
         record = record[:-1].split("\t")
+        debug += 1
+        
+        #print len(record),record
+        uniprotKbAc = record[0]
+        uniprotKbId = record[1]
+        geneId = record[2]
+        refseq = record[3]
+
+        print debug, uniprotKbId, geneId, refseq
+
+        if debug > 5:
+            sys.exit()
+
+        continue
+
 
         ## check that it is a uniprot entry
         if record[0][0] == "!":
@@ -162,3 +199,52 @@ def read_annotation_file():
         allTaxa.update([taxon])
 
     return list(allTaxa),result
+
+
+
+
+
+"""
+    for record in idmappingFid:
+        record = record[:-1].split("\t")
+        debug += 1
+        
+        print record
+
+        if debug > 5:
+            sys.exit()
+
+        continue
+
+
+        ## check that it is a uniprot entry
+        if record[0][0] == "!":
+            continue
+        if record[0] != 'UniProtKB':
+            print "houston!!", record[0]
+            continue
+        
+        dbObjectId = record[1]
+        dbObjectSymbol = record[2]
+        goID = record[4]
+        dbReference = record[5]
+        evidenceCode = record[6]
+        aspect = record[8]
+        dbObjectType = record[11]
+        taxon = re.sub("taxon:","",record[12])
+        date = record[13]
+        assignedBy = record[14]
+
+        ## ignore annotations with multiple species
+        if re.search("\|",taxon):
+            continue
+
+        if not result.has_key(dbObjectId):
+            result[dbObjectId] = {'names':set([]),'annots':{},'taxon':taxon}
+
+        result[dbObjectId]['annots'][goID] = [aspect,evidenceCode]
+        result[dbObjectId]['names'].update([dbObjectSymbol])
+        allTaxa.update([taxon])
+
+    return list(allTaxa),result
+"""

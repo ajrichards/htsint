@@ -37,6 +37,8 @@ class Taxon(Base):
                                                     self.common_name_1,
                                                     self.common_name_2,
                                                     self.common_name_3)
+
+
 class Gene(Base):
     '''
     class that handles ncbi genes
@@ -74,46 +76,31 @@ class Gene(Base):
                                                        self.map_location,
                                                        self.synonyms,
                                                        self.taxa_id)
-class Accession(Base):
+
+class Uniprot(Base):
     '''
-    class that handles ncbi genes
+    class that handles Uniprot Accessions
     '''
 
-    __tablename__ = 'accessions'
+    __tablename__ = 'uniprot'
 
-    id = Column(Integer, Sequence('accession_id_seq'),primary_key=True)
-    status = Column(String)
-    nucleo_gi = Column(String)
-    protein_gi = Column(String)
-    genomic_nucleo_gi = Column(String)
-    genomic_start = Column(String)
-    genomic_stop = Column(String)
-    orientation = Column(String)
-    assembly = Column(String)
+    id = Column(Integer, Sequence('uniprot_id_seq'),primary_key=True)
+    uniprot_id = Column(String)
+    uniprot_entry = Column(String)
     gene_id = Column(Integer,ForeignKey('genes.id'))
+    taxa_id = Column(Integer,ForeignKey('taxa.id'))
     
-    def __init__(self,status,nucleo_gi,protein_gi,genomic_nucleo_gi,genomic_start,
-                 genomic_stop,orientation,assembly,gene_id):
-        self.status = status
-        self.nucleo_gi = nucleo_gi
-        self.protein_gi = protein_gi
-        self.genomic_nucleo_gi = genomic_nucleo_gi
-        self.genomic_start = genomic_start
-        self.genomic_stop = genomic_stop
-        self.orientation = orientation
-        self.assembly = assembly
+    def __init__(self,uniprot_id,uniprot_entry,gene_id,taxa_id):
+        self.uniprot_id = uniprot_id
+        self.uniprot_entry = uniprot_entry
         self.gene_id = gene_id
+        self.taxa_id = taxa_id
                
     def __repr__(self):
-        return "Accession('%s','%s','%s','%s','%s','%s','%s','%s','%s')>"%(self.status,
-                                                                           self.nucleo_gi,
-                                                                           self.protein_gi,
-                                                                           self.genomic_nucleo_gi,
-                                                                           self.genomic_start,
-                                                                           self.genomic_stop,
-                                                                           self.orientation,
-                                                                           self.assembly,
-                                                                           self.gene_id)
+        return "Uniprot('%s','%s','%s','%s')>"%(self.uniprot_id,
+                                                       self.uniprot_entry,
+                                                       self.gene_id,
+                                                       self.taxa_id)
 
 class GoTerm(Base):
     '''
@@ -148,83 +135,19 @@ class GoAnnotation(Base):
     go_term_id = Column(Integer, ForeignKey('go_terms.id'))
     evidence_code = Column(String)
     pubmed_refs = Column(String)
-    gene_id = Column(Integer, ForeignKey('genes.id'))
+    uniprot_id = Column(Integer, ForeignKey('uniprot.id'))
     taxa_id = Column(Integer,ForeignKey('taxa.id'))
 
-    def __init__(self,go_term_id,evidence_code,pubmed_refs,gene_id,taxa_id):
+    def __init__(self,go_term_id,evidence_code,pubmed_refs,uniprot_id,taxa_id):
         self.go_term_id = go_term_id
         self.evidence_code = evidence_code
         self.pubmed_refs = pubmed_refs
-        self.gene_id = gene_id
+        self.uniprot_id = uniprot_id
         self.taxa_id = taxa_id
 
     def __repr__(self):
-        return "<GoTermInstance('%s','%s','%s','%s')>"%(self.go_term_id,
-                                                        self.evidence_code,
-                                                        self.pubmed_refs,
-                                                        self.gene_id,
-                                                        self.taxa_id)
-"""
-class Pub(Base):
-    '''
-    class that handles publications
-    '''
-
-    __tablename__ = 'pubs'
-
-    id = Column(Integer,primary_key=True)
-    pmc_id = Column(String)
-    title = Column(String)
-    
-    def __init__(self,pmc_id,title):
-        self.pmc_id = pmc_id
-        self.title = title
-            
-    def __repr__(self):
-        return "<Pub('%s','%s')>"%(self.pmc_id,
-                                   self.title)
-"""
-"""
-class PubInstance(Base):
-    '''
-    class that handles publication instances
-    '''
-
-    __tablename__ = 'pub_instances'
-
-    id = Column(String,primary_key=True)
-    pub_id = Column(String,ForeignKey('pubs.id'))
-    gene_id = Column(String,ForeignKey('genes.id'))
-    
-    def __init__(self,pmc_id,gene_id):
-        self.pmc_id = pmc_id
-        self.gene_id = gene_id
-            
-    def __repr__(self):
-        return "<PubInstance('%s','%s')>"%(self.pmc_id,
-                                           self.genes_id)
-"""
-
-"""
-class SemDistance(Base):
-    '''
-    class that handles publication instances
-    '''
-
-    __tablename__ = 'pub_instances'
-
-    id = Column(String,primary_key=True)
-    gene_id_1 = Column(String,ForeignKey('genes.id'))
-    gene_id_2 = Column(String,ForeignKey('genes.id'))
-    method =  Column(String)
-
-    def __init__(self,gene_id_1,gene_id_2,method):
-        self.gene_id_1 = gene_id_1
-        self.gene_id_2 = gene_id_2
-        self.method = method
-            
-    def __repr__(self):
-        return "<SemDistancePub('%s','%s','%s')>"%(self.gene_id_1,
-                                                   self.gene_id_2,
-                                                   self.method)
-"""
+        return "<GoAnnotation('%s','%s','%s','%s')>"%(self.go_term_id,
+                                                      self.evidence_code,
+                                                      self.pubmed_refs,
+                                                      self.uniprot_id,
+                                                      self.taxa_id)

@@ -9,7 +9,7 @@ import sqlalchemy
 import getpass
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from DatabaseTables import Base,Taxon,Gene,Accession,GoTerm,GoAnnotation
+from DatabaseTables import Base,Taxon,Gene,Uniprot,GoTerm,GoAnnotation
 
 from htsint import __basedir__
 sys.path.append(__basedir__)
