@@ -48,16 +48,31 @@ push_out("Getting ready to create database...")
 
 ## conect to the database
 session,engine = db_connect(verbose=False)
+Base.metadata.create_all(engine)
+
+#print dir(Base.metadata)
+#for t in Base.metadata.sorted_tables:
+#   print t.name
+
+#for tbl in reversed(Base.metadata.sorted_tables):
+#    engine.execute(tbl.delete())
+
+#session.commit()
+
+#print '\ntables are gone?'
+#for t in Base.metadata.sorted_tables:
+#   print t.name
 
 
-conn.execute(DropTable(table))
+#Base.metadata.drop_all(engine)
 
-
-print Base.metadata.tables
+sys.exit()
+#conn.execute(DropTable(table))
+#print Base.metadata
 
 ## create the tables (uncomment to erase everything first)
-Base.metadata.drop_all(engine,table=['go_annotations'])
-print dir(Base.metadata)
+#Base.metadata.drop_all(engine)
+
 
 Base.metadata.create_all(engine) 
 
