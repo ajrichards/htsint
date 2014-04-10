@@ -155,53 +155,12 @@ def read_idmapping_file():
         record = record[:-1].split("\t")
         debug += 1
         
-        #print len(record),record
         uniprotKbAc = record[0]
-        uniprotKbId = record[1]
         geneId = record[2]
         refseq = record[3]
+        result[uniprotKbAc] = (geneId,refseq)
 
-        print debug, uniprotKbId, geneId, refseq
-
-        if debug > 5:
-            sys.exit()
-
-        continue
-
-
-        ## check that it is a uniprot entry
-        if record[0][0] == "!":
-            continue
-        if record[0] != 'UniProtKB':
-            print "houston!!", record[0]
-            continue
-        
-        dbObjectId = record[1]
-        dbObjectSymbol = record[2]
-        goID = record[4]
-        dbReference = record[5]
-        evidenceCode = record[6]
-        aspect = record[8]
-        dbObjectType = record[11]
-        taxon = re.sub("taxon:","",record[12])
-        date = record[13]
-        assignedBy = record[14]
-
-        ## ignore annotations with multiple species
-        if re.search("\|",taxon):
-            continue
-
-        if not result.has_key(dbObjectId):
-            result[dbObjectId] = {'names':set([]),'annots':{},'taxon':taxon}
-
-        result[dbObjectId]['annots'][goID] = [aspect,evidenceCode]
-        result[dbObjectId]['names'].update([dbObjectSymbol])
-        allTaxa.update([taxon])
-
-    return list(allTaxa),result
-
-
-
+    return result
 
 
 """

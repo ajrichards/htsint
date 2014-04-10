@@ -28,9 +28,9 @@ with the PopulateDatabase.py afterwards.
 import sys,os,re,time,csv
 from htsint import __basedir__
 sys.path.append(__basedir__)
-from DatabaseTables import Base,Taxon,Gene,Accession,GoTerm,GoAnnotation
+from DatabaseTables import Base,Taxon,Gene,Uniprot,GoTerm,GoAnnotation
 from DatabaseTools import db_connect
-from DatabaseTools import populate_taxon_table,populate_gene_table,populate_accession_table,populate_go_tables
+from DatabaseTools import populate_taxon_table,populate_gene_table,populate_uniprot_table,populate_go_tables
 
 from GeneOntologyLib import read_idmapping_file
 
@@ -49,29 +49,37 @@ push_out("Getting ready to create database...")
 ## conect to the database
 session,engine = db_connect(verbose=False)
 
+
+conn.execute(DropTable(table))
+
+
+print Base.metadata.tables
+
 ## create the tables (uncomment to erase everything first)
-Base.metadata.drop_all(engine)
+Base.metadata.drop_all(engine,table=['go_annotations'])
+print dir(Base.metadata)
+
 Base.metadata.create_all(engine) 
 
-## read the annotation file
-taxaList,annotations = read_idmapping_file()
+## read the mappings and annotations
+mappings = read_idmapping_file()
+
+print 'total', len(mappings.keys())
 
 ## taxa table
-print "total", len(taxaList)
-taxaList = taxaList[:1]
-print taxaList
-push_out("Attempting to populate the database with %s taxa"%(len(taxaList)))
-timeStr,addedStr = populate_taxon_table(taxaList,session)
-push_out(timeStr)
-push_out(addedStr)
+#print "total", len(taxaList)
+#taxaList = taxaList[:1]
+#print taxaList
+#push_out("Attempting to populate the database with %s taxa"%(len(taxaList)))
+#timeStr,addedStr = populate_taxon_table(taxaList,session)
+#push_out(timeStr)
+#push_out(addedStr)
 
 ## gene table
-timeStr,addedStr = populate_gene_table(taxaList,annotations,session)
-push_out(timeStr)
-push_out(addedStr)
+#timeStr,addedStr = populate_gene_table(taxaList,annotations,session)
+#push_out(timeStr)
+#push_out(addedStr)
 
-
-print 'here we go'
 
 sys.exit()
 

@@ -75,7 +75,6 @@ def db_connect(verbose=False,upass=''):
 
     return session,engine
 
-
 def populate_taxon_table(taxonList,session):
     """
     given a list of taxon ids populate the taxon table
@@ -299,7 +298,7 @@ def populate_gene_table(taxonList,annotations,session):
     return timeStr,addedStr
     
 
-def populate_accession_table(taxonList,session):
+def populate_uniprot_table(taxonList,session):
     """
     given a list of taxon ids populate the accession table
     """
@@ -311,7 +310,7 @@ def populate_accession_table(taxonList,session):
     for taxID in taxonList:
         query = session.query(Taxon).filter_by(ncbi_id=taxID).first()
         if query == None:
-            print "ERROR: populate_accession_table() exiting - not all taxa are present"
+            print "ERROR: populate_uniport_table() exiting - not all taxa are present"
             print "...", taxID
             return
 
@@ -321,7 +320,7 @@ def populate_accession_table(taxonList,session):
     
     gene2AccFile = os.path.join(CONFIG['data'],"gene2accession.db")
     if os.path.exists(gene2AccFile) == False:
-        print "ERROR: populate_accession_table() exiting... could not find gene2AccFile"
+        print "ERROR: populate_uniprot_table() exiting... could not find gene2AccFile"
         return
 
     gene2AccFID = open(gene2AccFile,'rU')
