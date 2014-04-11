@@ -3,5 +3,6 @@ CONFIG = {'data':'/usr/local/share/htsint',
 	  'dbuser':"",
           'dbpass':"",
           'dbhost':"",
-          'dbport':""
+          'dbport':"",
+          'blast':False
  }

@@ -12,6 +12,14 @@ except getopt.GetoptError:
     print "... the verbose flag (-v) may be used"
     sys.exit()
 
+try:
+    from configure import CONFIG
+except:
+    CONFIG = None
+
+if CONFIG == None:
+    raise Exception("You must create a configure.py before running the unittests")
+
 VERBOSE = False
 RUNALL = False
 
@@ -30,6 +38,7 @@ GeneOntologyTestSuite = unittest.TestLoader().loadTestsFromTestCase(GeneOntology
 GeneOntologySuite = unittest.TestSuite([GeneOntologyTestSuite])
 
 ## Blast Tests
-#from BlastTest import *
-#BlastTestSuite = unittest.TestLoader().loadTestsFromTestCase(BlastTest)
-#BlastSuite = unittest.TestSuite([BlastTestSuite])
+if CONFIG['blast'] == True:
+    from BlastTest import *
+    BlastTestSuite = unittest.TestLoader().loadTestsFromTestCase(BlastTest)
+    BlastSuite = unittest.TestSuite([BlastTestSuite])

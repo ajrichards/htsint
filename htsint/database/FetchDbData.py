@@ -14,7 +14,7 @@ except:
     CONFIG = None
 
 if CONFIG == None:
-    raise Exception("You must create a configure.py before running FetchGo.py")
+    raise Exception("You must create a configure.py before running FetchDbData.py")
 
 dataDir = CONFIG['data']
 
@@ -68,7 +68,7 @@ def unzip_file(fileName):
     _run_subprocess(cmd)
 
 ## prepare a log file
-fid = open('fetchgo.log','w')
+fid = open('fetchdb.log','w')
 writer = csv.writer(fid)
 
 def push_out(line):
@@ -79,17 +79,20 @@ push_out(sys.argv[0])
 push_out(time.asctime())
 push_out("fetching files...")
 
-## fetch the go term database
-## dep 
-
+## fetch the files required for the database
 uniprotUrl = "ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/"
 filesToFetch = ["ftp://ftp.geneontology.org/pub/go/ontology/go.obo",
                 "ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene_info.gz",
                 "ftp://ftp.geneontology.org/pub/go/gene-associations/gene_association.goa_uniprot.gz",
                 uniprotUrl + "idmapping/idmapping.tb.gz",
-                uniprotUrl + "idmapping/LICENSE",
-                uniprotUrl + "complete/uniprot_sprot.fasta.gz",
-                uniprotUrl + "complete/uniprot_trembl.fasta.gz"]
+                uniprotUrl + "idmapping/LICENSE"]
+
+## if blast is enabled then fetch the blast files as well
+if CONFIG['blast'] == True:
+    filesToFetch.extend([uniprotUrl + "complete/uniprot_sprot.fasta.gz",
+                        uniprotUrl + "complete/uniprot_trembl.fasta.gz"])
+
+push_out("fetching blast files = %s"%str(CONFIG['blast']))
 
 for fetchURL in filesToFetch:
     fileName = os.path.split(fetchURL)[-1]
