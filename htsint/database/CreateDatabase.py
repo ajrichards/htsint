@@ -27,20 +27,25 @@ with the PopulateDatabase.py afterwards.
 ### make imports
 import sys,os,re,time,csv
 from htsint import __basedir__
-sys.path.append(__basedir__)
-from DatabaseTables import Base,Taxon,Gene,Uniprot,GoTerm,GoAnnotation
-from DatabaseTools import db_connect
-from DatabaseTools import populate_taxon_table,populate_gene_table,populate_uniprot_table,populate_go_tables
 
-from GeneOntologyLib import read_idmapping_file
+sys.path.append(__basedir__)
+try:
+    from configure import CONFIG
+except:
+    CONFIG = None
+
+from DatabaseTables import Base,Taxon,Gene,Uniprot,GoTerm,GoAnnotation
+from DatabaseTools import db_connect, read_gene_info_file
+from DatabaseTools import populate_taxon_table,populate_gene_table,populate_uniprot_table,populate_go_tables
+from GeneOntologyLib import read_idmapping_file,read_annotation_file
 
 ## prepare a log file
-fid = open('createdb.log','w')
+fid = open(os.path.join(CONFIG['data'],'createdb.log'),'w')
 writer = csv.writer(fid)
 
 def push_out(line):
     writer.writerow([line])
-    print line
+    print(line)
 
 push_out(sys.argv[0])
 push_out(time.asctime())
@@ -48,52 +53,68 @@ push_out("Getting ready to create database...")
 
 ## conect to the database
 session,engine = db_connect(verbose=False)
+Base.metadata.drop_all(engine)
 Base.metadata.create_all(engine)
 
-#print dir(Base.metadata)
-#for t in Base.metadata.sorted_tables:
-#   print t.name
-
-#for tbl in reversed(Base.metadata.sorted_tables):
-#    engine.execute(tbl.delete())
-
-#session.commit()
-
-#print '\ntables are gone?'
-#for t in Base.metadata.sorted_tables:
-#   print t.name
-
-
-#Base.metadata.drop_all(engine)
-
-sys.exit()
-#conn.execute(DropTable(table))
-#print Base.metadata
-
-## create the tables (uncomment to erase everything first)
-#Base.metadata.drop_all(engine)
-
-
-Base.metadata.create_all(engine) 
+push_out("Creating database with...")
+for t in Base.metadata.sorted_tables:
+   push_out("\t"+t.name)
 
 ## read the mappings and annotations
+print("reading necessary files into memory")
+annotations = read_annotation_file()
 mappings = read_idmapping_file()
+geneInfo = read_gene_info_file()
+print("loaded")
 
-print 'total', len(mappings.keys())
+push_out('Total annotations = %s'%(len(annotations.keys())))
+push_out('Total mappings = %s'%(len(mappings.keys())))
 
-## taxa table
-#print "total", len(taxaList)
-#taxaList = taxaList[:1]
-#print taxaList
-#push_out("Attempting to populate the database with %s taxa"%(len(taxaList)))
-#timeStr,addedStr = populate_taxon_table(taxaList,session)
-#push_out(timeStr)
-#push_out(addedStr)
+## get genes and taxa in mappings
+taxaList = set([])
+
+## replace the multiple geneIds in mappings with corresponding geneIds from gene_info
+for uniprotac, uniprotmap in mappings.iteritems():
+    geneId = uniprotmap[0]
+    
+    ## use only a gene id that matches
+    if re.search(";",geneId):
+        for _geneId in [re.sub("\s+","",gid) for gid in geneId.split(";")]:
+            if geneInfo.has_key(_geneId):
+                geneId = _geneId
+                mappings[uniprotac][0] = geneId
+
+geneIdList = [g[0] for g in mappings.values()]
+for geneId in geneIdList:
+    if geneId == "":
+        continue
+    
+    ## use only the first match
+    if not geneInfo.has_key(geneId):
+        print("WARNING cannot find %s in gene_info file"%geneId)
+        continue
+
+    taxaList.update([geneInfo[geneId][0]])
+
+taxaList = list(taxaList)
+
+## add all taxa present in the mappings file
+push_out("Populating the database with %s taxa"%len(taxaList))
+timeStr,addedStr = populate_taxon_table(taxaList,session)
+push_out(timeStr)
+push_out(addedStr)
 
 ## gene table
-#timeStr,addedStr = populate_gene_table(taxaList,annotations,session)
-#push_out(timeStr)
-#push_out(addedStr)
+push_out("Populating the database with %s genes"%len(mappings.keys()))
+timeStr,addedStr = populate_gene_table(mappings,geneInfo,session)
+push_out(timeStr)
+push_out(addedStr)
+
+##  table
+push_out("Populating the database with %s uniprot entries"%len(mappings.keys()))
+timeStr,addedStr = populate_uniprot_table(mappings,annotations,session)
+push_out(timeStr)
+push_out(addedStr)
 
 
 sys.exit()

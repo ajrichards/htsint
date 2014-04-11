@@ -75,12 +75,44 @@ def db_connect(verbose=False,upass=''):
 
     return session,engine
 
+def read_gene_info_file():
+    """
+    read the essential info from NCBI's gene info file
+
+    """
+
+    geneInfoFile = os.path.join(CONFIG['data'],"gene_info.db")
+    geneInfoFid = open(geneInfoFile,'rU')
+    taxaList = set([])
+    header = geneInfoFid.next()
+    geneInfo ={}
+
+    for record in geneInfoFid:
+        record = record.rstrip("\n")
+        record = record.split("\t")
+
+        if re.search("^\#",record[0]) or len(record) != 15:
+            continue
+
+        taxId = record[0]
+        ncbiId = record[1]
+        symbol = record[2]
+        synonyms = record[4]
+        chromosome = record[6]
+        map_location = record[7]
+        description = record[8]  
+    
+        geneInfo[ncbiId] = [taxId,symbol,synonyms,description]
+
+    geneInfoFid.close()
+    return geneInfo
+
+
 def populate_taxon_table(taxonList,session):
     """
     given a list of taxon ids populate the taxon table
     """
 
-    print '\n...populating the taxa table for %s taxa...'%(len(taxonList))
     taxonList = list(set([str(tax) for tax in taxonList]))
     namesFile = os.path.join(CONFIG['data'],"names.dmp")
     if os.path.exists(namesFile) == False:
@@ -142,239 +174,86 @@ def populate_taxon_table(taxonList,session):
     addedStr =  "...%s unique taxa were added."%taxaCount
     return timeStr, addedStr
 
-def populate_gene_table(taxonList,annotations,session):
+def populate_gene_table(mappings,geneInfo,session):
     """
-    use the annotation data to populate all of the genes in the 
-    original gene_association.goa_uniprot.gz file.
-    
-    use the gene_info.gz and gene2unigene
-    """
+    use the annotations, idmapping and gene_info data to populate the gene table 
 
-    #taxonList = list(set([str(tax) for tax in taxonList]))
-    #print '\n...populating the genes table for %s taxa'%len(taxonList)
-    ## check that all of the taxa are in the taxon table
-    #for taxID in taxonList:
-    #    query = session.query(Taxon).filter_by(ncbi_id=taxID).first()
-    #    if query == None:
-    #        print "ERROR: populate_gene_table() exiting - not all taxa are present"
-    #        print "...", taxID
-    #        return
+    """
 
     timeStart = time.time()
-    gene2unigeneFile = os.path.join(CONFIG['data'],"gene2unigene")
-    geneInfoFile = os.path.join(CONFIG['data'],"gene_info.db")
-    
-    for fileName in [gene2unigeneFile,geneInfoFile]:
-        if not os.path.exists(fileName):
-            raise Exception("Could not find the data did you run FetchDbData.py? \n%s"%fileName)
-
-    ## read in the gene2unigene mappings
-    gene2unigeneFid = open(gene2unigeneFile,'rU')
-    unigene2gene = {}
-    for record in gene2unigeneFid:
-        record = record[:-1].split("\t")
-        if record[0][0] == "#":
-            continue
-        unigene2gene[record[1]] = record[0]
-    gene2unigeneFid.close()
-
-    debug = 0 
-    print unigene2gene.keys()[:10]
-    for uniprotId, items in annotations.iteritems():
-        debug += 1
-
-        geneId = None
-        for unigeneName in items['names']:
-            if unigene2gene.has_key(unigeneName):
-                geneId = unigene2gene[unigeneName]
-
-        print uniprotId, geneId, items.keys()
-
-
-
-        if debug == 10:
-            sys.exit()
-
-        print "\t", items['names']
-
-        #someGene = Gene(ncbi_id,description,symbol,chromosome,map_location,synonyms,taxa_id)
-        
-
-    ## read in the gene info file
-    #geneInfoDict = {}
-    #geneInfoFid = open(geneInfoFile,'rU')
-    #header = geneInfoFid.next()
-    #totalRecords = 0
-    #
-    #for record in geneInfoFid:
-    #    record = record.rstrip("\n")
-    #    record = record.split("\t")
-    #
-    #    if re.search("^\#",record[0]) or len(record) != 15:
-    #        continue
-    #
-    #    taxID = record[0]
-    #    if taxID not in taxonList:
-    #        continue
-    #    
-    #print 'done'
-        
-
-
-    sys.exit()
-
-    session.add_all(toAdd)
-    session.commit()
-    geneInfoFid.close()
-
-
-
-    '''
-    ## update the gene table
-    print "...reading original gene_info file"
-    print "...this may take some time"
-    taxonList = list(set(taxonList))
-    geneInfoFile = os.path.join(CONFIG['data'],"gene_info.db")
-    if os.path.exists(geneInfoFile) == False:
-        print "ERROR: populate_gene_table() exiting... could not find geneInfoFile"
-        return
-
     toAdd = []
-    geneInfoFID = open(geneInfoFile,'rU')
-    header = geneInfoFID.next()
     totalRecords = 0
-    timeStart = time.time()
 
-    for record in geneInfoFID:
-        record = record.rstrip("\n")
-        record = record.split("\t")
+    for uniprotac, uniprotmap in mappings.iteritems():
+        ncbiId = uniprotmap[0]
 
-        if re.search("^\#",record[0]) or len(record) != 15:
-            continue
-    
-        taxID = record[0]
-
-        if taxID not in taxonList:
+        if not geneInfo.has_key(ncbiId):
             continue
 
-        ncbi_id = record[1]
-        symbol = record[2]
-        synonyms = record[4]
-        chromosome = record[6]
-        map_location = record[7]
-        description = record[8]  
-    
+        taxId,symbol,synonyms,description = geneInfo[ncbiId]
+
         ## determine if record exists and add common names up until 3
-        queryTax = session.query(Taxon).filter_by(ncbi_id=taxID).first()
-        queryGene = session.query(Gene).filter_by(ncbi_id=ncbi_id).first()
+        queryTax = session.query(Taxon).filter_by(ncbi_id=taxId).first()
+        #queryGene = session.query(Gene).filter_by(ncbi_id=ncbi_id).first()
         taxa_id = queryTax.id
         
-        ## if record does not exist
-        if queryGene == None:
-            totalRecords += 1
-            someGene = Gene(ncbi_id,description,symbol,chromosome,map_location,synonyms,taxa_id)
-            toAdd.append(someGene)
-        ### if record exists overwrite 
-        elif queryGene != None:
-            queryGene.ncbi_id = ncbi_id
-            queryGene.description = description
-            queryGene.symbol = symbol
-            queryGene.chromosome = chromosome
-            queryGene.map_location = map_location
-            queryGene.synonyms = synonyms
-            queryGene.taxa_id = taxa_id
+        ## define the table entry
+        someGene = Gene(ncbiId,description,symbol,synonyms,taxa_id)
+        toAdd.append(someGene)
+        totalRecords += 1
 
-        if len(toAdd) > 10000:
+        ## periodically update the db
+        if len(toAdd) > 5000:
             session.add_all(toAdd)
             toAdd = []
 
+    ## add the remaining genes
     session.add_all(toAdd)
     session.commit()
-    geneInfoFID.close()
-    '''
 
     timeStr = "...total time taken: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
     addedStr = "...%s unique genes were added."%totalRecords
     return timeStr,addedStr
     
 
-def populate_uniprot_table(taxonList,session):
+def populate_uniprot_table(mappings,annotations,session):
     """
-    given a list of taxon ids populate the accession table
+    populate the uniprot table
     """
     
-    print '\n...populating the accession table'
-    taxonList = list(set([str(tax) for tax in taxonList]))
-
-    ## check that all of the taxa are in the taxon table
-    for taxID in taxonList:
-        query = session.query(Taxon).filter_by(ncbi_id=taxID).first()
-        if query == None:
-            print "ERROR: populate_uniport_table() exiting - not all taxa are present"
-            print "...", taxID
-            return
-
-    ### update the gene table
-    print "...reading original gene2accession file"
-    print "...this may take a minute"
-    
-    gene2AccFile = os.path.join(CONFIG['data'],"gene2accession.db")
-    if os.path.exists(gene2AccFile) == False:
-        print "ERROR: populate_uniprot_table() exiting... could not find gene2AccFile"
-        return
-
-    gene2AccFID = open(gene2AccFile,'rU')
-    header = gene2AccFID.next()
-    totalRecords = 0
     timeStart = time.time()
     toAdd = []
+    totalRecords = 0
 
-    for record in gene2AccFID:
-        record = record.rstrip("\n")
-        record = record.split("\t")
+    for uniprotac, uniprotmap in mappings.iteritems():
+        ncbiId,uniprotKbEntry,refseq = uniprotmap
 
-        if re.search("^\#",record[0]) or len(record) != 16:
-            continue
-      
-        taxID = record[0]
-        
-        if taxID not in taxonList:
-            continue
+        ## determine if record exists and add common names up until 3
+        #queryTax = session.query(Taxon).filter_by(ncbi_id=taxId).first()
+        queryGene = session.query(Gene).filter_by(ncbi_id=ncbiId).first()
+        if query != None:
+            gene_id = queryGene.id
+        else:
+            gene_id = ''
 
-        ncbi_id= record[1]
-        status = record[2]
-        rna_nucleo_access_version = record[3]
-        rna_nucleo_gi = record[4]
-        protein_access_version = record[5]
-        protein_gi = record[6]
-        genomic_nucleo_access_version = record[7]
-        genomic_nucleo_gi = record[8]
-        genomic_start = record[9]
-        genomic_stop = record[10]
-        orientation = record[11] 
-        assembly = record[12]
+        #taxa_id = queryTax.id
+        uniprotEntry = Uniprot(uniprotac,uniprotKbEntry,refseq,'',gene_id)
 
-        ## query for the gene key and accession
-        queryGene = session.query(Gene).filter_by(ncbi_id=ncbi_id).first()
-        gene_ncbi_id = queryGene.id
-
-        ## Record should not exist -- new records will always be appended
+        toAdd.append(uniprotEntry)
         totalRecords += 1
-        someAccession = Accession(status,rna_nucleo_gi,protein_gi,genomic_nucleo_gi,genomic_start,
-                                  genomic_stop,orientation,assembly,gene_ncbi_id)
-        toAdd.append(someAccession)
 
-        if len(toAdd) > 1000:
+        ## periodically update the db
+        if len(toAdd) > 5000:
             session.add_all(toAdd)
             toAdd = []
 
+    ## add the remaining genes
     session.add_all(toAdd)
     session.commit()
-    gene2AccFID.close()
-    timeStr = "...total time taken: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
-    addedStr =  "...%s unique accession were added."%totalRecords
-    return timeStr,addedStr
 
+    timeStr = "...total time taken: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
+    addedStr = "...%s unique genes were added."%totalRecords
+    return timeStr,addedStr
 
 def populate_go_tables(taxonList,session):
     """

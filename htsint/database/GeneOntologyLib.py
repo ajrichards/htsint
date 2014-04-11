@@ -156,25 +156,52 @@ def read_idmapping_file():
         debug += 1
         
         uniprotKbAc = record[0]
+        uniprotKbEntry = record[1]
         geneId = record[2]
         refseq = record[3]
-        result[uniprotKbAc] = (geneId,refseq)
+        taxon = record[13]
+        result[uniprotKbAc] = [geneId,uniprotKbEntry,refseq]
 
+        if debug == 2000:
+            break
+
+    idmappingFid.close()
     return result
 
+def get_annotation_file():
+    """
+    check for presence of the annotation file
+    raise exception when not found
+    return the file path
+    """
 
-"""
-    for record in idmappingFid:
+    if CONFIG == None:
+        raise Exception("You must create a configure.py before GeneOntology")
+
+    dataDir = CONFIG['data']
+
+    annotationFile = os.path.join(dataDir,'gene_association.goa_uniprot_noiea.db')
+    if os.path.exists(annotationFile) == False:
+        raise Exception("Could not find 'go.obo' -- did you run FetchGo.py?")
+
+    return annotationFile
+
+    
+def read_annotation_file():
+    """
+    read the annotation file into a dictionary
+    This will take some time
+    This function is intended for use with database population
+
+    http://www.geneontology.org/GO.format.gaf-2_0.shtml
+    """
+
+    annotationFile = get_annotation_file()
+    annotationFid = open(annotationFile,'rU')
+    result = {}
+
+    for record in annotationFid:
         record = record[:-1].split("\t")
-        debug += 1
-        
-        print record
-
-        if debug > 5:
-            sys.exit()
-
-        continue
-
 
         ## check that it is a uniprot entry
         if record[0][0] == "!":
@@ -203,7 +230,6 @@ def read_idmapping_file():
 
         result[dbObjectId]['annots'][goID] = [aspect,evidenceCode]
         result[dbObjectId]['names'].update([dbObjectSymbol])
-        allTaxa.update([taxon])
 
-    return list(allTaxa),result
-"""
+    annotationFid.close()
+    return result

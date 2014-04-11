@@ -50,18 +50,13 @@ class Gene(Base):
     ncbi_id = Column(String)
     description = Column(String,nullable=False)
     symbol = Column(String)
-    chromosome = Column(String)
-    map_location = Column(String)
     synonyms = Column(String)
     taxa_id = Column(Integer,ForeignKey('taxa.id'))
     
-    def __init__(self,ncbi_id,description,symbol,chromosome,map_location,
-                 synonyms,taxa_id):
+    def __init__(self,ncbi_id,description,symbol,synonyms,taxa_id):
         self.ncbi_id = ncbi_id
         self.description = description
         self.symbol = symbol
-        self.chromosome = chromosome
-        self.map_location = map_location
         self.synonyms = synonyms
         self.taxa_id = taxa_id
                
@@ -69,8 +64,6 @@ class Gene(Base):
         return "<Gene('%s','%s','%s','%s','%s')>"%(self.ncbi_id,
                                                    self.description,
                                                    self.symbol,
-                                                   self.chromosome,
-                                                   self.map_location,
                                                    self.synonyms,
                                                    self.taxa_id)
 
@@ -84,20 +77,23 @@ class Uniprot(Base):
     id = Column(Integer, Sequence('uniprot_id_seq'),primary_key=True)
     uniprot_id = Column(String)
     uniprot_entry = Column(String)
+    refseq = Column(String)
+    uniprot_taxa_id = Column(String)
     gene_id = Column(Integer,ForeignKey('genes.id'))
-    taxa_id = Column(Integer,ForeignKey('taxa.id'))
-    
-    def __init__(self,uniprot_id,uniprot_entry,gene_id,taxa_id):
+
+    def __init__(self,uniprot_id,uniprot_entry,refseq,taxa_id,gene_id):
         self.uniprot_id = uniprot_id
         self.uniprot_entry = uniprot_entry
+        self.refseq = refseq
+        self.uniprot_taxa_id = taxa_id
         self.gene_id = gene_id
-        self.taxa_id = taxa_id
-               
+
     def __repr__(self):
-        return "<Uniprot('%s','%s','%s','%s')>"%(self.uniprot_id,
-                                                 self.uniprot_entry,
-                                                 self.gene_id,
-                                                 self.taxa_id)
+        return "<Uniprot('%s','%s','%s','%s','%s')>"%(self.uniprot_id,
+                                                      self.uniprot_entry,
+                                                      self.refseq,
+                                                      self.uniprot_taxa_id,
+                                                      self.gene_id)
 
 class GoTerm(Base):
     '''
