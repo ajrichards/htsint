@@ -23,6 +23,9 @@ for dbname in htsdb.dbnames:
     htsdb.server.create(dbname)
 htsdb.connect()
 
+print dir(htsdb.db['htsint-uniprot'])
+sys.exit()
+
 ## create a doc for each entry in the idmapping file
 idmappingFile = get_idmapping_file()
 idmappingFid = open(idmappingFile,'rU')
@@ -35,6 +38,12 @@ idmappingFid = open(idmappingFile,'rU')
 allTaxa = set([])
 wayPoints = [round(int(w)) for w in np.linspace(0,totalLines,100)]
 toAdd = []
+
+print 'total lines', totalLines
+print "%s documents saved to 'htsint-uniprot'"%len(htsdb.db['htsint-uniprot'])
+
+#sys.exit()
+
 print "loading 'htsint-uniprot' database..."
 for record in idmappingFid:
     record = record[:-1].split("\t")
@@ -52,17 +61,17 @@ for record in idmappingFid:
            'go-terms':[]
            }
 
-    #toAdd.append(doc)
-    
-    htsdb.db['htsint-uniprot'].save(doc,batch='ok')
+    toAdd.append(doc)
+    #htsdb.db['htsint-uniprot'].save(doc,batch='ok')
     
 
     if lineCount in wayPoints:
         print("\t%s percent finished"%(round(lineCount/float(totalLines)*100.0)))
 
-    #if lineCount == 5:
-    #    htsdb.db['htsint-uniprot'].save(toAdd)
-    #    break
+    if lineCount == 5:
+        htsdb.db['htsint-uniprot'].bulk_save(toAdd)
+        #htsdb.db['htsint-uniprot'].save(toAdd)
+        break
     
 
 idmappingFid.close()
