@@ -108,6 +108,26 @@ def read_gene_info_file():
     return geneInfo
 
 
+def get_geneids_from_idmapping():
+    """
+    return a unique list of geneids from the idmapping file
+    """
+
+    ## get all unique geneIds in idmapping file
+    idmappingFile = get_idmapping_file()
+    idmappingFid = open(idmappingFile,'rU')
+    totalLines = 0
+    lineCount = 0
+    geneIds = set([])
+    for record in idmappingFid:
+        record = record[:-1].split("\t")
+        lineCount += 1
+        if record[2] != '':
+            geneIds.update([record[2]])
+
+    idmappingFid.close()
+    return list(geneIds),lineCount
+    
 def populate_taxon_table(taxonList,session):
     """
     given a list of taxon ids populate the taxon table

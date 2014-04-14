@@ -35,7 +35,7 @@ except:
     CONFIG = None
 
 from DatabaseTables import Base,Taxon,Gene,Uniprot,GoTerm,GoAnnotation
-from DatabaseTools import db_connect, read_gene_info_file
+from DatabaseTools import db_connect, read_gene_info_file,get_geneids_from_idmapping
 from DatabaseTools import populate_taxon_table,populate_gene_table,populate_uniprot_table,populate_go_tables
 from GeneOntologyLib import read_idmapping_file,read_annotation_file
 
@@ -50,6 +50,15 @@ def push_out(line):
 push_out(sys.argv[0])
 push_out(time.asctime())
 push_out("Getting ready to create database...")
+
+## get a list of geneids from uniprot
+geneIds, idmapLineCount = get_geneids_from_idmapping()
+
+print 'we have %s geneids'%len(geneIds)
+print geneIds[:5]
+
+sys.exit()
+
 
 ## conect to the database
 session,engine = db_connect(verbose=False)
