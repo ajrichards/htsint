@@ -112,62 +112,6 @@ def get_idmapping_file():
     return idmappingFile
 
     
-def read_idmapping_file():
-    """
-    read the idmapping file into a dictionary
-    ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/idmapping/README
-    
-    target file is idmapping.tb from the uniprot knowledgebase
-
-    1. UniProtKB-AC
-    2. UniProtKB-ID
-    3. GeneID (EntrezGene)
-    4. RefSeq
-    5. GI
-    6. PDB
-    7. GO
-    8. IPI
-    9. UniRef100
-    10. UniRef90
-    11. UniRef50
-    12. UniParc
-    13. PIR
-    14. NCBI-taxon
-    15. MIM
-    16. UniGene
-    17. PubMed
-    18. EMBL
-    19. EMBL-CDS
-    20. Ensembl
-    21. Ensembl_TRS
-    22. Ensembl_PRO
-    23. Additional PubMed
-    """
-
-    idmappingFile = get_idmapping_file()
-    idmappingFid = open(idmappingFile,'rU')
-    result = {}
-    allTaxa = set([])
-
-    debug = 0
-
-    for record in idmappingFid:
-        record = record[:-1].split("\t")
-        debug += 1
-        
-        uniprotKbAc = record[0]
-        uniprotKbEntry = record[1]
-        geneId = record[2]
-        refseq = record[3]
-        taxon = record[13]
-        result[uniprotKbAc] = [geneId,uniprotKbEntry,refseq]
-
-        if debug == 2000:
-            break
-
-    idmappingFid.close()
-    return result
-
 def get_annotation_file():
     """
     check for presence of the annotation file

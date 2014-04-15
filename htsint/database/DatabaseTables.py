@@ -37,8 +37,6 @@ class Taxon(Base):
                                                     self.common_name_1,
                                                     self.common_name_2,
                                                     self.common_name_3)
-
-
 class Gene(Base):
     '''
     class that handles ncbi genes

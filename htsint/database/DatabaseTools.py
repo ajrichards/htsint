@@ -9,7 +9,9 @@ import sqlalchemy
 import getpass
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from htsint.database import get_annotation_file
 from DatabaseTables import Base,Taxon,Gene,Uniprot,GoTerm,GoAnnotation
+
 
 from htsint import __basedir__
 sys.path.append(__basedir__)
@@ -45,6 +47,7 @@ def ask_upass():
 def db_connect(verbose=False,upass=''):
     """
     generic function to connect to db
+
     """
 
     if CONFIG == None:
@@ -131,50 +134,13 @@ def get_geneids_from_idmapping():
     idmappingFid.close()
     return geneIds,lineCount
 
-def get_taxa_from_gene_info(geneIds):
-    """
-    return the unique list of taxa associated with the imput geneIds
-
-    """
-
-    geneInfoFile = os.path.join(CONFIG['data'],"gene_info.db")
-    geneInfoFid = open(geneInfoFile,'rU')
-    taxaList = set([])
-    header = geneInfoFid.next()
-    geneInfo ={}
-
-    for record in geneInfoFid:
-        record = record.rstrip("\n")
-        record = record.split("\t")
-
-        if re.search("^\#",record[0]) or len(record) != 15:
-            continue
-
-        ncbiId = record[1]
-        #if ncbiId not in 
-
-
-        taxId = record[0]
-
-        symbol = record[2]
-        synonyms = record[4]
-        chromosome = record[6]
-        map_location = record[7]
-        description = record[8]  
-    
-        geneInfo[ncbiId] = [taxId,symbol,synonyms,description]
-
-    geneInfoFid.close()
-    return geneInfo
-
-    
 def populate_taxon_table(taxonList,session):
     """
     given a list of taxon ids populate the taxon table
     
     """
 
-    taxonList = list(set([str(tax) for tax in taxonList]))
+    #taxonList = list(set([str(tax) for tax in taxonList]))
     namesFile = os.path.join(CONFIG['data'],"names.dmp")
     if os.path.exists(namesFile) == False:
         print "ERROR: Cannot find names.dmp... exiting"
@@ -201,7 +167,7 @@ def populate_taxon_table(taxonList,session):
             continue
 
         ## only populate a subset of the taxa
-        if taxID in taxonList:
+        if not taxonList.has_key(taxID):
             pass
         else:
             continue
@@ -237,7 +203,7 @@ def populate_taxon_table(taxonList,session):
 
 def populate_gene_table(geneIds,geneInfo,session):
     """
-    use the annotations, idmapping and gene_info data to populate the gene table 
+    use the geneids derived from the idmapping file along with gene_info data to populate the gene table 
 
     """
 
@@ -258,14 +224,18 @@ def populate_gene_table(geneIds,geneInfo,session):
         taxa_id = queryTax.id
         
         ## define the table entry
-        someGene = Gene(ncbiId,description,symbol,synonyms,refseq,taxa_id)
+        someGene = Gene(ncbiId,description,symbol,synonyms,taxa_id)
         toAdd.append(someGene)
         totalRecords += 1
 
         ## periodically update the db
         if len(toAdd) > 5000:
             session.add_all(toAdd)
+            session.commit()
             toAdd = []
+            print 'exiting early'
+            sys.exit()
+
 
     ## add the remaining genes
     session.add_all(toAdd)
@@ -276,50 +246,102 @@ def populate_gene_table(geneIds,geneInfo,session):
     return timeStr,addedStr
     
 
-def populate_uniprot_table(mappings,annotations,session):
+def populate_uniprot_table(lineCount,session):
     """
-    populate the uniprot table
+    populate the uniprot table with entries from idmappings
     """
     
     timeStart = time.time()
     toAdd = []
     totalRecords = 0
+    wayPoints = [round(int(w)) for w in np.linspace(0,lineCount,100)]
+    idmappingFile = get_idmapping_file()
+    idmappingFid = open(idmappingFile,'rU')
+    
+    for record in idmappingFid:
+        record = record[:-1].split("\t")
 
-    for uniprotac, uniprotmap in mappings.iteritems():
-        ncbiId,uniprotKbEntry,refseq = uniprotmap
+        uniprotKbAc = record[0]
+        uniprotKbEntry = record[1]
+        geneId = record[2]
+        refseq = record[3]
+        uniprotTaxon = record[13]
+    
+        queryGene = session.query(Gene).filter_by(ncbi_id=geneId).first()
+        gene_id = queryGene.id
 
-        ## determine if record exists and add common names up until 3
-        #queryTax = session.query(Taxon).filter_by(ncbi_id=taxId).first()
-        queryGene = session.query(Gene).filter_by(ncbi_id=ncbiId).first()
-        if query != None:
-            gene_id = queryGene.id
-        else:
-            gene_id = ''
-
-        #taxa_id = queryTax.id
-        uniprotEntry = Uniprot(uniprotac,uniprotKbEntry,refseq,'',gene_id)
-
+        uniprotEntry = Uniprot(uniprotKbAc,uniprotKbEntry,refseq,uniprotTaxon,gene_id)
         toAdd.append(uniprotEntry)
         totalRecords += 1
+
+        ## show progress
+        if totalRecords in wayPoints:
+            print("\t%s percent finished"%(round(totalRecords/float(lineCount)*100.0)))
 
         ## periodically update the db
         if len(toAdd) > 5000:
             session.add_all(toAdd)
+            session.commit()
             toAdd = []
 
-    ## add the remaining genes
+    ## add the remaining entries
     session.add_all(toAdd)
     session.commit()
 
     timeStr = "...total time taken: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
-    addedStr = "...%s unique genes were added."%totalRecords
+    addedStr = "...%s unique uniprot entries were added."%totalRecords
     return timeStr,addedStr
 
-def populate_go_tables(taxonList,session):
-    """
-    given a list of taxon ids populate the go tables
+
+def populate_go_tables(session):
+    """ 
+    read the annotation file into a dictionary
+    This will take some time
+    This function is intended for use with                                                                                                                                        
+    http://www.geneontology.org/GO.format.gaf-2_0.shtml
     """
 
+    annotationFile = get_annotation_file()
+    annotationFid = open(annotationFile,'rU')
+    result = {}
+
+    for record in annotationFid:
+        record = record[:-1].split("\t")
+
+        ## check that it is a uniprot entry
+        if record[0][0] == "!":
+            continue
+        if record[0] != 'UniProtKB':
+            continue
+
+        dbObjectId = record[1]
+        dbObjectSymbol = record[2]
+        goId = record[4]
+        pubmedRefs = record[5]
+        evidenceCode = record[6]
+        aspect = record[8]
+        goTermName = record[11]
+        taxon = re.sub("taxon:","",record[12])
+        date = record[13]
+        assignedBy = record[14]
+
+        ## ignore annotations with multiple species
+        if re.search("\|",taxon):
+            continue
+
+        queryTax = session.query(Taxon).filter_by(ncbi_id=taxon).first()
+
+        print dbObjectId, goId, evidenceCode, aspect, taxon
+
+        if queryTax == None:
+            print 'not found'
+        else:
+            taxa_id = queryTax.id
+            print taxa_id
+
+
+
+    """
     print '\n...populating the go term and annotation tables for taxa'
     taxonList = list(set([str(tax) for tax in taxonList]))
 
@@ -397,6 +419,8 @@ def populate_go_tables(taxonList,session):
     timeStr = "...total time taken: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
     addedStr = "...%s unique terms and %s unique annotations were added."%(totalTerms,totalAnnotations)
     return timeStr,addedStr
+
+    """
 
 def get_idmapping_file():
     """
