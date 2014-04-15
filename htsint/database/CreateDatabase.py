@@ -35,7 +35,7 @@ except:
     CONFIG = None
 
 from DatabaseTables import Base,Taxon,Gene,Uniprot,GoTerm,GoAnnotation
-from DatabaseTools import db_connect, read_gene_info_file,get_geneids_from_idmapping
+from DatabaseTools import db_connect, get_geneids_from_idmapping
 from DatabaseTools import populate_taxon_table,populate_gene_table,populate_uniprot_table,populate_go_tables
 from GeneOntologyLib import read_annotation_file,get_annotation_file
 
@@ -56,17 +56,22 @@ geneIds, idmapLineCount = get_geneids_from_idmapping()
 push_out('%s geneIds were found in the idmapping file'%len(geneIds))
 
 ## use the list of geneids and the annotation file to to get the taxa list
-geneInfo = read_gene_info_file(geneIds)
+geneInfoFile = os.path.join(CONFIG['data'],"gene_info.db")
+geneInfoFid = open(geneInfoFile,'rU')
+taxaList = set([])
+header = geneInfoFid.next()
+for record in geneInfoFid:
+    record = record.rstrip("\n")
+    record = record.split("\t")
+    if re.search("^\#",record[0]):
+        continue
+    taxaList.update([record[0]])
+
 push_out('%s elements extracted from gene info file'%len(geneIds.keys()))
-
-taxaList = {}
-for ncbiId,values in geneInfo.iteritems():
-    if not taxaList.has_key(values[0]):
-        taxaList[values[0]] = 1
-
 annotationFile = get_annotation_file()
 annotationFid = open(annotationFile,'rU')
 annotsCount = 0
+annotatedIds = {}
 
 for record in annotationFid:
     record = record[:-1].split("\t")
@@ -80,8 +85,10 @@ for record in annotationFid:
     if taxon == "" or re.search("\|",taxon):
         continue
 
-    if not taxaList.has_key(taxon):
-        taxaList[taxon] = 1
+    annotatedIds[record[1]] = None
+    taxaList.update([taxon])
+
+taxaList = list(taxaList)
 
 ## conect to the database
 session,engine = db_connect(verbose=False)
@@ -94,21 +101,21 @@ for t in Base.metadata.sorted_tables:
 
 ## taxa table
 push_out("Populating the database with %s taxa"%len(taxaList))
-timeStr,addedStr = populate_taxon_table(taxaList,session)
+timeStr,addedStr = populate_taxon_table(taxaList,session,engine)
 push_out(timeStr)
 push_out(addedStr)
 
 ## gene table
 push_out("Populating the database with %s genes"%len(geneIds.keys()))
-timeStr,addedStr = populate_gene_table(geneIds,geneInfo,session)
+timeStr,addedStr = populate_gene_table(geneIds,session)
 push_out(timeStr)
 push_out(addedStr)
 
 ##  uniprot table
-#push_out("Populating the database with %s uniprot entries"%(idmapLineCount))
-#timeStr,addedStr = populate_uniprot_table(session)
-#push_out(timeStr)
-#push_out(addedStr)
+push_out("Populating the database with %s uniprot entries"%(idmapLineCount))
+timeStr,addedStr = populate_uniprot_table(annotatedIds,session)
+push_out(timeStr)
+push_out(addedStr)
 
 ## go terms and go annotations tables
 #push_out("Populating the database with %s annotations"%(annotCount))
@@ -118,8 +125,7 @@ push_out(addedStr)
 
 push_out("DATABASE - SUMMARY")
 push_out("There are %s unique taxa "%session.query(Taxon).count())
-push_out("There are %s unique genes   "%session.query(Gene).count())
-push_out("There are %s unique accessions"%session.query(Accession).count())
+push_out("There are %s unique genes  "%session.query(Gene).count())
 print "\n"
 
 fid.close()

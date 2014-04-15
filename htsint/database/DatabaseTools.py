@@ -7,6 +7,7 @@ These are helper scripts to populate the database
 import sys,os,re,time,csv
 import sqlalchemy
 import getpass
+import numpy as np
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from htsint.database import get_annotation_file
@@ -134,13 +135,15 @@ def get_geneids_from_idmapping():
     idmappingFid.close()
     return geneIds,lineCount
 
-def populate_taxon_table(taxonList,session):
+def populate_taxon_table(taxonList,session,engine):
     """
     given a list of taxon ids populate the taxon table
     
     """
-
-    #taxonList = list(set([str(tax) for tax in taxonList]))
+    
+    total = len(taxonList)
+    wayPoints = [round(int(w)) for w in np.linspace(0,total,100)]
+    taxonList = list(set([str(tax) for tax in taxonList]))
     namesFile = os.path.join(CONFIG['data'],"names.dmp")
     if os.path.exists(namesFile) == False:
         print "ERROR: Cannot find names.dmp... exiting"
@@ -149,7 +152,7 @@ def populate_taxon_table(taxonList,session):
     namesFID = open(namesFile,'rU')
     taxaCount = 0
     timeStart = time.time()
-    toAdd = []
+    toAdd = {}
 
     for linja in namesFID:
         linja = linja.rstrip("\n")
@@ -167,49 +170,57 @@ def populate_taxon_table(taxonList,session):
             continue
 
         ## only populate a subset of the taxa
-        if not taxonList.has_key(taxID):
-            pass
-        else:
+        if taxID not in taxonList:
             continue
         
-        ## determine if record exists and add common names up until 3
-        query = session.query(Taxon).filter_by(ncbi_id=taxID).first()
-
         ## if record does not exist
-        if query == None and scientificName != None:
+        if not toAdd.has_key(taxID) and scientificName != None:
             taxaCount += 1
+
+            if len(toAdd) > 1000:
+                with session.begin(subtransactions=True):
+                    session.add_all(toAdd.values())
+                toAdd = {}
+
             someTaxon = Taxon(taxID,name=scientificName)
-            session.add(someTaxon)
-        ## if record exists overwrite 
-        elif query != None and scientificName != None:
-            taxaCount += 1
-            query.scientific_name = scientificName
+            toAdd[taxID] = (someTaxon)
+            
+            ## show progress
+            if taxaCount in wayPoints:
+                print("\t%s percent finished"%(round(taxaCount/float(total)*100.0)))
+
         ## if record exists add a common name 
-        elif query != None and commonName != None:
-            if  query.common_name_1 == '':
-                query.common_name_1 = commonName
-            elif commonName not in [query.common_name_1] and query.common_name_2 == '':
-                query.common_name_2 = commonName
-            elif commonName not in [query.common_name_1,query.common_name_2] and query.common_name_3 == '':
-                query.common_name_3 = commonName
+        elif toAdd.has_key(taxID) and commonName != None:
+            if  toAdd[taxID].common_name_1 == '':
+                toAdd[taxID].common_name_1 = commonName
+            elif commonName not in [toAdd[taxID].common_name_1] and toAdd[taxID].common_name_2 == '':
+                toAdd[taxID].common_name_2 = commonName
+            elif commonName not in [toAdd[taxID].common_name_1,toAdd[taxID].common_name_2] and toAdd[taxID].common_name_3 == '':
+                toAdd[taxID].common_name_3 = commonName
         else:
             continue
 
+    print('committing changes...')
+    with session.begin(subtransactions=True):
+        session.add_all(toAdd.values())
     session.commit()
     namesFID.close()
     timeStr = "...total time taken: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
     addedStr =  "...%s unique taxa were added."%taxaCount
     return timeStr, addedStr
 
-def populate_gene_table(geneIds,geneInfo,session):
+def populate_gene_table(geneIds,session):
     """
     use the geneids derived from the idmapping file along with gene_info data to populate the gene table 
 
     """
 
+    geneInfo = read_gene_info_file(geneIds)
     timeStart = time.time()
     toAdd = []
     totalRecords = 0
+    total = len(geneIds)
+    wayPoints = [round(int(w)) for w in np.linspace(0,total,100)]
 
     for ncbiId,refseq in geneIds.iteritems():
         
@@ -227,26 +238,28 @@ def populate_gene_table(geneIds,geneInfo,session):
         someGene = Gene(ncbiId,description,symbol,synonyms,taxa_id)
         toAdd.append(someGene)
         totalRecords += 1
+        
+        ## show progress
+        if totalRecords in wayPoints:
+            print("\t%s percent finished"%(round(totalRecords/float(total))*100.0))
 
         ## periodically update the db
         if len(toAdd) > 5000:
-            session.add_all(toAdd)
-            session.commit()
-            toAdd = []
-            print 'exiting early'
-            sys.exit()
-
+            with session.begin(subtransactions=True):
+                session.add_all(toAdd)
+                toAdd = []
 
     ## add the remaining genes
-    session.add_all(toAdd)
+    with session.begin(subtransactions=True):
+        session.add_all(toAdd)
+        toAdd = []
     session.commit()
 
     timeStr = "...total time taken: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
     addedStr = "...%s unique genes were added."%totalRecords
     return timeStr,addedStr
     
-
-def populate_uniprot_table(lineCount,session):
+def populate_uniprot_table(lineCount,geneIds,session):
     """
     populate the uniprot table with entries from idmappings
     """
@@ -264,6 +277,10 @@ def populate_uniprot_table(lineCount,session):
         uniprotKbAc = record[0]
         uniprotKbEntry = record[1]
         geneId = record[2]
+
+        if geneIds.has_key(ncbiId) == False:
+            continue
+
         refseq = record[3]
         uniprotTaxon = record[13]
     
@@ -281,7 +298,7 @@ def populate_uniprot_table(lineCount,session):
         ## periodically update the db
         if len(toAdd) > 5000:
             session.add_all(toAdd)
-            session.commit()
+            session.flush()
             toAdd = []
 
     ## add the remaining entries
@@ -293,11 +310,11 @@ def populate_uniprot_table(lineCount,session):
     return timeStr,addedStr
 
 
-def populate_go_tables(session):
+def populate_go_tables(annotatedIds,session):
     """ 
     read the annotation file into a dictionary
     This will take some time
-    This function is intended for use with                                                                                                                                        
+    This function is intended for use with                                                    
     http://www.geneontology.org/GO.format.gaf-2_0.shtml
     """
 
@@ -314,6 +331,9 @@ def populate_go_tables(session):
         if record[0] != 'UniProtKB':
             continue
 
+        if not annotatedIds.has_key(record[1]):
+            continue
+        
         dbObjectId = record[1]
         dbObjectSymbol = record[2]
         goId = record[4]
@@ -446,7 +466,7 @@ def print_go_summary(outfile=os.path.join(".","go_summary.csv")):
     """
 
     session,engine = db_connect()
-    goTaxa = []#get_all_go_taxa()
+    goTaxa = []
     fid = open(outfile,'w')
     writer = csv.writer(fid)
     writer.writerow(["ncbi_id","name","common_name","total_genes","total_annotations"])
