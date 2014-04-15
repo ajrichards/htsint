@@ -53,21 +53,42 @@ push_out("Getting ready to create database...")
 
 ## get a list of geneids from uniprot
 geneIds, idmapLineCount = get_geneids_from_idmapping()
+push_out('%s geneIds were found in the idmapping file'%len(geneIds))
 
-print 'we have %s geneids'%len(geneIds)
-print geneIds[:5]
+## use the list of geneids to to get the taxa list
+geneInfo = read_gene_info_file(geneIds)
+push_out('%s elements extracted from gene info file'%len(geneIds.keys()))
 
-sys.exit()
-
+taxaList = set([])
+for ncbiId,values in geneInfo.iteritems():
+    taxaList.update([values[0]])
+taxaList = list(taxaList)
 
 ## conect to the database
 session,engine = db_connect(verbose=False)
-Base.metadata.drop_all(engine)
-Base.metadata.create_all(engine)
+#Base.metadata.drop_all(engine)
+#Base.metadata.create_all(engine)
 
 push_out("Creating database with...")
 for t in Base.metadata.sorted_tables:
    push_out("\t"+t.name)
+
+## add all taxa present in the mappings file
+#push_out("Populating the database with %s taxa"%len(taxaList))
+#timeStr,addedStr = populate_taxon_table(taxaList,session)
+#push_out(timeStr)
+#push_out(addedStr)
+
+## gene table
+push_out("Populating the database with %s genes"%len(geneIds.keys()))
+timeStr,addedStr = populate_gene_table(geneIds,geneInfo,session)
+push_out(timeStr)
+push_out(addedStr)
+
+sys.exit()
+
+
+
 
 ## read the mappings and annotations
 print("reading necessary files into memory")
@@ -106,12 +127,6 @@ for geneId in geneIdList:
     taxaList.update([geneInfo[geneId][0]])
 
 taxaList = list(taxaList)
-
-## add all taxa present in the mappings file
-push_out("Populating the database with %s taxa"%len(taxaList))
-timeStr,addedStr = populate_taxon_table(taxaList,session)
-push_out(timeStr)
-push_out(addedStr)
 
 ## gene table
 push_out("Populating the database with %s genes"%len(mappings.keys()))

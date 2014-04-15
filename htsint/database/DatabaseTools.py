@@ -75,9 +75,65 @@ def db_connect(verbose=False,upass=''):
 
     return session,engine
 
-def read_gene_info_file():
+def read_gene_info_file(geneIds):
     """
     read the essential info from NCBI's gene info file
+
+    """
+
+    geneInfoFile = os.path.join(CONFIG['data'],"gene_info.db")
+    geneInfoFid = open(geneInfoFile,'rU')
+    taxaList = set([])
+    header = geneInfoFid.next()
+    geneInfo ={}
+
+    for record in geneInfoFid:
+        record = record.rstrip("\n")
+        record = record.split("\t")
+
+        if re.search("^\#",record[0]):
+            continue
+
+        ncbiId = record[1]
+        if geneIds.has_key(ncbiId) == False:
+            continue
+
+        taxId = record[0]
+        symbol = record[2]
+        synonyms = record[4]
+        chromosome = record[6]
+        map_location = record[7]
+        description = record[8]
+        geneInfo[ncbiId] = [taxId,symbol,synonyms,description]
+
+    geneInfoFid.close()
+    return geneInfo
+
+
+def get_geneids_from_idmapping():
+    """
+    return a unique dict of geneids with refseq values from the idmapping file
+    
+    """
+
+    ## get all unique geneIds in idmapping file
+    idmappingFile = get_idmapping_file()
+    idmappingFid = open(idmappingFile,'rU')
+    totalLines = 0
+    lineCount = 0
+    geneIds = {}
+    for record in idmappingFid:
+        record = record[:-1].split("\t")
+        lineCount += 1
+        if record[2] != '' and not geneIds.has_key(record[2]):
+            geneIds[record[2]] = record[3]
+
+    idmappingFid.close()
+    return geneIds,lineCount
+
+def get_taxa_from_gene_info(geneIds):
+    """
+    return the unique list of taxa associated with the imput geneIds
 
     """
 
@@ -94,8 +150,12 @@ def read_gene_info_file():
         if re.search("^\#",record[0]) or len(record) != 15:
             continue
 
-        taxId = record[0]
         ncbiId = record[1]
+        #if ncbiId not in 
+
+
+        taxId = record[0]
+
         symbol = record[2]
         synonyms = record[4]
         chromosome = record[6]
@@ -107,30 +167,11 @@ def read_gene_info_file():
     geneInfoFid.close()
     return geneInfo
 
-
-def get_geneids_from_idmapping():
-    """
-    return a unique list of geneids from the idmapping file
-    """
-
-    ## get all unique geneIds in idmapping file
-    idmappingFile = get_idmapping_file()
-    idmappingFid = open(idmappingFile,'rU')
-    totalLines = 0
-    lineCount = 0
-    geneIds = set([])
-    for record in idmappingFid:
-        record = record[:-1].split("\t")
-        lineCount += 1
-        if record[2] != '':
-            geneIds.update([record[2]])
-
-    idmappingFid.close()
-    return list(geneIds),lineCount
     
 def populate_taxon_table(taxonList,session):
     """
     given a list of taxon ids populate the taxon table
+    
     """
 
     taxonList = list(set([str(tax) for tax in taxonList]))
@@ -194,7 +235,7 @@ def populate_taxon_table(taxonList,session):
     addedStr =  "...%s unique taxa were added."%taxaCount
     return timeStr, addedStr
 
-def populate_gene_table(mappings,geneInfo,session):
+def populate_gene_table(geneIds,geneInfo,session):
     """
     use the annotations, idmapping and gene_info data to populate the gene table 
 
@@ -204,21 +245,20 @@ def populate_gene_table(mappings,geneInfo,session):
     toAdd = []
     totalRecords = 0
 
-    for uniprotac, uniprotmap in mappings.iteritems():
-        ncbiId = uniprotmap[0]
-
+    for ncbiId,refseq in geneIds.iteritems():
+        
         if not geneInfo.has_key(ncbiId):
+            "WARNING: key not found:  %s "%(ncbiId)
             continue
 
         taxId,symbol,synonyms,description = geneInfo[ncbiId]
 
         ## determine if record exists and add common names up until 3
         queryTax = session.query(Taxon).filter_by(ncbi_id=taxId).first()
-        #queryGene = session.query(Gene).filter_by(ncbi_id=ncbi_id).first()
         taxa_id = queryTax.id
         
         ## define the table entry
-        someGene = Gene(ncbiId,description,symbol,synonyms,taxa_id)
+        someGene = Gene(ncbiId,description,symbol,synonyms,refseq,taxa_id)
         toAdd.append(someGene)
         totalRecords += 1
 
