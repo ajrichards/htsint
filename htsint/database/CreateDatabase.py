@@ -35,8 +35,9 @@ except:
     CONFIG = None
 
 from DatabaseTables import Base,Taxon,Gene,Uniprot,GoTerm,GoAnnotation
-from DatabaseTools import db_connect, get_geneids_from_idmapping
-from DatabaseTools import populate_taxon_table,populate_gene_table,populate_uniprot_table,populate_go_tables
+from DatabaseTools import db_connect, get_geneids_from_idmapping,print_db_summary
+from DatabaseTools import populate_taxon_table,populate_gene_table,populate_uniprot_table
+from DatabaseTools import populate_go_terms, populate_go_annotations
 from GeneOntologyLib import read_annotation_file,get_annotation_file
 
 ## prepare a log file
@@ -50,6 +51,26 @@ def push_out(line):
 push_out(sys.argv[0])
 push_out(time.asctime())
 push_out("Getting ready to create database...")
+
+## conect to the database
+session,engine = db_connect(verbose=False)
+#print dir(Base.metadata)
+#print Base.metadata.tables.keys()
+#print dir(Base.metadata.tables)
+#sys.exit()
+#print Base.metadata.sorted_tables
+#Uniprot.__table__.drop(engine)
+
+session.commit()
+
+#Base.metadata.remove(GoAnnotation)
+#print dir(Base.metadata)
+#Base.metadata.drop_all(engine)
+Base.metadata.create_all(engine)
+
+push_out("Creating database with...")
+for t in Base.metadata.sorted_tables:
+   push_out("\t"+t.name)
 
 ## get a list of geneids from uniprot
 geneIds, idmapLineCount = get_geneids_from_idmapping()
@@ -90,32 +111,37 @@ for record in annotationFid:
 
 taxaList = list(taxaList)
 
-## conect to the database
-session,engine = db_connect(verbose=False)
-Base.metadata.drop_all(engine)
-Base.metadata.create_all(engine)
-
-push_out("Creating database with...")
-for t in Base.metadata.sorted_tables:
-   push_out("\t"+t.name)
-
 ## taxa table
-push_out("Populating the database with %s taxa"%len(taxaList))
-timeStr,addedStr = populate_taxon_table(taxaList,session,engine)
-push_out(timeStr)
-push_out(addedStr)
+#push_out("Populating the database with %s taxa"%len(taxaList))
+#timeStr,addedStr = populate_taxon_table(taxaList,session,engine)
+#push_out(timeStr)
+#push_out(addedStr)
 
 ## gene table
-push_out("Populating the database with %s genes"%len(geneIds.keys()))
-timeStr,addedStr = populate_gene_table(geneIds,session)
-push_out(timeStr)
-push_out(addedStr)
+#push_out("Populating the database with %s genes"%len(geneIds.keys()))
+#timeStr,addedStr = populate_gene_table(geneIds,session)
+#push_out(timeStr)
+#push_out(addedStr)
 
 ##  uniprot table
 push_out("Populating the database with %s uniprot entries"%(idmapLineCount))
-timeStr,addedStr = populate_uniprot_table(annotatedIds,session)
+timeStr,addedStr = populate_uniprot_table(idmapLineCount,session)
 push_out(timeStr)
 push_out(addedStr)
+
+## populate the go-terms
+#push_out("Populating the database with for go terms...)
+#timeStr,addedStr = populate_go_terms(session)
+#push_out(timeStr)
+#push_out(addedStr)
+
+## populate the go-annotations
+#push_out("Populating the database with for go terms...)
+#timeStr,addedStr = populate_go_terms(session)
+#push_out(timeStr)
+#push_out(addedStr)
+
+
 
 ## go terms and go annotations tables
 #push_out("Populating the database with %s annotations"%(annotCount))
@@ -123,9 +149,6 @@ push_out(addedStr)
 #push_out(timeStr)
 #push_out(addedStr)
 
-push_out("DATABASE - SUMMARY")
-push_out("There are %s unique taxa "%session.query(Taxon).count())
-push_out("There are %s unique genes  "%session.query(Gene).count())
-print "\n"
 
+print_db_summary()
 fid.close()

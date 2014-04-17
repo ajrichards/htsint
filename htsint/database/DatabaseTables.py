@@ -77,7 +77,7 @@ class Uniprot(Base):
     uniprot_entry = Column(String)
     refseq = Column(String)
     uniprot_taxa_id = Column(String)
-    gene_id = Column(Integer,ForeignKey('genes.id'))
+    gene_id = Column(Integer,ForeignKey('genes.id'),nullable=True)
 
     def __init__(self,uniprot_id,uniprot_entry,refseq,taxa_id,gene_id):
         self.uniprot_id = uniprot_id
@@ -92,7 +92,6 @@ class Uniprot(Base):
                                                       self.refseq,
                                                       self.uniprot_taxa_id,
                                                       self.gene_id)
-
 class GoTerm(Base):
     '''
     class that handles gene ontology terms

@@ -10,7 +10,7 @@ import getpass
 import numpy as np
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from htsint.database import get_annotation_file
+from htsint.database import get_annotation_file, get_ontology_file
 from DatabaseTables import Base,Taxon,Gene,Uniprot,GoTerm,GoAnnotation
 
 
@@ -244,7 +244,7 @@ def populate_gene_table(geneIds,session):
             print("\t%s percent finished"%(round(totalRecords/float(total))*100.0))
 
         ## periodically update the db
-        if len(toAdd) > 5000:
+        if len(toAdd) > 1000:
             with session.begin(subtransactions=True):
                 session.add_all(toAdd)
                 toAdd = []
@@ -259,7 +259,7 @@ def populate_gene_table(geneIds,session):
     addedStr = "...%s unique genes were added."%totalRecords
     return timeStr,addedStr
     
-def populate_uniprot_table(lineCount,geneIds,session):
+def populate_uniprot_table(lineCount,session):
     """
     populate the uniprot table with entries from idmappings
     """
@@ -277,15 +277,14 @@ def populate_uniprot_table(lineCount,geneIds,session):
         uniprotKbAc = record[0]
         uniprotKbEntry = record[1]
         geneId = record[2]
-
-        if geneIds.has_key(ncbiId) == False:
-            continue
-
         refseq = record[3]
         uniprotTaxon = record[13]
     
         queryGene = session.query(Gene).filter_by(ncbi_id=geneId).first()
-        gene_id = queryGene.id
+        if queryGene == None:
+            gene_id = None
+        else:
+            gene_id = queryGene.id
 
         uniprotEntry = Uniprot(uniprotKbAc,uniprotKbEntry,refseq,uniprotTaxon,gene_id)
         toAdd.append(uniprotEntry)
@@ -296,10 +295,11 @@ def populate_uniprot_table(lineCount,geneIds,session):
             print("\t%s percent finished"%(round(totalRecords/float(lineCount)*100.0)))
 
         ## periodically update the db
-        if len(toAdd) > 5000:
-            session.add_all(toAdd)
-            session.flush()
-            toAdd = []
+        if len(toAdd) > 1000:
+            with session.begin(subtransactions=True):
+                session.add_all(toAdd)
+                session.flush()
+                toAdd = []
 
     ## add the remaining entries
     session.add_all(toAdd)
@@ -310,7 +310,65 @@ def populate_uniprot_table(lineCount,geneIds,session):
     return timeStr,addedStr
 
 
-def populate_go_tables(annotatedIds,session):
+def populate_go_terms(session):
+    """ 
+    read in the obo file and use it to populate the terms
+    """
+
+    timeStart = time.time()
+    ontologyFile = get_ontology_file()
+    fid = open(ontologyFile,'r')
+    termCount = 0
+    goId = None
+    toAdd = []
+    isObsolete = False
+
+    for linja in fid.readlines():
+        linja = linja[:-1]
+
+        ## find go id
+        if re.search("^id\:",linja):
+            goId = re.sub("^id\:|\s+","",linja)
+            goName,goNamespace = None,None
+            isObsolete = False
+            termCount += 1
+            continue
+
+        ## find namespace and description  
+        if re.search("^name\:",linja):
+            goName = re.sub("^name\:\s+","",linja)
+        if re.search("^namespace\:",linja):
+            goNamespace = re.sub("^namespace\:\s+","",linja)
+        if re.search("^def\:",linja):
+            goDef = re.sub("^def\:\s+","",linja)
+            if re.search("OBSOLETE\.",goDef):
+                isObsolete = True
+        
+        ## ignore obolete terms 
+        if isObsolete == True:
+            goId = None
+
+        ## add the term  
+        if goId != None and re.search("^is\_a\:",linja):
+            toAdd.append(GoTerm(goId,goNamespace,goDef))
+
+        ## periodically update the db
+        if len(toAdd) > 1000:
+            with session.begin(subtransactions=True):
+                session.add_all(toAdd)
+                session.flush()
+                toAdd = []
+
+    ## add the remaining entries
+    session.add_all(toAdd)
+    session.commit()
+
+    timeStr = "...total time taken: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
+    addedStr = "...%s unique uniprot entries were added."%termCount
+    return timeStr,addedStr
+
+
+def populate_go_annotations(session):
     """ 
     read the annotation file into a dictionary
     This will take some time
@@ -318,8 +376,11 @@ def populate_go_tables(annotatedIds,session):
     http://www.geneontology.org/GO.format.gaf-2_0.shtml
     """
 
+    timeStart = time.time()
+    toAdd = []
     annotationFile = get_annotation_file()
     annotationFid = open(annotationFile,'rU')
+    annotationCount = 0
     result = {}
 
     for record in annotationFid:
@@ -349,98 +410,45 @@ def populate_go_tables(annotatedIds,session):
         if re.search("\|",taxon):
             continue
 
-        queryTax = session.query(Taxon).filter_by(ncbi_id=taxon).first()
+        annotationCount += 1
 
-        print dbObjectId, goId, evidenceCode, aspect, taxon
-
-        if queryTax == None:
-            print 'not found'
-        else:
-            taxa_id = queryTax.id
-            print taxa_id
-
-
-
-    """
-    print '\n...populating the go term and annotation tables for taxa'
-    taxonList = list(set([str(tax) for tax in taxonList]))
-
-    ## check that all of the taxa are in the taxon table
-    for taxID in taxonList:
-        query = session.query(Taxon).filter_by(ncbi_id=taxID).first()
-        if query == None:
-            print "ERROR: populate_gene_table() exiting - not all taxa are present"
-            print "...", taxID
-            return
-
-    ## update the gene table
-    print "...reading original gene2go file"
-    print "...this may take some time"
-    gene2goFile = os.path.join(CONFIG['data'],"gene2go.db")
-    if os.path.exists(gene2goFile) == False:
-        print "ERROR: populate_gene_table() exiting... could not find geneInfoFile"
-        return
-
-    gene2goFID = open(gene2goFile,'rU')
-    header = gene2goFID.next()
-    totalTerms,totalAnnotations = 0,0
-    timeStart = time.time()
-    toAddAnnotations = []
-
-    for record in gene2goFID:
-        record = record.rstrip("\n")
-        record = record.split("\t")
-
-        if re.search("^\#",record[0]) or len(record) != 8:
-            continue
-    
-        taxID = record[0]
-
-        if taxID not in taxonList:
-            continue
-
-        ## determine if record exists and add common names up until 3
-        queryTax = session.query(Taxon).filter_by(ncbi_id=taxID).first()
-        taxa_id = queryTax.id
-        
-        ncbi_id = record[1]
-        go_id = record[2]
-        evidence_code = record[3]
-        qualifier = record[4]
-        go_term_description = record[5]
-        pubmed_refs = record[6]
-        go_aspect = record[7]
-    
-        ## determine if record exists and match foreign keys
-        queryGene = session.query(Gene).filter_by(ncbi_id=ncbi_id).first()
-        gene_id = queryGene.id
-        queryTerm = session.query(GoTerm).filter_by(go_id=go_id).first()
-
-        ## if record does not exist add the term
-        if queryTerm == None:
-            totalTerms += 1
-            someTerm = GoTerm(go_id,go_aspect,go_term_description)
-            session.add(someTerm)
-            queryTerm = session.query(GoTerm).filter_by(go_id=go_id).first()
-
-        ## add the annotation
-        totalAnnotations+=1
+        ## get the foreign keys
+        queryTerm = session.query(GoTerm).filter_by(go_id=goId).first()
         go_term_id = queryTerm.id
-        someAnnotation = GoAnnotation(go_term_id,evidence_code,pubmed_refs,gene_id,taxa_id)
-        toAddAnnotations.append(someAnnotation)
 
-        if len(toAddAnnotations) > 1000:
-            session.add_all(toAddAnnotations)
-            toAddAnnotations = []
+        queryUniprot = session.query(Uniprot).filter_by(uniprot_id=dbObjectId).first()
+        uniprot_id = queryUniprot.id
 
-    session.add_all(toAddAnnotations)
+        queryTaxa = session.query(Taxon).filter_by(ncbi_id=taxon).first()
+        taxa_id = queryTaxa.id
+
+        toAdd.append(annotation(go_term_id,evidenceCode,pubmedRefs,uniprot_id,taxa_id))
+
+        ## periodically update the db
+        if len(toAdd) > 1000:
+            with session.begin(subtransactions=True):
+                session.add_all(toAdd)
+                session.flush()
+                toAdd = []
+
+    ## add the remaining entries
+    session.add_all(toAdd)
     session.commit()
-    gene2goFID.close()
+
     timeStr = "...total time taken: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
-    addedStr = "...%s unique terms and %s unique annotations were added."%(totalTerms,totalAnnotations)
+    addedStr = "...%s unique uniprot entries were added."%annotationCount
     return timeStr,addedStr
 
+def print_db_summary():
     """
+    print a summary of rows and tables for the database
+    """
+    
+    session,engine = db_connect(verbose=False)
+    print("\nDATABASE - %s - SUMMARY"%CONFIG['dbname'])
+    for table in [Taxon,Gene,Uniprot,GoTerm,GoAnnotation]:
+        print("There are %s entries in the %s table"%(session.query(table).count(),table.__tablename__))
+    print "\n"
 
 def get_idmapping_file():
     """
@@ -458,7 +466,6 @@ def get_idmapping_file():
         raise Exception("Could not find 'idmapping.tb.db' -- did you run FetchDbData.py?")
 
     return idmappingFile
-
 
 def print_go_summary(outfile=os.path.join(".","go_summary.csv")):
     """
