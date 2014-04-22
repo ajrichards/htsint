@@ -135,7 +135,7 @@ def get_geneids_from_idmapping():
     idmappingFid.close()
     return geneIds,lineCount
 
-def populate_taxon_table(taxonList,session,engine):
+def populate_taxon_table(taxonList,engine):
     """
     given a list of taxon ids populate the taxon table
     
@@ -176,40 +176,31 @@ def populate_taxon_table(taxonList,session,engine):
         ## if record does not exist
         if not toAdd.has_key(taxID) and scientificName != None:
             taxaCount += 1
-
-            if len(toAdd) > 1000:
-                with session.begin(subtransactions=True):
-                    session.add_all(toAdd.values())
-                toAdd = {}
-
             someTaxon = Taxon(taxID,name=scientificName)
-            toAdd[taxID] = (someTaxon)
+            toAdd[taxID] = {'ncbi_id':taxID,'name':scientificName,'common_name_1':'',
+                            'common_name_2':'','common_name_3':''}
             
-            ## show progress
-            if taxaCount in wayPoints:
-                print("\t%s percent finished"%(round(taxaCount/float(total)*100.0)))
-
         ## if record exists add a common name 
         elif toAdd.has_key(taxID) and commonName != None:
-            if  toAdd[taxID].common_name_1 == '':
-                toAdd[taxID].common_name_1 = commonName
-            elif commonName not in [toAdd[taxID].common_name_1] and toAdd[taxID].common_name_2 == '':
-                toAdd[taxID].common_name_2 = commonName
-            elif commonName not in [toAdd[taxID].common_name_1,toAdd[taxID].common_name_2] and toAdd[taxID].common_name_3 == '':
-                toAdd[taxID].common_name_3 = commonName
+            if  toAdd[taxID]['common_name_1'] == '':
+                toAdd[taxID]['common_name_1'] = commonName
+            elif  toAdd[taxID]['common_name_2'] == '':
+                toAdd[taxID]['common_name_2'] = commonName
+            elif  toAdd[taxID]['common_name_3'] == '':
+                toAdd[taxID]['common_name_3'] = commonName
         else:
             continue
 
     print('committing changes...')
-    with session.begin(subtransactions=True):
-        session.add_all(toAdd.values())
-    session.commit()
+    with engine.begin() as connection:
+        connection.execute(Taxon.__table__.insert().
+                           values(toAdd.values()))
     namesFID.close()
     timeStr = "...total time taken: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
     addedStr =  "...%s unique taxa were added."%taxaCount
     return timeStr, addedStr
 
-def populate_gene_table(geneIds,session):
+def populate_gene_table(geneIds,session,engine):
     """
     use the geneids derived from the idmapping file along with gene_info data to populate the gene table 
 
@@ -220,7 +211,7 @@ def populate_gene_table(geneIds,session):
     toAdd = []
     totalRecords = 0
     total = len(geneIds)
-    wayPoints = [round(int(w)) for w in np.linspace(0,total,100)]
+    wayPoints = [round(int(w)) for w in np.linspace(0,total,10)]
 
     for ncbiId,refseq in geneIds.iteritems():
         
@@ -235,31 +226,30 @@ def populate_gene_table(geneIds,session):
         taxa_id = queryTax.id
         
         ## define the table entry
-        someGene = Gene(ncbiId,description,symbol,synonyms,taxa_id)
-        toAdd.append(someGene)
+        toAdd.append({'ncbi_id':ncbiId,'description':description,
+                      'symbol':symbol,'synonyms':synonyms,'taxa_id':taxa_id})
         totalRecords += 1
         
+        if len(toAdd) >= 10000:
+            with engine.begin() as connection:
+                connection.execute(Gene.__table__.insert().
+                                   values(toAdd))
+            toAdd = []
+
         ## show progress
         if totalRecords in wayPoints:
             print("\t%s percent finished"%(round(totalRecords/float(total))*100.0))
 
-        ## periodically update the db
-        if len(toAdd) > 1000:
-            with session.begin(subtransactions=True):
-                session.add_all(toAdd)
-                toAdd = []
-
-    ## add the remaining genes
-    with session.begin(subtransactions=True):
-        session.add_all(toAdd)
-        toAdd = []
-    session.commit()
+    print('committing changes...')            
+    with engine.begin() as connection:
+        connection.execute(Gene.__table__.insert().
+                           values(toAdd))
 
     timeStr = "...total time taken: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
     addedStr = "...%s unique genes were added."%totalRecords
     return timeStr,addedStr
     
-def populate_uniprot_table(lineCount,session):
+def populate_uniprot_table(lineCount,session,engine):
     """
     populate the uniprot table with entries from idmappings
     """
@@ -267,7 +257,7 @@ def populate_uniprot_table(lineCount,session):
     timeStart = time.time()
     toAdd = []
     totalRecords = 0
-    wayPoints = [round(int(w)) for w in np.linspace(0,lineCount,100)]
+    wayPoints = [round(int(w)) for w in np.linspace(0,lineCount,10)]
     idmappingFile = get_idmapping_file()
     idmappingFid = open(idmappingFile,'rU')
     
@@ -286,31 +276,31 @@ def populate_uniprot_table(lineCount,session):
         else:
             gene_id = queryGene.id
 
-        uniprotEntry = Uniprot(uniprotKbAc,uniprotKbEntry,refseq,uniprotTaxon,gene_id)
-        toAdd.append(uniprotEntry)
+        toAdd.append({'uniprot_id':uniprotKbAc,'uniprot_entry':uniprotKbEntry,
+                      'refseq':refseq,'uniprot_taxa_id':uniprotTaxon,'gene_id':gene_id})
         totalRecords += 1
+
+        if len(toAdd) >= 10000:
+            with engine.begin() as connection:
+                connection.execute(Gene.__table__.insert().
+                                   values(toAdd))
+            toAdd = []
 
         ## show progress
         if totalRecords in wayPoints:
             print("\t%s percent finished"%(round(totalRecords/float(lineCount)*100.0)))
 
-        ## periodically update the db
-        if len(toAdd) > 1000:
-            with session.begin(subtransactions=True):
-                session.add_all(toAdd)
-                session.flush()
-                toAdd = []
-
-    ## add the remaining entries
-    session.add_all(toAdd)
-    session.commit()
+    print('committing changes...')
+    with engine.begin() as connection:
+        connection.execute(Uniprot.__table__.insert().
+                           values(toAdd))
 
     timeStr = "...total time taken: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
     addedStr = "...%s unique uniprot entries were added."%totalRecords
     return timeStr,addedStr
 
 
-def populate_go_terms(session):
+def populate_go_terms(engine):
     """ 
     read in the obo file and use it to populate the terms
     """
@@ -348,27 +338,22 @@ def populate_go_terms(session):
         if isObsolete == True:
             goId = None
 
-        ## add the term  
         if goId != None and re.search("^is\_a\:",linja):
-            toAdd.append(GoTerm(goId,goNamespace,goDef))
-
-        ## periodically update the db
-        if len(toAdd) > 1000:
-            with session.begin(subtransactions=True):
-                session.add_all(toAdd)
-                session.flush()
-                toAdd = []
-
-    ## add the remaining entries
-    session.add_all(toAdd)
-    session.commit()
+            toAdd.append({'go_id': goId, 
+                         'aspect': goNamespace, 
+                         'description': goDef})
+        
+    print('committing changes...')
+    with engine.begin() as connection:
+        connection.execute(GoTerm.__table__.insert().
+                           values(toAdd))
 
     timeStr = "...total time taken: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
     addedStr = "...%s unique uniprot entries were added."%termCount
     return timeStr,addedStr
 
 
-def populate_go_annotations(session):
+def populate_go_annotations(session,engine):
     """ 
     read the annotation file into a dictionary
     This will take some time
@@ -422,18 +407,20 @@ def populate_go_annotations(session):
         queryTaxa = session.query(Taxon).filter_by(ncbi_id=taxon).first()
         taxa_id = queryTaxa.id
 
-        toAdd.append(annotation(go_term_id,evidenceCode,pubmedRefs,uniprot_id,taxa_id))
+        toAdd.append({'go_term_id':go_term_id,'evidence_code':evidenceCode,
+                      'pubmed_refs':pubmedRefs,'uniprot_id':uniprot_id,
+                      'taxa_id':taxa_id})
 
-        ## periodically update the db
-        if len(toAdd) > 1000:
-            with session.begin(subtransactions=True):
-                session.add_all(toAdd)
-                session.flush()
-                toAdd = []
+        if len(toAdd) >= 10000:
+            with engine.begin() as connection:
+                connection.execute(Gene.__table__.insert().
+                                   values(toAdd))
+            toAdd = []
 
-    ## add the remaining entries
-    session.add_all(toAdd)
-    session.commit()
+    print('committing changes...')
+    with engine.begin() as connection:
+        connection.execute(GoAnnotation.__table__.insert().
+                           values(toAdd))
 
     timeStr = "...total time taken: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
     addedStr = "...%s unique uniprot entries were added."%annotationCount
