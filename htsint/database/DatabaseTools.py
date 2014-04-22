@@ -282,7 +282,7 @@ def populate_uniprot_table(lineCount,session,engine):
 
         if len(toAdd) >= 10000:
             with engine.begin() as connection:
-                connection.execute(Gene.__table__.insert().
+                connection.execute(Uniprot.__table__.insert().
                                    values(toAdd))
             toAdd = []
 
@@ -413,7 +413,7 @@ def populate_go_annotations(session,engine):
 
         if len(toAdd) >= 10000:
             with engine.begin() as connection:
-                connection.execute(Gene.__table__.insert().
+                connection.execute(GoAnnotation.__table__.insert().
                                    values(toAdd))
             toAdd = []
 

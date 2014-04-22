@@ -1,27 +1,17 @@
 #!/usr/bin/env python
 """
-Creates the basic shell of the database
-Database is populated afterwards with PopulateDatabase.py
-
-We populate the database with a several model organisms
-including:
-
- * Drosophila melanogaster  (7227)
- * Mus musculus             (10090)
- * Homo sapiens             (9606)
- * Saccharomyces cerevisiae (4932)
-
-A logfile of the output is automatically created
-
-Next:
-    Use TestDatabase.py to make sure tables were filled correctly
-
+creates htsint database
+(1) Edit/create the configure.py file and specify the database parameters
+(2) Run 'FetchDbData.py'
+(3) Run this file.
+A logfile of the output is automatically created in the 'data' directory.
+Use TestDatabase.py to make sure tables were filled correctly.
+There is also a unittest for the database and the examples within show some
+of the different ways of interacting with the database.
 For more information about interacting with databases using SQLalchemy
     http://docs.sqlalchemy.org/en/rel_0_8/orm/tutorial.html
-
 Because gene names are added/removed/changed on a regular basis
-It is easier when updating to re-run this script and then follow up
-with the PopulateDatabase.py afterwards. 
+it is best to re-run FetchDbdata.py and then this script.
 """
 
 ### make imports
