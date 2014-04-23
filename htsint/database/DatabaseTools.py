@@ -146,8 +146,7 @@ def populate_taxon_table(taxonList,engine):
     taxonList = list(set([str(tax) for tax in taxonList]))
     namesFile = os.path.join(CONFIG['data'],"names.dmp")
     if os.path.exists(namesFile) == False:
-        print "ERROR: Cannot find names.dmp... exiting"
-        sys.exit()
+        raise Exception("Cannot find names.dmp... exiting")
 
     namesFID = open(namesFile,'rU')
     taxaCount = 0
