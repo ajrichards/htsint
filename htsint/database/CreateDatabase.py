@@ -27,11 +27,11 @@ except:
 from DatabaseTables import Base,Taxon,Gene,Uniprot,GoTerm,GoAnnotation
 from DatabaseTools import db_connect, get_geneids_from_idmapping,print_db_summary
 from DatabaseTools import populate_taxon_table,populate_gene_table,populate_uniprot_table
-from DatabaseTools import populate_go_terms, populate_go_annotations
+from DatabaseTools import populate_go_terms, populate_go_annotations,get_taxa_list
 from GeneOntologyLib import read_annotation_file,get_annotation_file
 
 ## prepare a log file
-fid = open(os.path.join(CONFIG['data'],'createdb.log'),'w')
+fid = open(os.path.join(CONFIG['data'],'createdb.log'),'wa')
 writer = csv.writer(fid)
 
 def push_out(line):
@@ -52,43 +52,17 @@ for t in Base.metadata.sorted_tables:
    push_out("\t"+t.name)
 
 ## get a list of geneids from uniprot
+timeStart = time.time()
+push_out("extracting gene ids...")
 geneIds, idmapLineCount = get_geneids_from_idmapping()
 push_out('%s geneIds were found in the idmapping file'%len(geneIds))
+sys.exit()
+push_out("extracting taxa list...")
+taxaList = get_taxa_list()
+print(len(taxaList))
+push_out("...total time taken to extract data: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart)))
 
-## use the list of geneids and the annotation file to to get the taxa list
-geneInfoFile = os.path.join(CONFIG['data'],"gene_info.db")
-geneInfoFid = open(geneInfoFile,'rU')
-taxaList = set([])
-header = geneInfoFid.next()
-for record in geneInfoFid:
-    record = record.rstrip("\n")
-    record = record.split("\t")
-    if re.search("^\#",record[0]):
-        continue
-    taxaList.update([record[0]])
 
-push_out('%s elements extracted from gene info file'%len(geneIds.keys()))
-annotationFile = get_annotation_file()
-annotationFid = open(annotationFile,'rU')
-annotsCount = 0
-annotatedIds = {}
-
-for record in annotationFid:
-    record = record[:-1].split("\t")
-    if record[0][0] == "!":
-        continue
-    if record[0] != 'UniProtKB':
-        continue
-
-    annotsCount += 1
-    taxon = re.sub("taxon:","",record[12])
-    if taxon == "" or re.search("\|",taxon):
-        continue
-
-    annotatedIds[record[1]] = None
-    taxaList.update([taxon])
-
-taxaList = list(taxaList)
 
 ## taxa table
 push_out("Populating the database with %s taxa"%len(taxaList))
@@ -98,13 +72,13 @@ push_out(addedStr)
 
 ## gene table
 push_out("Populating the database with %s genes"%len(geneIds.keys()))
-timeStr,addedStr = populate_gene_table(geneIds,session,engine)
+timeStr,addedStr = populate_gene_table(geneIds,taxaList,session,engine)
 push_out(timeStr)
 push_out(addedStr)
 
 ##  uniprot table
 push_out("Populating the database with %s uniprot entries"%(idmapLineCount))
-timeStr,addedStr = populate_uniprot_table(idmapLineCount,session,engine)
+timeStr,addedStr = populate_uniprot_table(idmapLineCount,geneIds,session,engine)
 push_out(timeStr)
 push_out(addedStr)
 

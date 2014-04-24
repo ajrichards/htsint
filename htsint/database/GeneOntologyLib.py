@@ -45,7 +45,6 @@ def read_ontology_file():
               "biological_process":{}}
 
     def add_term(goNamespace,source,sink):
-        #print source,sink
         if len(sink) != 1 or source == sink[0]:
             return
         if not re.search("GO\:",source) or not re.search("GO\:",sink[0]):
@@ -149,9 +148,6 @@ def read_annotation_file():
 
         ## check that it is a uniprot entry
         if record[0][0] == "!":
-            continue
-        if record[0] != 'UniProtKB':
-            print "houston!!", record[0]
             continue
         
         dbObjectId = record[1]
