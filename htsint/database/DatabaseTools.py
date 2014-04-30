@@ -79,7 +79,7 @@ def db_connect(verbose=False,upass=''):
 
     return session,engine
 
-def read_gene_info_file(geneIds=None):
+def read_gene_info_file(geneIds=None,short=False):
     """
     read the essential info from NCBI's gene info file
 
@@ -110,7 +110,10 @@ def read_gene_info_file(geneIds=None):
         chromosome = record[6]
         map_location = record[7]
         description = record[8]
-        geneInfo[ncbiId] = [taxId,symbol,synonyms,description]
+        if short == False:
+            geneInfo[ncbiId] = [taxId,symbol,synonyms,description]
+        else:
+            geneInfo[ncbiId] = taxId
 
     geneInfoFid.close()
     return geneInfo
@@ -120,7 +123,8 @@ def get_geneids_from_idmapping():
     return a unique dict of geneids with refseq values from the idmapping file
     """
 
-    geneInfo = read_gene_info_file()
+    geneInfo = read_gene_info_file(short=True)
+    print 'loaded gene info in get_geneids...'
 
     ## get all unique geneIds in idmapping file
     idmappingFile = get_idmapping_file()
@@ -128,10 +132,14 @@ def get_geneids_from_idmapping():
     totalLines = 0
     lineCount = 0
     geneIds = {}
+
     for record in idmappingFid:
         record = record[:-1].split("\t")
         ncbiId = record[2]
         lineCount += 1
+        
+        if ncbiId == '':
+            continue
 
         if not geneInfo.has_key(ncbiId):
             _geneIds = [re.sub("\s+","",_ncid) for _ncid in ncbiId.split(";")]
@@ -140,14 +148,15 @@ def get_geneids_from_idmapping():
             for _gid in geneIds:
                 if geneInfo.has_key(_gid):
                     ncbiId = _gid
+                    break
             if ncbiId == None:
                 print("WARNING: key not found:  %s "%(ncbiId))
                 continue
 
         if geneIds.has_key(ncbiId):
             continue
-        if ncbiId != '':
-            geneIds[ncbiId] = record[3]
+
+        geneIds[ncbiId] = record[3]
 
     idmappingFid.close()
     return geneIds,lineCount
@@ -232,8 +241,8 @@ def populate_gene_table(geneIds,taxaList,session,engine):
     ## batch query for taxa of each gene id
     taxaIds = {}
     taxaQueries = session.query(Taxon).filter(Taxon.ncbi_id.in_(taxaList)).all()
-    for t,tq in enumerate(taxaQueries):
-        taxaIds[taxaList[t]] = tq.id
+    for tq in taxaQueries:
+        taxaIds[str(tq.ncbi_id)] = tq.id
 
     for ncbiId,refseq in geneIds.iteritems():
         taxId,symbol,synonyms,description = geneInfo[ncbiId]
@@ -247,7 +256,6 @@ def populate_gene_table(geneIds,taxaList,session,engine):
         totalRecords += 1
         
         if len(toAdd) >= 10000:
-            print('adding some')
             with engine.begin() as connection:
                 connection.execute(Gene.__table__.insert().
                                    values(toAdd))
@@ -274,16 +282,11 @@ def populate_uniprot_table(lineCount,geneIds,session,engine):
     geneInfo = read_gene_info_file(geneIds=geneIds)
     timeStart = time.time()
     toAdd = []
+    toAddIds = []
     totalRecords = 0
-    wayPoints = [round(int(w)) for w in np.linspace(0,lineCount,10)]
+    wayPoints = [round(int(w)) for w in np.linspace(0,lineCount,20)]
     idmappingFile = get_idmapping_file()
     idmappingFid = open(idmappingFile,'rU')
-
-    ## batch query for taxa of each gene id
-    geneIds = {}
-    geneQueries = session.query(Gene).filter(Gene.ncbi_id.in_(geneIds)).all()
-    for g,gq in enumerate(geneQueries):
-        geneIds[geneList[g]] = gq.id
 
     for record in idmappingFid:
         record = record[:-1].split("\t")
@@ -301,26 +304,51 @@ def populate_uniprot_table(lineCount,geneIds,session,engine):
             for _gid in geneIds:
                 if geneInfo.has_key(_gid):
                     ncbiId = _gid
+                    break
             if ncbiId == None:
                 print("WARNING: key not found:  %s "%(ncbiId))
                 continue
 
-        gene_id = geneIds[gene_id]
+        if ncbiId != '' and not None:
+            gene_id = ncbiId
+            toAddIds.append(ncbiId)
+        else:
+            gene_id = None
+
         toAdd.append({'uniprot_id':uniprotKbAc,'uniprot_entry':uniprotKbEntry,
                       'refseq':refseq,'uniprot_taxa_id':uniprotTaxon,'gene_id':gene_id})
         totalRecords += 1
 
         if len(toAdd) >= 10000:
+            geneQueries = session.query(Gene).filter(Gene.ncbi_id.in_(toAddIds)).all()
+            geneDbIds = {}
+            for gq in geneQueries:
+                geneDbIds[str(gq.ncbi_id)] = gq.id
+
+            for ta in toAdd:
+                if ta['gene_id'] != None:
+                    ta['gene_id'] = geneDbIds[ta['gene_id']]
+
             with engine.begin() as connection:
                 connection.execute(Uniprot.__table__.insert().
                                    values(toAdd))
             toAdd = []
+            toAddIds = []
 
         ## show progress
         if totalRecords in wayPoints:
             print("\t%s percent finished"%(round(totalRecords/float(lineCount)*100.0)))
 
     print('committing changes...')
+    geneQueries = session.query(Gene).filter(Gene.ncbi_id.in_(toAddIds)).all()
+    geneDbIds = {}
+    for gq in geneQueries:
+        geneDbIds[str(gq.ncbi_id)] = gq.id
+
+    for ta in toAdd:
+        if ta['gene_id'] != None:
+            ta['gene_id'] = geneDbIds[ta['gene_id']]
+    
     with engine.begin() as connection:
         connection.execute(Uniprot.__table__.insert().
                            values(toAdd))
@@ -383,7 +411,7 @@ def populate_go_terms(engine):
     addedStr = "...%s unique uniprot entries were added."%termCount
     return timeStr,addedStr
 
-def populate_go_annotations(session,engine):
+def populate_go_annotations(totalAnnotations,session,engine):
     """ 
     read the annotation file into a dictionary
     This will take some time
@@ -395,6 +423,7 @@ def populate_go_annotations(session,engine):
     toAdd, termIds, uniprotIds, taxaIds = [],[],[],[]
     annotationFile = get_annotation_file()
     annotationFid = open(annotationFile,'rU')
+    wayPoints = [round(int(w)) for w in np.linspace(0,totalAnnotations,20)]
     annotationCount = 0
     result = {}
 
@@ -426,26 +455,43 @@ def populate_go_annotations(session,engine):
             continue
 
         annotationCount += 1
+        
+        if annotationCount in wayPoints:
+            print("\t%s percent finished"%(round(annotationCount/float(totalAnnotations)*100.0)))
+
+
         termIds.append(goId)
         uniprotIds.append(dbObjectId)
         taxaIds.append(taxon)
 
-        toAdd.append({'go_term_id':None,'evidence_code':evidenceCode,
-                      'pubmed_refs':pubmedRefs,'uniprot_id':None,
-                      'taxa_id':None})
+        toAdd.append({'go_term_id':goId,'evidence_code':evidenceCode,
+                      'pubmed_refs':pubmedRefs,'uniprot_id':dbObjectId,
+                      'taxa_id':taxon})
 
         if len(toAdd) >= 10000:
             termQueries = session.query(GoTerm).filter(GoTerm.go_id.in_(termIds)).all()
-            for t,tq in enumerate(termQueries):
-                toAdd[t]['go_term_id'] = tq.id
+            termDbIds = {}
+            for tq in termQueries:
+                termDbIds[str(tq.go_id)] = tq.id
+            
+            for ta in toAdd:
+                ta['go_term_id'] = termDbIds[ta['go_term_id']]
 
             uniprotQueries = session.query(Uniprot).filter(Uniprot.uniprot_id.in_(uniprotIds)).all()
-            for u,uq in enumerate(uniprotQueries):
-                toAdd[u]['uniprot_id'] = uq.id
+            uniportDbIds = {}
+            for uq in uniprotQueries:
+                uniprotDbIds[str(uq.uniprot_id)] = uq.id
+
+            for ta in toAdd:
+                ta['uniprot_id'] = termDbIds[ta['uniprot_id']]
 
             taxaQueries = session.query(Taxa).filter(Taxa.ncbi_id.in_(taxaIds)).all()
-            for t,tq in enumerate(taxaQueries):
-                toAdd[t]['taxa_id'] = tq.id
+            taxaDbIds = {}
+            for tq in taxaQueries:
+                taxaDbIds[str(tq.ncbi_id)] = tq.id
+
+            for ta in toAdd:
+                ta['taxa_id'] = taxaDbIds[ta['taxa_id']]
 
             with engine.begin() as connection:
                 connection.execute(GoAnnotation.__table__.insert().
@@ -454,16 +500,28 @@ def populate_go_annotations(session,engine):
 
     print('committing changes...')
     termQueries = session.query(GoTerm).filter(GoTerm.go_id.in_(termIds)).all()
-    for t,tq in enumerate(termQueries):
-        toAdd[t]['go_term_id'] = tq.id
+    termDbIds = {}
+    for tq in termQueries:
+        termDbIds[str(tq.go_id)] = tq.id
+            
+    for ta in toAdd:
+        ta['go_term_id'] = termDbIds[ta['go_term_id']]
 
     uniprotQueries = session.query(Uniprot).filter(Uniprot.uniprot_id.in_(uniprotIds)).all()
-    for u,uq in enumerate(uniprotQueries):
-        toAdd[u]['uniprot_id'] = uq.id
+    uniportDbIds = {}
+    for uq in uniprotQueries:
+        uniprotDbIds[str(uq.uniprot_id)] = uq.id
+
+    for ta in toAdd:
+        ta['uniprot_id'] = termDbIds[ta['uniprot_id']]
 
     taxaQueries = session.query(Taxa).filter(Taxa.ncbi_id.in_(taxaIds)).all()
-    for t,tq in enumerate(taxaQueries):
-        toAdd[t]['taxa_id'] = tq.id
+    taxaDbIds = {}
+    for tq in taxaQueries:
+        taxaDbIds[str(tq.ncbi_id)] = tq.id
+
+    for ta in toAdd:
+        ta['taxa_id'] = taxaDbIds[ta['taxa_id']]
 
     with engine.begin() as connection:
         connection.execute(GoAnnotation.__table__.insert().
@@ -493,6 +551,7 @@ def get_taxa_list():
     annotationFid = open(annotationFile,'rU')
     annotsCount = 0
     annotatedIds = {}
+    totalAnnotations = 0
     taxaList = set([])
 
     for record in annotationFid:
@@ -509,6 +568,7 @@ def get_taxa_list():
 
         annotatedIds[record[1]] = None
         taxaList.update([taxon])
+        totalAnnotations += 1
 
     geneInfoFile = os.path.join(CONFIG['data'],"gene_info.db")
     geneInfoFid = open(geneInfoFile,'rU')
@@ -523,7 +583,7 @@ def get_taxa_list():
     annotationFid.close()
     geneInfoFid.close()
 
-    return list(taxaList)
+    return list(taxaList),totalAnnotations
 
 
 def get_idmapping_file():

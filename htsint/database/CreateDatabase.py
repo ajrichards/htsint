@@ -30,6 +30,9 @@ from DatabaseTools import populate_taxon_table,populate_gene_table,populate_unip
 from DatabaseTools import populate_go_terms, populate_go_annotations,get_taxa_list
 from GeneOntologyLib import read_annotation_file,get_annotation_file
 
+##debug
+from DatabaseTools import read_gene_info_file
+
 ## prepare a log file
 fid = open(os.path.join(CONFIG['data'],'createdb.log'),'wa')
 writer = csv.writer(fid)
@@ -49,20 +52,17 @@ Base.metadata.create_all(engine)
 
 push_out("Creating database with...")
 for t in Base.metadata.sorted_tables:
-   push_out("\t"+t.name)
+    push_out("\t"+t.name)
 
 ## get a list of geneids from uniprot
 timeStart = time.time()
 push_out("extracting gene ids...")
 geneIds, idmapLineCount = get_geneids_from_idmapping()
 push_out('%s geneIds were found in the idmapping file'%len(geneIds))
-sys.exit()
 push_out("extracting taxa list...")
-taxaList = get_taxa_list()
-print(len(taxaList))
-push_out("...total time taken to extract data: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart)))
-
-
+taxaList,totalAnnotations = get_taxa_list()
+push_out('%s taxa Ids were found in both the gene info and idmapping files'%len(geneIds))
+push_out("...extraction time: %s"%time.strftime('%H:%M:%S',time.gmtime(time.time()-timeStart)))
 
 ## taxa table
 push_out("Populating the database with %s taxa"%len(taxaList))
@@ -90,10 +90,9 @@ push_out(addedStr)
 
 ## populate the go-annotations
 push_out("Populating the database with for go annotations...")
-timeStr,addedStr = populate_go_annotations(session,engine)
+timeStr,addedStr = populate_go_annotations(totalAnnotations,session,engine)
 push_out(timeStr)
 push_out(addedStr)
-
 
 print_db_summary()
 fid.close()

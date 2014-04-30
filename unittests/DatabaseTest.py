@@ -42,16 +42,18 @@ class DatabaseTest(unittest.TestCase):
         self.assertEqual(query.name,"Drosophila melanogaster")
         self.assertTrue("fruit fly" in [query.common_name_1,query.common_name_2,query.common_name_3])
 
-    '''
     def testGene(self):
         """
         test the gene table
         """
 
         self.assertTrue(self.session.query(Gene).count() > 4)       
-        query = self.session.query(Gene).filter_by(ncbi_id='3771877').first() 
-        self.assertEqual(query.symbol,'Adh')
-        
+        query = self.session.query(Gene).filter_by(ncbi_id='2947773').first()
+        print query.symbol
+        #query = self.session.query(Gene).filter_by(ncbi_id='3771877').first()
+        #self.assertEqual(query.symbol,'Adh')
+    
+    '''    
     def testAccession(self):
         """
         test the accession table
