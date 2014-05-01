@@ -72,13 +72,15 @@ push_out(addedStr)
 
 ## gene table
 push_out("Populating the database with %s genes"%len(geneIds.keys()))
-timeStr,addedStr = populate_gene_table(geneIds,taxaList,session,engine)
+timeStr,addedStr = populate_gene_table(geneIds,taxaList,engine)
 push_out(timeStr)
 push_out(addedStr)
 
 ##  uniprot table
 push_out("Populating the database with %s uniprot entries"%(idmapLineCount))
-timeStr,addedStr = populate_uniprot_table(idmapLineCount,geneIds,session,engine)
+del geneIds
+del taxaList
+timeStr,addedStr = populate_uniprot_table(idmapLineCount,engine)
 push_out(timeStr)
 push_out(addedStr)
 
@@ -90,7 +92,7 @@ push_out(addedStr)
 
 ## populate the go-annotations
 push_out("Populating the database with for go annotations...")
-timeStr,addedStr = populate_go_annotations(totalAnnotations,session,engine)
+timeStr,addedStr = populate_go_annotations(totalAnnotations,engine)
 push_out(timeStr)
 push_out(addedStr)
 
