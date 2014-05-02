@@ -80,7 +80,7 @@ push_out(addedStr)
 push_out("Populating the database with %s uniprot entries"%(idmapLineCount))
 del geneIds
 del taxaList
-timeStr,addedStr = populate_uniprot_table(idmapLineCount,engine)
+timeStr,addedStr = populate_uniprot_table(idmapLineCount,session,engine)
 push_out(timeStr)
 push_out(addedStr)
 
@@ -92,7 +92,7 @@ push_out(addedStr)
 
 ## populate the go-annotations
 push_out("Populating the database with for go annotations...")
-timeStr,addedStr = populate_go_annotations(totalAnnotations,engine)
+timeStr,addedStr = populate_go_annotations(totalAnnotations,session,engine)
 push_out(timeStr)
 push_out(addedStr)
 

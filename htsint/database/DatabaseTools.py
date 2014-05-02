@@ -268,18 +268,25 @@ def populate_gene_table(geneIds,taxaList,engine):
     addedStr = "...%s unique genes were added."%totalRecords
     return timeStr,addedStr
     
-def populate_uniprot_table(lineCount,engine):
+def populate_uniprot_table(lineCount,session,engine):
     """
     populate the uniprot table with entries from idmappings
     """
     
+    print("...getting gene info")
     geneInfo = read_gene_info_file(short=True)
     timeStart = time.time()
     toAdd = []
     totalRecords = 0
-    wayPoints = [round(int(w)) for w in np.linspace(0,lineCount,100)]
+    wayPoints = [round(int(w)) for w in np.linspace(0,lineCount,20)]
     idmappingFile = get_idmapping_file()
     idmappingFid = open(idmappingFile,'rU')
+
+    print("...getting keys from Gene table")
+    geneIdMap = {}
+    for g in session.query(Gene).yield_per(5):
+        geneIdMap[g.ncbi_id] = g.id
+    print("...populating rows")
 
     for record in idmappingFid:
         record = record[:-1].split("\t")
@@ -310,23 +317,14 @@ def populate_uniprot_table(lineCount,engine):
         
         totalRecords += 1
     
-        if len(toAdd) >= 1000000:
-            print('populating rows...')
-            toAddIds = list(set([ta['gene_id'] for ta in toAdd]))
-            toAddIds.remove(None)
-            with engine.begin() as connection:
-                geneQueries = connection.execute(Gene.__table__.select(Gene.ncbi_id.in_(toAddIds)))
-            geneDbIds = {}
-            for gq in geneQueries:
-                geneDbIds[str(gq.ncbi_id)] = gq.id
-                    
+        if len(toAdd) >= 1000:
             for ta in toAdd:
                 if ta['gene_id'] == None:
                     continue
-                if toAddIds.__contains__(ta['gene_id']) and not geneDbIds.has_key(ta['gene_id']):
+                if not geneIdMap.has_key(ta['gene_id']):
                     raise Exception("Gene %s not present -- try repopulating the Gene table"%ta['gene_id'])
-                ta['gene_id'] = geneDbIds[ta['gene_id']]
-            print('commiting changes...')
+                ta['gene_id'] = geneIdMap[ta['gene_id']]
+
             with engine.begin() as connection:
                 connection.execute(Uniprot.__table__.insert().
                                    values(toAdd))
@@ -336,26 +334,21 @@ def populate_uniprot_table(lineCount,engine):
         if totalRecords in wayPoints:
             print("\t%s / %s"%(totalRecords,lineCount))
 
-    print('committing changes...')
-    toAddIds = list(set([ta['gene_id'] for ta in toAdd]))
-    toAddIds.remove(None)
-    with engine.begin() as connection:
-        geneQueries = connection.execute(Gene.__table__.select(Gene.ncbi_id.in_(toAddIds)))
-    geneDbIds = {}
-    for gq in geneQueries:
-        geneDbIds[str(gq.ncbi_id)] = gq.id
-
+    print('committing final changes...')
     for ta in toAdd:
         if ta['gene_id'] == None:
             continue
-        if toAddIds.__contains__(ta['gene_id']) and not geneDbIds.has_key(ta['gene_id']):
+        if not geneIdMap.has_key(ta['gene_id']):
             raise Exception("Gene %s not present -- try repopulating the Gene table"%ta['gene_id'])
-        ta['gene_id'] = geneDbIds[ta['gene_id']]
+            ta['gene_id'] = geneIdMap[ta['gene_id']]
+
     with engine.begin() as connection:
         connection.execute(Uniprot.__table__.insert().
                            values(toAdd))
-
+           
     idmappingFid.close()
+    del geneIdMap
+    del geneInfo
     timeStr = "...total time taken: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
     addedStr = "...%s unique uniprot entries were added."%totalRecords
     return timeStr,addedStr
@@ -412,8 +405,8 @@ def populate_go_terms(engine):
     addedStr = "...%s unique uniprot entries were added."%termCount
     return timeStr,addedStr
 
-def populate_go_annotations(totalAnnotations,engine):
-    """ 
+def populate_go_annotations(totalAnnotations,session,engine):
+    """
     read the annotation file into a dictionary
     This will take some time
     This function is intended for use with                                                    
@@ -421,12 +414,28 @@ def populate_go_annotations(totalAnnotations,engine):
     """
 
     timeStart = time.time()
-    toAdd, termIds, uniprotIds, taxaIds = [],[],[],[]
+    toAdd = []
     annotationFile = get_annotation_file()
     annotationFid = open(annotationFile,'rU')
     wayPoints = [round(int(w)) for w in np.linspace(0,totalAnnotations,20)]
     annotationCount = 0
     result = {}
+
+    print("...getting keys from Uniprot table")
+    uniprotIdMap = {}
+    for u in session.query(Uniprot).yield_per(5):
+        uniprotIdMap[u.uniprot_id] = u.id
+
+    print("...getting keys from GoTerm table")
+    termIdMap = {}
+    for g in session.query(GoTerm).yield_per(5):
+        termIdMap[g.go_id] = g.id
+
+    print("...getting keys from Taxon table")
+    taxaIdMap = {}
+    for t in session.query(Taxon).yield_per(5):
+        taxaIdMap[t.ncbi_id] = t.id
+    print("...populating rows")
 
     for record in annotationFid:
         record = record[:-1].split("\t")
@@ -436,7 +445,6 @@ def populate_go_annotations(totalAnnotations,engine):
             continue
         if record[0] != 'UniProtKB':
             continue
-
         if not annotatedIds.has_key(record[1]):
             continue
         
@@ -460,78 +468,37 @@ def populate_go_annotations(totalAnnotations,engine):
         if annotationCount in wayPoints:
             print("\t%s / %s"%(annotationCount,totalAnnotations))
 
-        termIds.append(goId)
-        uniprotIds.append(dbObjectId)
-        taxaIds.append(taxon)
-
         toAdd.append({'go_term_id':goId,'evidence_code':evidenceCode,
                       'pubmed_refs':pubmedRefs,'uniprot_id':dbObjectId,
                       'taxa_id':taxon})
 
-        if len(toAdd) >= 100000:
-            termIds = list(set(termIds))
-            termIds.remove(None)
-            uniprotIds = list(set(uniprotIds))
-            uniprotIds.remove(None)
-            taxaIds = list(set(taxaIds))
-            taxaIds.remove(None)
+        if len(toAdd) >= 10000:
 
-            with engine.begin() as connection:
-                termQueries = connection.execute(GoTerm.__table__.select(GoTerm.go_id.in_(termIds)))
-                uniprotQueries = connection.execute(Uniprot.__table__.select(Uniprot.uniprot_id.in_(uniprotIds)))
-                taxaQueries = connection.execute(Taxon.__table__.select(Taxon.ncbi_id.in_(taxaIds)))
-
-            termDbIds = {}
-            for tq in termQueries:
-                termDbIds[str(tq.go_id)] = tq.id
             for ta in toAdd:
-                ta['go_term_id'] = termDbIds[ta['go_term_id']]
-
-            uniportDbIds = {}
-            for uq in uniprotQueries:
-                uniprotDbIds[str(uq.uniprot_id)] = uq.id
-            for ta in toAdd:
-                ta['uniprot_id'] = termDbIds[ta['uniprot_id']]
-
-            taxaDbIds = {}
-            for tq in taxaQueries:
-                taxaDbIds[str(tq.ncbi_id)] = tq.id
-            for ta in toAdd:
-                ta['taxa_id'] = taxaDbIds[ta['taxa_id']]
+                ta['go_term_id'] = termIdMap[ta['go_term_id']]
+                ta['uniprot_id'] = uniprotIdMap[ta['uniprot_id']]
+                ta['taxa_id'] = taxaIdMap[ta['taxa_id']]
 
             with engine.begin() as connection:
                 connection.execute(GoAnnotation.__table__.insert().
                                    values(toAdd))
-            toAdd, termIds, uniprotIds, taxaIds = [],[],[],[]
+            toAdd = []
 
-    print('committing changes...')
-    with engine.begin() as connection:
-        termQueries = connection.execute(GoTerm.__table__.select(GoTerm.go_id.in_(termIds)))
-        uniprotQueries = connection.execute(Uniprot.__table__.select(Uniprot.uniprot_id.in_(uniprotIds)))
-        taxaQueries = connection.execute(Taxon.__table__.select(Taxon.ncbi_id.in_(taxaIds)))
-
-    termDbIds = {}
-    for tq in termQueries:
-        termDbIds[str(tq.go_id)] = tq.id
+    print('committing final changes...')
     for ta in toAdd:
-        ta['go_term_id'] = termDbIds[ta['go_term_id']]
-
-    uniportDbIds = {}
-    for uq in uniprotQueries:
-        uniprotDbIds[str(uq.uniprot_id)] = uq.id
-    for ta in toAdd:
-        ta['uniprot_id'] = termDbIds[ta['uniprot_id']]
-
-    taxaDbIds = {}
-    for tq in taxaQueries:
-        taxaDbIds[str(tq.ncbi_id)] = tq.id
-    for ta in toAdd:
-        ta['taxa_id'] = taxaDbIds[ta['taxa_id']]
+        ta['go_term_id'] = termIdMap[ta['go_term_id']]
+        ta['uniprot_id'] = uniprotIdMap[ta['uniprot_id']]
+        ta['taxa_id'] = taxaIdMap[ta['taxa_id']]
 
     with engine.begin() as connection:
         connection.execute(GoAnnotation.__table__.insert().
                            values(toAdd))
 
+    ## clean up
+    annotationFid.close()
+    del taxaIdMap
+    del uniprotIdMap
+    del termIdMap
     timeStr = "...total time taken: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
     addedStr = "...%s unique uniprot entries were added."%annotationCount
     return timeStr,addedStr
