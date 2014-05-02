@@ -309,7 +309,9 @@ def populate_uniprot_table(lineCount,engine):
                       'refseq':refseq,'uniprot_taxa_id':uniprotTaxon,'gene_id':gene_id})
         
         totalRecords += 1
-        if len(toAdd) >= 10000:
+    
+        if len(toAdd) >= 1000000:
+            print('populating rows...')
             toAddIds = list(set([ta['gene_id'] for ta in toAdd]))
             toAddIds.remove(None)
             with engine.begin() as connection:
@@ -324,7 +326,7 @@ def populate_uniprot_table(lineCount,engine):
                 if toAddIds.__contains__(ta['gene_id']) and not geneDbIds.has_key(ta['gene_id']):
                     raise Exception("Gene %s not present -- try repopulating the Gene table"%ta['gene_id'])
                 ta['gene_id'] = geneDbIds[ta['gene_id']]
-                
+            print('commiting changes...')
             with engine.begin() as connection:
                 connection.execute(Uniprot.__table__.insert().
                                    values(toAdd))
@@ -466,7 +468,14 @@ def populate_go_annotations(totalAnnotations,engine):
                       'pubmed_refs':pubmedRefs,'uniprot_id':dbObjectId,
                       'taxa_id':taxon})
 
-        if len(toAdd) >= 10000:
+        if len(toAdd) >= 100000:
+            termIds = list(set(termIds))
+            termIds.remove(None)
+            uniprotIds = list(set(uniprotIds))
+            uniprotIds.remove(None)
+            taxaIds = list(set(taxaIds))
+            taxaIds.remove(None)
+
             with engine.begin() as connection:
                 termQueries = connection.execute(GoTerm.__table__.select(GoTerm.go_id.in_(termIds)))
                 uniprotQueries = connection.execute(Uniprot.__table__.select(Uniprot.uniprot_id.in_(uniprotIds)))
