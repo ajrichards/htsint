@@ -102,17 +102,20 @@ class GoTerm(Base):
     id = Column(Integer, Sequence('go_term_id_seq'),primary_key=True)
     go_id = Column(String)
     aspect = Column(String)
+    name = Column(String)
     description = Column(String)
-    
-    def __init__(self,go_id,aspect,description):
+
+    def __init__(self,go_id,aspect,name,description):
         self.go_id = go_id
         self.aspect = aspect
+        self.name = name
         self.description = description
     
     def __repr__(self):
-        return "<GoTerm('%s','%s','%s')>"%(self.go_id,
-                                           self.aspect,
-                                           self.description)
+        return "<GoTerm('%s','%s','%s','%s')>"%(self.go_id,
+                                                self.aspect,
+                                                self.name,
+                                                self.description)
 
 class GoAnnotation(Base):
     '''

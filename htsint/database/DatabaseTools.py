@@ -81,7 +81,6 @@ def db_connect(verbose=False,upass=''):
 def read_gene_info_file(geneIds=None,short=False):
     """
     read the essential info from NCBI's gene info file
-
     """
 
     geneInfoFile = os.path.join(CONFIG['data'],"gene_info.db")
@@ -362,8 +361,8 @@ def populate_go_terms(engine):
     ontologyFile = get_ontology_file()
     fid = open(ontologyFile,'r')
     termCount = 0
-    goId = None
-    toAdd = []
+    goId,goName,goNamespace,goDef = None,None,None,None
+    toAdd = {}
     isObsolete = False
 
     for linja in fid.readlines():
@@ -372,9 +371,11 @@ def populate_go_terms(engine):
         ## find go id
         if re.search("^id\:",linja):
             goId = re.sub("^id\:|\s+","",linja)
-            goName,goNamespace = None,None
+            goName,goNamespace,goDef = None,None,None
             isObsolete = False
             termCount += 1
+            toAdd[goId] = {'go_id': goId,'aspect':None,'name':None,
+                           'description':None}
             continue
 
         ## find namespace and description  
@@ -391,15 +392,18 @@ def populate_go_terms(engine):
         if isObsolete == True:
             goId = None
 
-        if goId != None and re.search("^is\_a\:",linja):
-            toAdd.append({'go_id': goId, 
-                         'aspect': goNamespace, 
-                         'description': goDef})
-        
+        if goId != None:
+            if goNamespace != None and toAdd[goId]['aspect'] != None:
+                toAdd[goId]['aspect'] = goNamespace
+            if goDef != None and toAdd[goId]['description'] != None:
+                toAdd[goId]['description'] = goDef
+            if goName != None and toAdd[goId]['name'] != None:
+                toAdd[goId]['name'] = goDef
+    
     print('committing changes...')
     with engine.begin() as connection:
         connection.execute(GoTerm.__table__.insert().
-                           values(toAdd))
+                           values(toAdd.values()))
 
     timeStr = "...total time taken: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
     addedStr = "...%s unique uniprot entries were added."%termCount
@@ -421,20 +425,26 @@ def populate_go_annotations(totalAnnotations,session,engine):
     annotationCount = 0
     result = {}
 
-    print("...getting keys from Uniprot table")
-    uniprotIdMap = {}
-    for u in session.query(Uniprot).yield_per(5):
-        uniprotIdMap[u.uniprot_id] = u.id
+    #print("...getting keys from Uniprot table")
+    #uniprotIdMap = {}
+    #for u in session.query(Uniprot).yield_per(5):
+    #    uniprotIdMap[str(u.uniprot_id)] = u.id
 
     print("...getting keys from GoTerm table")
     termIdMap = {}
     for g in session.query(GoTerm).yield_per(5):
         termIdMap[g.go_id] = g.id
 
+    print termIdMap.keys()[:5]
+    print termIdMap.has_key('GO:0003674')
+    print termIdMap.has_key('GO:1900302')
+
+    sys.exit()
+
     print("...getting keys from Taxon table")
     taxaIdMap = {}
     for t in session.query(Taxon).yield_per(5):
-        taxaIdMap[t.ncbi_id] = t.id
+        taxaIdMap[str(t.ncbi_id)] = t.id
     print("...populating rows")
 
     for record in annotationFid:
@@ -444,8 +454,6 @@ def populate_go_annotations(totalAnnotations,session,engine):
         if record[0][0] == "!":
             continue
         if record[0] != 'UniProtKB':
-            continue
-        if not annotatedIds.has_key(record[1]):
             continue
         
         dbObjectId = record[1]
@@ -463,8 +471,8 @@ def populate_go_annotations(totalAnnotations,session,engine):
         if re.search("\|",taxon):
             continue
 
+        ## update progress
         annotationCount += 1
-        
         if annotationCount in wayPoints:
             print("\t%s / %s"%(annotationCount,totalAnnotations))
 

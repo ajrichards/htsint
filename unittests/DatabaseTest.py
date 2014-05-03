@@ -48,11 +48,21 @@ class DatabaseTest(unittest.TestCase):
         """
 
         self.assertTrue(self.session.query(Gene).count() > 4)       
-        query = self.session.query(Gene).filter_by(ncbi_id='2947773').first()
-        print query.symbol
-        #query = self.session.query(Gene).filter_by(ncbi_id='3771877').first()
-        #self.assertEqual(query.symbol,'Adh')
-    
+        query = self.session.query(Gene).filter_by(ncbi_id='3771877').first()
+        self.assertEqual(query.symbol,'Adh')
+
+    def testGoTerm(self):
+        """
+        test the GoTerm table
+        """
+
+        #termQuery = self.session.query(GoTerm).filter_by(go_id="GO:1900308").first()
+        termQuery = self.session.query(GoTerm).filter_by(go_id="GO:0008150").first()
+        print termQuery.aspect
+        print termQuery.description
+        self.assertEqual(termQuery.aspect,"biological_process")
+        self.assertEqual(termQuery.description,"biological_process")
+
     '''    
     def testAccession(self):
         """
@@ -63,15 +73,7 @@ class DatabaseTest(unittest.TestCase):
         accessionQuery = self.session.query(Accession).filter_by(gene_id=geneQuery.id).all()
         self.assertTrue('161077725' in [aq.protein_gi for aq in accessionQuery])
 
-    def testGoTerm(self):
-        """
-        test the GoTerm table
-        """
-
-        termQuery = self.session.query(GoTerm).filter_by(go_id="GO:0008150").first()
-        self.assertEqual(termQuery.aspect,"Process")
-        self.assertEqual(termQuery.description,"biological_process")
-
+    
     def testGoAnnotation(self):
         """
         test the GoTerm table
