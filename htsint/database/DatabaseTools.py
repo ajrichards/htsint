@@ -425,21 +425,15 @@ def populate_go_annotations(totalAnnotations,session,engine):
     annotationCount = 0
     result = {}
 
-    #print("...getting keys from Uniprot table")
-    #uniprotIdMap = {}
-    #for u in session.query(Uniprot).yield_per(5):
-    #    uniprotIdMap[str(u.uniprot_id)] = u.id
+    print("...getting keys from Uniprot table")
+    uniprotIdMap = {}
+    for u in session.query(Uniprot).yield_per(5):
+        uniprotIdMap[str(u.uniprot_id)] = u.id
 
     print("...getting keys from GoTerm table")
     termIdMap = {}
     for g in session.query(GoTerm).yield_per(5):
         termIdMap[g.go_id] = g.id
-
-    print termIdMap.keys()[:5]
-    print termIdMap.has_key('GO:0003674')
-    print termIdMap.has_key('GO:1900302')
-
-    sys.exit()
 
     print("...getting keys from Taxon table")
     taxaIdMap = {}
@@ -501,7 +495,6 @@ def populate_go_annotations(totalAnnotations,session,engine):
     with engine.begin() as connection:
         connection.execute(GoAnnotation.__table__.insert().
                            values(toAdd))
-
     ## clean up
     annotationFid.close()
     del taxaIdMap
