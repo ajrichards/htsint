@@ -393,11 +393,11 @@ def populate_go_terms(engine):
             goId = None
 
         if goId != None:
-            if goNamespace != None and toAdd[goId]['aspect'] != None:
+            if goNamespace != None and toAdd[goId]['aspect'] == None:
                 toAdd[goId]['aspect'] = goNamespace
-            if goDef != None and toAdd[goId]['description'] != None:
+            if goDef != None and toAdd[goId]['description'] == None:
                 toAdd[goId]['description'] = goDef
-            if goName != None and toAdd[goId]['name'] != None:
+            if goName != None and toAdd[goId]['name'] == None:
                 toAdd[goId]['name'] = goDef
     
     print('committing changes...')
