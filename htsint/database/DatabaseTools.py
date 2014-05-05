@@ -398,7 +398,7 @@ def populate_go_terms(engine):
             if goDef != None and toAdd[goId]['description'] == None:
                 toAdd[goId]['description'] = goDef
             if goName != None and toAdd[goId]['name'] == None:
-                toAdd[goId]['name'] = goDef
+                toAdd[goId]['name'] = goName
     
     print('committing changes...')
     with engine.begin() as connection:

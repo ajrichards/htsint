@@ -58,11 +58,10 @@ class DatabaseTest(unittest.TestCase):
 
         termQuery = self.session.query(GoTerm).filter_by(go_id="GO:1900308").first()
         #termQuery = self.session.query(GoTerm).filter_by(go_id="GO:0008150").first()
-        print termQuery.aspect
-        print termQuery.description
-        print termQuery.name
+        print 'aspect',termQuery.aspect
+        print 'description',termQuery.description
+        print 'name',termQuery.name
         
-
         #self.assertEqual(termQuery.aspect,"biological_process")
         #self.assertEqual(termQuery.description,"biological_process")
 
