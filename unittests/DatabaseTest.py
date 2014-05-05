@@ -56,37 +56,37 @@ class DatabaseTest(unittest.TestCase):
         test the GoTerm table
         """
 
-        termQuery = self.session.query(GoTerm).filter_by(go_id="GO:1900308").first()
-        #termQuery = self.session.query(GoTerm).filter_by(go_id="GO:0008150").first()
+        termQuery = self.session.query(GoTerm).filter_by(go_id="GO:0007623").first()
         print 'aspect',termQuery.aspect
         print 'description',termQuery.description
         print 'name',termQuery.name
         
-        #self.assertEqual(termQuery.aspect,"biological_process")
-        #self.assertEqual(termQuery.description,"biological_process")
-
-    '''    
-    def testAccession(self):
+        self.assertEqual(termQuery.aspect,"biological_process")
+        #self.assertEqual(termQuery.name,"circadian rhythm")
+        descLook = re.search("that recurs with a regularity of approximately 24 hours.",termQuery.description)
+        self.assertTrue(termQuery.description,descLook)
+        
+    def testUniprot(self):
         """
         test the accession table
         """
 
-        geneQuery = self.session.query(Gene).filter_by(ncbi_id='32006').first()
-        accessionQuery = self.session.query(Accession).filter_by(gene_id=geneQuery.id).all()
-        self.assertTrue('161077725' in [aq.protein_gi for aq in accessionQuery])
+        uniprotQuery = self.session.query(Uniprot).filter_by(uniprot_id='P07663').first()
+        self.assertEqual(uniprotQuery.uniprot_entry,"PER_DROME")        
+        geneQuery = self.session.query(Gene).filter_by(id=uniprotQuery.gene_id).first()
+        self.assertEqual(geneQuery.ncbi_id,'31251')
 
-    
     def testGoAnnotation(self):
         """
         test the GoTerm table
         """
     
-        geneQuery = self.session.query(Gene).filter_by(ncbi_id='3771877').first() 
-        annotationQuery = self.session.query(GoAnnotation).filter_by(gene_id=geneQuery.id).all()
+        uniprotQuery = self.session.query(Uniprot).filter_by(uniprot_id='P07633').first() 
+        annotationQuery = self.session.query(GoAnnotation).filter_by(uniprot_id=uniprotQuery.id).all()
         annotations = [aq.go_term_id for aq in annotationQuery]
         terms = [self.session.query(GoTerm).filter_by(id = a).first().go_id for a in annotations]
-        self.assertTrue("GO:0004022" in terms)
-    '''
+        print terms
+        self.assertTrue("GO:0007623" in terms)
 
 ### Run the tests
 if __name__ == '__main__':

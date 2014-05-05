@@ -122,10 +122,27 @@ def get_annotation_file():
         raise Exception("You must create a configure.py before GeneOntology")
 
     dataDir = CONFIG['data']
-
     annotationFile = os.path.join(dataDir,'gene_association.goa_uniprot_noiea.db')
     if os.path.exists(annotationFile) == False:
-        raise Exception("Could not find 'go.obo' -- did you run FetchGo.py?")
+        raise Exception("Could not find 'gene_association.goa_uniprot_noiea.db' -- did you run FetchDbData.py?")
+
+    return annotationFile
+
+
+def get_gene2go_file():
+    """
+    check for presence of the annotation file
+    raise exception when not found
+    return the file path
+    """
+
+    if CONFIG == None:
+        raise Exception("You must create a configure.py before GeneOntology")
+
+    dataDir = CONFIG['data']
+    annotationFile = os.path.join(dataDir,'gene2go.db')
+    if os.path.exists(annotationFile) == False:
+        raise Exception("Could not find 'gene2go' -- did you run FetchDbData.py?")
 
     return annotationFile
 

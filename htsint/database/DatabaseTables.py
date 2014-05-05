@@ -120,6 +120,7 @@ class GoTerm(Base):
 class GoAnnotation(Base):
     '''
     class that handles gene ontology annotations
+    annotations may be associated with a gene id or a uniprot id
     '''
 
     __tablename__ = 'go_annotations'
@@ -128,19 +129,22 @@ class GoAnnotation(Base):
     go_term_id = Column(Integer, ForeignKey('go_terms.id'))
     evidence_code = Column(String)
     pubmed_refs = Column(String)
-    uniprot_id = Column(Integer, ForeignKey('uniprot.id'))
+    uniprot_id = Column(Integer, ForeignKey('uniprot.id'),nullable=True)
+    gene_id = Column(Integer, ForeignKey('uniprot.id'),nullable=True)
     taxa_id = Column(Integer,ForeignKey('taxa.id'))
 
-    def __init__(self,go_term_id,evidence_code,pubmed_refs,uniprot_id,taxa_id):
+    def __init__(self,go_term_id,evidence_code,pubmed_refs,uniprot_id,gene_id,taxa_id):
         self.go_term_id = go_term_id
         self.evidence_code = evidence_code
         self.pubmed_refs = pubmed_refs
         self.uniprot_id = uniprot_id
+        self.gene_id = gene_id
         self.taxa_id = taxa_id
 
     def __repr__(self):
-        return "<GoAnnotation('%s','%s','%s','%s')>"%(self.go_term_id,
-                                                      self.evidence_code,
-                                                      self.pubmed_refs,
-                                                      self.uniprot_id,
-                                                      self.taxa_id)
+        return "<GoAnnotation('%s','%s','%s','%s',,'%s')>"%(self.go_term_id,
+                                                            self.evidence_code,
+                                                            self.pubmed_refs,
+                                                            self.uniprot_id,
+                                                            self.gene_id,
+                                                            self.taxa_id)

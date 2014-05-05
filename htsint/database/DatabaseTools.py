@@ -10,7 +10,7 @@ import getpass
 import numpy as np
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from htsint.database import get_annotation_file, get_ontology_file
+from htsint.database import get_annotation_file, get_ontology_file, get_gene2go_file
 from DatabaseTables import Base,Taxon,Gene,Uniprot,GoTerm,GoAnnotation
 
 from htsint import __basedir__
@@ -421,6 +421,8 @@ def populate_go_annotations(totalAnnotations,session,engine):
     toAdd = []
     annotationFile = get_annotation_file()
     annotationFid = open(annotationFile,'rU')
+    gene2goFile = get_gene2go_file()
+    gene2goFid = open(gene2goFile,'rU')
     wayPoints = [round(int(w)) for w in np.linspace(0,totalAnnotations,20)]
     annotationCount = 0
     result = {}
@@ -441,6 +443,8 @@ def populate_go_annotations(totalAnnotations,session,engine):
         taxaIdMap[str(t.ncbi_id)] = t.id
     print("...populating rows")
 
+    ## add annotations from uniprot annotation file
+    print("...getting annotations from gene_association (uniprot)")
     for record in annotationFid:
         record = record[:-1].split("\t")
 
@@ -472,7 +476,7 @@ def populate_go_annotations(totalAnnotations,session,engine):
 
         toAdd.append({'go_term_id':goId,'evidence_code':evidenceCode,
                       'pubmed_refs':pubmedRefs,'uniprot_id':dbObjectId,
-                      'taxa_id':taxon})
+                      'gene_id':None,'taxa_id':taxon})
 
         if len(toAdd) >= 10000:
 
@@ -497,8 +501,60 @@ def populate_go_annotations(totalAnnotations,session,engine):
                            values(toAdd))
     ## clean up
     annotationFid.close()
-    del taxaIdMap
     del uniprotIdMap
+
+    print("...getting keys from Gene table")
+    geneIdMap = {}
+    for g in session.query(Gene).yield_per(5):
+        geneIdMap[str(g.gene_id)] = g.id
+
+    ## add annotations from gene2go
+    print("...getting annotations from gene2go")
+    header = gene2goFid.next()
+    toAdd = []
+
+    for record in gene2goFid:
+        record = record.rstrip("\n")
+        record = record.split("\t")
+
+        if re.search("^\#",record[0]) or len(record) != 8:
+            continue
+    
+        taxId = record[0]
+        ncbiId = record[1]
+        goId = record[2]
+        evidenceCode = record[3]
+        qualifier = record[4]
+        go_term_description = record[5]
+        pubmedRefs = record[6]
+        go_aspect = record[7]
+    
+        toAdd.append({'go_term_id':goId,'evidence_code':evidenceCode,
+                      'pubmed_refs':pubmedRefs,'uniprot_id':None,
+                      'gene_id':ncbiId,'taxa_id':taxId})
+
+        if len(toAdd) >= 10000:
+
+            for ta in toAdd:
+                ta['go_term_id'] = termIdMap[ta['go_term_id']]
+                ta['gene_id'] = geneIdMap[ta['gene_id']]
+                ta['taxa_id'] = taxaIdMap[ta['taxa_id']]
+
+            with engine.begin() as connection:
+                connection.execute(GoAnnotation.__table__.insert().
+                                   values(toAdd))
+            toAdd = []
+
+    print('committing final changes...')
+    for ta in toAdd:
+        ta['go_term_id'] = termIdMap[ta['go_term_id']]
+        ta['gene_id'] = geneIdMap[ta['gene_id']]
+        ta['taxa_id'] = taxaIdMap[ta['taxa_id']]
+
+    with engine.begin() as connection:
+        connection.execute(GoAnnotation.__table__.insert().
+                           values(toAdd))
+    del taxaIdMap
     del termIdMap
     timeStr = "...total time taken: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
     addedStr = "...%s unique uniprot entries were added."%annotationCount
