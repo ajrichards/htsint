@@ -480,9 +480,13 @@ def populate_go_annotations(totalAnnotations,session,engine):
                       'pubmed_refs':pubmedRefs,'uniprot_id':dbObjectId,
                       'gene_id':None,'taxa_id':taxon})
 
-        if len(toAdd) >= 10000:
-
+        if len(toAdd) >= 100:
+            toRemove = []
             for ta in toAdd:
+                if not termIdMap.has_key(ta['go_term_id']):
+                    print("WARNING: 'populated go_annotations' invalid termId '%s', skipping"%ta['go_term_id'])
+                    toRemove.append(ta)
+                    continue
                 ta['go_term_id'] = termIdMap[ta['go_term_id']]
                 ta['uniprot_id'] = uniprotIdMap[ta['uniprot_id']]
                 if taxaIdMap.has_key(ta['taxa_id']):
@@ -490,20 +494,36 @@ def populate_go_annotations(totalAnnotations,session,engine):
                 else:
                     ta['taxa_id'] = None
 
+            for ta in toRemove:
+                toAdd.remove(ta)
+
             with engine.begin() as connection:
                 connection.execute(GoAnnotation.__table__.insert().
                                    values(toAdd))
             toAdd = []
-
+            toRemove = []
+            
     print('committing final changes...')
+    toRemove = []
     for ta in toAdd:
+        if not termIdMap.has_key(ta['go_term_id']):
+            print("WARNING: 'populated go_annotations' invalid termId '%s', skipping"%ta['go_term_id'])
+            toRemove.append(ta)
+            continue
         ta['go_term_id'] = termIdMap[ta['go_term_id']]
         ta['uniprot_id'] = uniprotIdMap[ta['uniprot_id']]
-        ta['taxa_id'] = taxaIdMap[ta['taxa_id']]
+        if taxaIdMap.has_key(ta['taxa_id']):
+            ta['taxa_id'] = taxaIdMap[ta['taxa_id']]
+        else:
+            ta['taxa_id'] = None
+
+    for ta in toRemove:
+        toAdd.remove(ta)
 
     with engine.begin() as connection:
         connection.execute(GoAnnotation.__table__.insert().
                            values(toAdd))
+
     ## clean up
     annotationFid.close()
     del uniprotIdMap

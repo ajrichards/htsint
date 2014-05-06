@@ -62,7 +62,7 @@ push_out('%s geneIds were found in the idmapping file'%len(geneIds))
 push_out("extracting taxa list...")
 totalAnnotations = get_total_annotations()
 push_out("...extraction time: %s"%time.strftime('%H:%M:%S',time.gmtime(time.time()-timeStart)))
-
+"""
 ## taxa table
 push_out("Populating the database taxa table")
 timeStr,addedStr = populate_taxon_table(engine)
@@ -87,7 +87,7 @@ push_out("Populating the database with for go terms...")
 timeStr,addedStr = populate_go_terms(engine)
 push_out(timeStr)
 push_out(addedStr)
-
+"""
 ## populate the go-annotations
 push_out("Populating the database with for go annotations...")
 timeStr,addedStr = populate_go_annotations(totalAnnotations,session,engine)
