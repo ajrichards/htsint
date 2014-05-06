@@ -31,7 +31,6 @@ def check_version():
 def ask_upass():
     """
     returns the pass word for the database
-
     """
 
     if CONFIG == None:
@@ -85,7 +84,6 @@ def read_gene_info_file(geneIds=None,short=False):
 
     geneInfoFile = os.path.join(CONFIG['data'],"gene_info.db")
     geneInfoFid = open(geneInfoFile,'rU')
-    taxaList = set([])
     header = geneInfoFid.next()
     geneInfo ={}
 
@@ -155,14 +153,11 @@ def get_geneids_from_idmapping():
     idmappingFid.close()
     return geneIds,lineCount
 
-def populate_taxon_table(taxonList,engine):
+def populate_taxon_table(engine):
     """
     given a list of taxon ids populate the taxon table    
     """
     
-    total = len(taxonList)
-    wayPoints = [round(int(w)) for w in np.linspace(0,total,100)]
-    taxonList = list(set([str(tax) for tax in taxonList]))
     namesFile = os.path.join(CONFIG['data'],"names.dmp")
     if os.path.exists(namesFile) == False:
         raise Exception("Cannot find names.dmp... exiting")
@@ -171,41 +166,45 @@ def populate_taxon_table(taxonList,engine):
     taxaCount = 0
     timeStart = time.time()
     toAdd = {}
+    taxaID = None
+    debug = 0
 
     for linja in namesFID:
+        debug += 1
+
         linja = linja.rstrip("\n")
         linja = linja.split("|")
         linja = [re.sub("\t","",element) for element in linja]
 
         scientificName,commonName = None,None
         if linja[3] == 'scientific name':
-            taxID = linja[0]
+            taxaID = linja[0]
             scientificName = linja[1]
         elif re.search("common name",linja[3]):
-            taxID = linja[0]
+            taxaID = linja[0]
             commonName = linja[1]
         else:
             continue
 
-        ## only populate a subset of the taxa
-        if taxID not in taxonList:
+        if taxaID in ['root']:
             continue
-        
+                
         ## if record does not exist
-        if not toAdd.has_key(taxID) and scientificName != None:
+        if not toAdd.has_key(taxaID):
             taxaCount += 1
-            someTaxon = Taxon(taxID,name=scientificName)
-            toAdd[taxID] = {'ncbi_id':taxID,'name':scientificName,'common_name_1':'',
-                            'common_name_2':'','common_name_3':''}
+            toAdd[taxaID] = {'ncbi_id':taxaID,'name':None,'common_name_1':None,
+                            'common_name_2':None,'common_name_3':None}
             
         ## if record exists add a common name 
-        elif toAdd.has_key(taxID) and commonName != None:
-            if  toAdd[taxID]['common_name_1'] == '':
-                toAdd[taxID]['common_name_1'] = commonName
-            elif  toAdd[taxID]['common_name_2'] == '':
-                toAdd[taxID]['common_name_2'] = commonName
-            elif  toAdd[taxID]['common_name_3'] == '':
-                toAdd[taxID]['common_name_3'] = commonName
+        if toAdd.has_key(taxaID) and scientificName != None:
+            toAdd[taxaID]['name'] = scientificName
+        elif toAdd.has_key(taxaID) and commonName != None:
+            if  toAdd[taxaID]['common_name_1'] == None:
+                toAdd[taxaID]['common_name_1'] = commonName
+            elif  toAdd[taxaID]['common_name_2'] == None:
+                toAdd[taxaID]['common_name_2'] = commonName
+            elif  toAdd[taxaID]['common_name_3'] == None:
+                toAdd[taxaID]['common_name_3'] = commonName
         else:
             continue
 
@@ -218,7 +217,7 @@ def populate_taxon_table(taxonList,engine):
     addedStr =  "...%s unique taxa were added."%taxaCount
     return timeStr, addedStr
 
-def populate_gene_table(geneIds,taxaList,engine):
+def populate_gene_table(geneIds,session,engine):
     """
     use the geneids derived from the idmapping file along with gene_info data to populate the gene table 
     """
@@ -230,18 +229,21 @@ def populate_gene_table(geneIds,taxaList,engine):
     total = len(geneIds)
     wayPoints = [round(int(w)) for w in np.linspace(0,total,10)]
 
-    ## batch query for taxa of each gene id
-    with engine.begin() as connection:
-        taxaQueries = connection.execute(Taxon.__table__.select(Taxon.ncbi_id.in_(taxaList)))
-    taxaIds = {}
-    for tq in taxaQueries:
-        taxaIds[str(tq.ncbi_id)] = tq.id
+    print("...getting keys from Taxon table")
+    taxaIdMap = {}
+    for t in session.query(Taxon).yield_per(5):
+        taxaIdMap[str(t.ncbi_id)] = t.id
+    print("...populating rows")
 
     for ncbiId,refseq in geneIds.iteritems():
         taxId,symbol,synonyms,description = geneInfo[ncbiId]
 
         ## determine if record exists and add common names up until 3
-        taxa_id = taxaIds[taxId]
+        if taxaIdMap.has_key(taxId):
+            taxa_id = taxaIdMap[taxId]
+        else:
+            print("WARNING: adding gene '%s' with unknown taxa '%s'"%(ncbiId,taxId)) 
+            taxa_id = None
 
         ## define the table entry
         toAdd.append({'ncbi_id':ncbiId,'description':description,
@@ -483,7 +485,10 @@ def populate_go_annotations(totalAnnotations,session,engine):
             for ta in toAdd:
                 ta['go_term_id'] = termIdMap[ta['go_term_id']]
                 ta['uniprot_id'] = uniprotIdMap[ta['uniprot_id']]
-                ta['taxa_id'] = taxaIdMap[ta['taxa_id']]
+                if taxaIdMap.has_key(ta['taxa_id']):
+                    ta['taxa_id'] = taxaIdMap[ta['taxa_id']]
+                else:
+                    ta['taxa_id'] = None
 
             with engine.begin() as connection:
                 connection.execute(GoAnnotation.__table__.insert().
@@ -571,48 +576,6 @@ def print_db_summary():
         print("There are %s entries in the %s table"%(session.query(table).count(),table.__tablename__))
     print "\n"
 
-def get_taxa_list():
-    """
-    using the annotation and the gene info file return a unique list of taxa ids
-    """
-
-    annotationFile = get_annotation_file()
-    annotationFid = open(annotationFile,'rU')
-    annotsCount = 0
-    annotatedIds = {}
-    totalAnnotations = 0
-    taxaList = set([])
-
-    for record in annotationFid:
-        record = record[:-1].split("\t")
-        if record[0][0] == "!":
-            continue
-        if record[0] != 'UniProtKB':
-            continue
-
-        annotsCount += 1
-        taxon = re.sub("taxon:","",record[12])
-        if taxon == "" or re.search("\|",taxon):
-            continue
-
-        annotatedIds[record[1]] = None
-        taxaList.update([taxon])
-        totalAnnotations += 1
-
-    geneInfoFile = os.path.join(CONFIG['data'],"gene_info.db")
-    geneInfoFid = open(geneInfoFile,'rU')
-    header = geneInfoFid.next()
-    for record in geneInfoFid:
-        record = record.rstrip("\n")
-        record = record.split("\t")
-        if re.search("^\#",record[0]):
-            continue
-        taxaList.update([record[0]])
-
-    annotationFid.close()
-    geneInfoFid.close()
-
-    return list(taxaList),totalAnnotations
 
 def get_idmapping_file():
     """

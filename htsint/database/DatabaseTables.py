@@ -49,7 +49,7 @@ class Gene(Base):
     description = Column(String,nullable=False)
     symbol = Column(String)
     synonyms = Column(String)
-    taxa_id = Column(Integer,ForeignKey('taxa.id'))
+    taxa_id = Column(Integer,ForeignKey('taxa.id'),nullable=True)
     
     def __init__(self,ncbi_id,description,symbol,synonyms,taxa_id):
         self.ncbi_id = ncbi_id
@@ -131,7 +131,7 @@ class GoAnnotation(Base):
     pubmed_refs = Column(String)
     uniprot_id = Column(Integer, ForeignKey('uniprot.id'),nullable=True)
     gene_id = Column(Integer, ForeignKey('uniprot.id'),nullable=True)
-    taxa_id = Column(Integer,ForeignKey('taxa.id'))
+    taxa_id = Column(Integer,ForeignKey('taxa.id'),nullable=True)
 
     def __init__(self,go_term_id,evidence_code,pubmed_refs,uniprot_id,gene_id,taxa_id):
         self.go_term_id = go_term_id

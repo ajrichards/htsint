@@ -128,6 +128,36 @@ def get_annotation_file():
 
     return annotationFile
 
+def get_total_annotations():
+    """
+    get the number of annotations in the uniprot file
+    this does not include the gene2go file
+    """
+
+    annotationFile = get_annotation_file()
+    annotationFid = open(annotationFile,'rU')
+    annotsCount = 0
+    annotatedIds = {}
+    totalAnnotations = 0
+    taxaList = set([])
+
+    for record in annotationFid:
+        record = record[:-1].split("\t")
+        if record[0][0] == "!":
+            continue
+        if record[0] != 'UniProtKB':
+            continue
+
+        annotsCount += 1
+        taxon = re.sub("taxon:","",record[12])
+        if taxon == "" or re.search("\|",taxon):
+            continue
+
+        annotatedIds[record[1]] = None
+        taxaList.update([taxon])
+        totalAnnotations += 1
+
+    return totalAnnotations
 
 def get_gene2go_file():
     """

@@ -27,8 +27,8 @@ except:
 from DatabaseTables import Base,Taxon,Gene,Uniprot,GoTerm,GoAnnotation
 from DatabaseTools import db_connect, get_geneids_from_idmapping,print_db_summary
 from DatabaseTools import populate_taxon_table,populate_gene_table,populate_uniprot_table
-from DatabaseTools import populate_go_terms, populate_go_annotations,get_taxa_list
-from GeneOntologyLib import read_annotation_file,get_annotation_file
+from DatabaseTools import populate_go_terms, populate_go_annotations
+from GeneOntologyLib import read_annotation_file,get_annotation_file,get_total_annotations
 
 ##debug
 from DatabaseTools import read_gene_info_file
@@ -60,26 +60,24 @@ push_out("extracting gene ids...")
 geneIds, idmapLineCount = get_geneids_from_idmapping()
 push_out('%s geneIds were found in the idmapping file'%len(geneIds))
 push_out("extracting taxa list...")
-taxaList,totalAnnotations = get_taxa_list()
-push_out('%s taxa Ids were found in both the gene info and idmapping files'%len(geneIds))
+totalAnnotations = get_total_annotations()
 push_out("...extraction time: %s"%time.strftime('%H:%M:%S',time.gmtime(time.time()-timeStart)))
 
 ## taxa table
-push_out("Populating the database with %s taxa"%len(taxaList))
-timeStr,addedStr = populate_taxon_table(taxaList,engine)
+push_out("Populating the database taxa table")
+timeStr,addedStr = populate_taxon_table(engine)
 push_out(timeStr)
 push_out(addedStr)
 
 ## gene table
 push_out("Populating the database with %s genes"%len(geneIds.keys()))
-timeStr,addedStr = populate_gene_table(geneIds,taxaList,engine)
+timeStr,addedStr = populate_gene_table(geneIds,session,engine)
 push_out(timeStr)
 push_out(addedStr)
 
 ##  uniprot table
 push_out("Populating the database with %s uniprot entries"%(idmapLineCount))
 del geneIds
-del taxaList
 timeStr,addedStr = populate_uniprot_table(idmapLineCount,session,engine)
 push_out(timeStr)
 push_out(addedStr)
