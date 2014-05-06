@@ -176,7 +176,51 @@ def get_gene2go_file():
 
     return annotationFile
 
+def fetch_annotations(identifier,session,idType='uniprot'):
+    """
+    Fetch the go annotations for a given identifier
+
+    If the identifier is 'uniprot'. Then combine the annotations from that uniportId 
+    and the associated geneId if persent.
+
+    If the identifier is 'geneid' the find all uniprot entries and combine all 
+    uniprot and geneId results.
+    """
+
+    annotations = []
+    idType = idType.lower()
+    if idType not in ['uniprot','ncbi']:
+        raise Exception("Invalid idType argument in fetch annotations use 'uniprot' or 'ncbi'")
+
+    if idType == 'ncbi':
+        geneQuery = session.query(Gene).filter_by(ncbi_id=identifier).first()
+        uniprotQuery = session.query(Uniprot).filter_by(gene_id=identifier).all()
+
+        if geneQuery == None:
+            print("WARNING: 'fetch_annotations' could not find the ncbi gene id %s"%(identifier))
+            return []
+
+        annotations.extend(session.query(GoAnnotation).filter_by(gene_id=geneQuery.id).all())
+        for uq in uniprotQuery:
+            annotations.extend(session.query(GoAnnotation).filter_by(uniprot_id=uq.id).all())
     
+    if idType == 'uniprot':
+        uniprotQuery = session.query(Uniprot).filter_by(uniprot_id=identifier).first()
+
+        if uniprotQuery == None:
+            print("WARNING: 'fetch_annotations' could not find the uniprot id %s"%(identifier))
+            return []
+
+        annotations.extend(session.query(GoAnnotation).filter_by(uniprot_id=uq.id).all())        
+        geneQuery = session.query(Gene).filter_by(id=uniprotQuery.gene_id).first()
+        if geneQuery != None: 
+            annotations.extend(session.query(GoAnnotation).filter_by(gene_id=geneQuery.id).all())
+        
+        uniprotQuery = session.query(Uniprot).filter_by(gene_id=identifier).all()
+
+
+    return annotations
+
 def read_annotation_file():
     """
     read the annotation file into a dictionary

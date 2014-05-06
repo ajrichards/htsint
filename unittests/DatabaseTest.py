@@ -10,7 +10,7 @@ import matplotlib as mpl
 if mpl.get_backend() != 'agg':
     mpl.use('agg')
 
-from htsint.database import db_connect,ask_upass
+from htsint.database import db_connect,ask_upass,fetch_annotations
 from htsint.database import Taxon,Gene,Uniprot,GoTerm,GoAnnotation
 
 ## global variables
@@ -36,15 +36,12 @@ class DatabaseTest(unittest.TestCase):
         test the taxa table
         """
 
-        query = self.session.query(Taxon).filter_by(ncbi_id=490051).first() 
-        print query
-        #query = self.session.query(Taxon).filter_by(ncbi_id=self.testID).first() 
-        #self.assertTrue(query not in [None])
-        #self.assertEqual(int(query.ncbi_id),int(self.testID))
-        #self.assertEqual(query.name,"Drosophila melanogaster")
-        #self.assertTrue("fruit fly" in [query.common_name_1,query.common_name_2,query.common_name_3])
+        query = self.session.query(Taxon).filter_by(ncbi_id=self.testID).first() 
+        self.assertTrue(query not in [None])
+        self.assertEqual(int(query.ncbi_id),int(self.testID))
+        self.assertEqual(query.name,"Drosophila melanogaster")
+        self.assertTrue("fruit fly" in [query.common_name_1,query.common_name_2,query.common_name_3])
 
-    '''
     def testGene(self):
         """
         test the gene table
@@ -54,6 +51,17 @@ class DatabaseTest(unittest.TestCase):
         query = self.session.query(Gene).filter_by(ncbi_id='3771877').first()
         self.assertEqual(query.symbol,'Adh')
 
+    def testUniprot(self):
+        """
+        test the accession table
+        """
+
+        uniprotQuery = self.session.query(Uniprot).filter_by(uniprot_id='P07663').first()
+        self.assertEqual(uniprotQuery.uniprot_entry,"PER_DROME")        
+        geneQuery = self.session.query(Gene).filter_by(id=uniprotQuery.gene_id).first()
+        self.assertEqual(geneQuery.ncbi_id,'31251')
+
+    '''
     def testGoTerm(self):
         """
         test the GoTerm table
@@ -69,21 +77,14 @@ class DatabaseTest(unittest.TestCase):
         descLook = re.search("that recurs with a regularity of approximately 24 hours.",termQuery.description)
         self.assertTrue(termQuery.description,descLook)
         
-    def testUniprot(self):
-        """
-        test the accession table
-        """
-
-        uniprotQuery = self.session.query(Uniprot).filter_by(uniprot_id='P07663').first()
-        self.assertEqual(uniprotQuery.uniprot_entry,"PER_DROME")        
-        geneQuery = self.session.query(Gene).filter_by(id=uniprotQuery.gene_id).first()
-        self.assertEqual(geneQuery.ncbi_id,'31251')
-
     def testGoAnnotation(self):
         """
         test the GoTerm table
         """
     
+        annotations = fetch_annotations('P07633',session,idType='uniprot')
+        
+
         uniprotQuery = self.session.query(Uniprot).filter_by(uniprot_id='P07633').first() 
         annotationQuery = self.session.query(GoAnnotation).filter_by(uniprot_id=uniprotQuery.id).all()
         annotations = [aq.go_term_id for aq in annotationQuery]
