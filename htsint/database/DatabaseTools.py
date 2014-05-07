@@ -373,11 +373,11 @@ def populate_go_terms(engine):
         ## find go id
         if re.search("^id\:",linja):
             goId = re.sub("^id\:|\s+","",linja)
-            goName,goNamespace,goDef = None,None,None
+            goName,goNamespace,goDef,goAltId = None,None,None,None
             isObsolete = False
             termCount += 1
             toAdd[goId] = {'go_id': goId,'aspect':None,'name':None,
-                           'description':None}
+                           'alternate_id':None,'description':None}
             continue
 
         ## find namespace and description  
@@ -385,6 +385,8 @@ def populate_go_terms(engine):
             goName = re.sub("^name\:\s+","",linja)
         if re.search("^namespace\:",linja):
             goNamespace = re.sub("^namespace\:\s+","",linja)
+        if re.search("^alt_id\:",linja):
+            goAltId = re.sub("^alt_id\:\s+","",linja)
         if re.search("^def\:",linja):
             goDef = re.sub("^def\:\s+","",linja)
             if re.search("OBSOLETE\.",goDef):
@@ -401,7 +403,9 @@ def populate_go_terms(engine):
                 toAdd[goId]['description'] = goDef
             if goName != None and toAdd[goId]['name'] == None:
                 toAdd[goId]['name'] = goName
-    
+            if goAltId != None and toAdd[goId]['alternate_id'] == None:
+                toAdd[goId]['alternate_id'] = goAltId
+
     print('committing changes...')
     with engine.begin() as connection:
         connection.execute(GoTerm.__table__.insert().
@@ -484,11 +488,18 @@ def populate_go_annotations(totalAnnotations,session,engine):
             toRemove = []
             for ta in toAdd:
                 if not termIdMap.has_key(ta['go_term_id']):
-                    print("WARNING: 'populated go_annotations' invalid termId '%s', skipping"%ta['go_term_id'])
-                    toRemove.append(ta)
-                    continue
-                ta['go_term_id'] = termIdMap[ta['go_term_id']]
+                    queryTerm = session.query(GoTerm).filter_by(alternate_id=ta['go_term_id'])
+                    if queryTerm == None:
+                        print("WARNING: 'populated go_annotations' invalid termId '%s', skipping"%ta['go_term_id'])
+                        toRemove.append(ta)
+                        continue
+                    
+                    ta['go_term_id'] = queryTerm.id
+                else:
+                    ta['go_term_id'] = termIdMap[ta['go_term_id']]
+
                 ta['uniprot_id'] = uniprotIdMap[ta['uniprot_id']]
+            
                 if taxaIdMap.has_key(ta['taxa_id']):
                     ta['taxa_id'] = taxaIdMap[ta['taxa_id']]
                 else:
@@ -505,17 +516,25 @@ def populate_go_annotations(totalAnnotations,session,engine):
             
     print('committing final changes...')
     toRemove = []
+
     for ta in toAdd:
         if not termIdMap.has_key(ta['go_term_id']):
-            print("WARNING: 'populated go_annotations' invalid termId '%s', skipping"%ta['go_term_id'])
-            toRemove.append(ta)
-            continue
-        ta['go_term_id'] = termIdMap[ta['go_term_id']]
-        ta['uniprot_id'] = uniprotIdMap[ta['uniprot_id']]
-        if taxaIdMap.has_key(ta['taxa_id']):
-            ta['taxa_id'] = taxaIdMap[ta['taxa_id']]
-        else:
-            ta['taxa_id'] = None
+            queryTerm = session.query(GoTerm).filter_by(alternate_id=ta['go_term_id'])
+            if queryTerm == None:
+                print("WARNING: 'populated go_annotations' invalid termId '%s', skipping"%ta['go_term_id'])
+                toRemove.append(ta)
+                continue
+                    
+                ta['go_term_id'] = queryTerm.id
+            else:
+                ta['go_term_id'] = termIdMap[ta['go_term_id']]
+
+            ta['uniprot_id'] = uniprotIdMap[ta['uniprot_id']]
+            
+            if taxaIdMap.has_key(ta['taxa_id']):
+                ta['taxa_id'] = taxaIdMap[ta['taxa_id']]
+            else:
+                ta['taxa_id'] = None
 
     for ta in toRemove:
         toAdd.remove(ta)
