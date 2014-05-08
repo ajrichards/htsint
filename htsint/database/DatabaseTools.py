@@ -488,7 +488,7 @@ def populate_go_annotations(totalAnnotations,session,engine):
             toRemove = []
             for ta in toAdd:
                 if not termIdMap.has_key(ta['go_term_id']):
-                    queryTerm = session.query(GoTerm).filter_by(alternate_id=ta['go_term_id'])
+                    queryTerm = session.query(GoTerm).filter_by(alternate_id=ta['go_term_id']).first()
                     if queryTerm == None:
                         print("WARNING: 'populated go_annotations' invalid termId '%s', skipping"%ta['go_term_id'])
                         toRemove.append(ta)
@@ -498,6 +498,11 @@ def populate_go_annotations(totalAnnotations,session,engine):
                 else:
                     ta['go_term_id'] = termIdMap[ta['go_term_id']]
 
+                if not uniprotIdMap.has_key(ta['uniprot_id']):
+                    print("WARNING: 'populated go_annotations' invalid uniprotId '%s', skipping"%ta['uniprot_id'])
+                    toRemove.append(ta)
+                    continue
+                    
                 ta['uniprot_id'] = uniprotIdMap[ta['uniprot_id']]
             
                 if taxaIdMap.has_key(ta['taxa_id']):
@@ -519,7 +524,7 @@ def populate_go_annotations(totalAnnotations,session,engine):
 
     for ta in toAdd:
         if not termIdMap.has_key(ta['go_term_id']):
-            queryTerm = session.query(GoTerm).filter_by(alternate_id=ta['go_term_id'])
+            queryTerm = session.query(GoTerm).filter_by(alternate_id=ta['go_term_id']).first()
             if queryTerm == None:
                 print("WARNING: 'populated go_annotations' invalid termId '%s', skipping"%ta['go_term_id'])
                 toRemove.append(ta)
@@ -543,6 +548,9 @@ def populate_go_annotations(totalAnnotations,session,engine):
         connection.execute(GoAnnotation.__table__.insert().
                            values(toAdd))
 
+    ## add annotations from gene2go
+    print("...getting annotations from gene2go")
+   
     ## clean up
     annotationFid.close()
     del uniprotIdMap
@@ -552,8 +560,6 @@ def populate_go_annotations(totalAnnotations,session,engine):
     for g in session.query(Gene).yield_per(5):
         geneIdMap[str(g.gene_id)] = g.id
 
-    ## add annotations from gene2go
-    print("...getting annotations from gene2go")
     header = gene2goFid.next()
     toAdd = []
 
