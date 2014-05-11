@@ -534,6 +534,11 @@ def populate_go_annotations(totalAnnotations,session,engine):
             else:
                 ta['go_term_id'] = termIdMap[ta['go_term_id']]
 
+            if not uniprotIdMap.has_key(ta['uniprot_id']):
+                print("WARNING: 'populated go_annotations' invalid uniprotId '%s', skipping"%ta['uniprot_id'])
+                toRemove.append(ta)
+                continue
+
             ta['uniprot_id'] = uniprotIdMap[ta['uniprot_id']]
             
             if taxaIdMap.has_key(ta['taxa_id']):
