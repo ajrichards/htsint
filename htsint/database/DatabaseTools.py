@@ -530,21 +530,21 @@ def populate_go_annotations(totalAnnotations,session,engine):
                 toRemove.append(ta)
                 continue
                     
-                ta['go_term_id'] = queryTerm.id
-            else:
-                ta['go_term_id'] = termIdMap[ta['go_term_id']]
+            ta['go_term_id'] = queryTerm.id
+        else:
+            ta['go_term_id'] = termIdMap[ta['go_term_id']]
 
-            if not uniprotIdMap.has_key(ta['uniprot_id']):
-                print("WARNING: 'populated go_annotations' invalid uniprotId '%s', skipping"%ta['uniprot_id'])
-                toRemove.append(ta)
-                continue
+        if not uniprotIdMap.has_key(ta['uniprot_id']):
+            print("WARNING: 'populated go_annotations' invalid uniprotId '%s', skipping"%ta['uniprot_id'])
+            toRemove.append(ta)
+            continue
 
-            ta['uniprot_id'] = uniprotIdMap[ta['uniprot_id']]
+        ta['uniprot_id'] = uniprotIdMap[ta['uniprot_id']]
             
-            if taxaIdMap.has_key(ta['taxa_id']):
-                ta['taxa_id'] = taxaIdMap[ta['taxa_id']]
-            else:
-                ta['taxa_id'] = None
+        if taxaIdMap.has_key(ta['taxa_id']):
+            ta['taxa_id'] = taxaIdMap[ta['taxa_id']]
+        else:
+            ta['taxa_id'] = None
 
     for ta in toRemove:
         toAdd.remove(ta)
