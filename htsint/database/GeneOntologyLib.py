@@ -139,7 +139,6 @@ def get_total_annotations():
     annotsCount = 0
     annotatedIds = {}
     totalAnnotations = 0
-    taxaList = set([])
 
     for record in annotationFid:
         record = record[:-1].split("\t")
@@ -148,13 +147,10 @@ def get_total_annotations():
         if record[0] != 'UniProtKB':
             continue
 
-        annotsCount += 1
         taxon = re.sub("taxon:","",record[12])
         if taxon == "" or re.search("\|",taxon):
             continue
 
-        annotatedIds[record[1]] = None
-        taxaList.update([taxon])
         totalAnnotations += 1
 
     return totalAnnotations

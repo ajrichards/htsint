@@ -37,6 +37,21 @@ class Taxon(Base):
                                                     self.common_name_1,
                                                     self.common_name_2,
                                                     self.common_name_3)
+
+def taxa_mapper(ncbiIdList,session,myDict={}):
+    """
+    a function that maps ncbi_ids to taxa.id
+    if a dict is provided keys must be the string of the ncbi_id
+    """
+
+    ncbiIdList = list(set(ncbiIdList))
+
+    for t in session.query(Taxon).yield_per(5):
+        myDict[str(t.ncbi_id)] = t.id
+
+    return myDict
+
+
 class Gene(Base):
     '''
     class that handles ncbi genes
@@ -65,6 +80,19 @@ class Gene(Base):
                                                    self.synonyms,
                                                    self.taxa_id)
 
+def gene_mapper(ncbiIdList,session,myDict={}):
+    """
+    a function that maps ncbi_ids to gene.id
+    if a dict is provided keys must be the string of the ncbi_id
+    """
+
+    ncbiIdList = list(set(ncbiIdList))
+
+    for g in session.query(Gene).yield_per(5):
+        myDict[str(g.ncbi_id)] = g.id
+
+    return myDict
+
 class Uniprot(Base):
     '''
     class that handles Uniprot Accessions
@@ -92,6 +120,20 @@ class Uniprot(Base):
                                                       self.refseq,
                                                       self.uniprot_taxa_id,
                                                       self.gene_id)
+
+def uniprot_mapper(uniprotIdList,session,myDict={}):
+    """
+    a function that maps uniprot_id to uniprot.id
+    if a dict is provided keys must be the string of the ncbi_id
+    """
+
+    uniprotIdList = list(set(uniprotIdList))
+
+    for u in session.query(Uniprot).yield_per(5):
+        myDict[u.uniprot_id] = u.id
+
+    return myDict
+
 class GoTerm(Base):
     '''
     class that handles gene ontology terms
@@ -119,6 +161,19 @@ class GoTerm(Base):
                                                      self.name,
                                                      self.alternate_id,
                                                      self.description)
+
+def goterm_mapper(gotermIdList,session,myDict={}):
+    """
+    a function that maps uniprot_id to uniprot.id
+    if a dict is provided keys must be the string of the ncbi_id
+    """
+
+    gotermIdList = list(set(gotermIdList))
+
+    for g in session.query(Uniprot).yield_per(5):
+        myDict[g.go_id] = g.id
+
+    return myDict
 
 class GoAnnotation(Base):
     '''
