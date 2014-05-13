@@ -125,8 +125,6 @@ def get_file_sizes():
     """
 
     geneInfoCount = read_gene_info_file(lineCount=True)
-
-    ## get all unique geneIds in idmapping file
     idmappingFile = get_idmapping_file()
     idmappingFid = open(idmappingFile,'rU')
     lineCount = 0
@@ -176,17 +174,17 @@ def populate_taxon_table(engine):
         ## if record does not exist
         if not toAdd.has_key(taxaID):
             taxaCount += 1
-            toAdd[taxaID] = {'ncbi_id':taxaID,'name':None,'common_name_1':None,
-                            'common_name_2':None,'common_name_3':None}
-        
-        ## if record exists add a common name 
-        if toAdd.has_key(taxaID) and scientificName != None:
-            if len(toAdd) >= 500000:
+            if len(toAdd) >= 300000:
                 with engine.begin() as connection:
                     connection.execute(Taxon.__table__.insert().
                                        values(toAdd.values()))
                 toAdd = {}
 
+            toAdd[taxaID] = {'ncbi_id':taxaID,'name':None,'common_name_1':None,
+                            'common_name_2':None,'common_name_3':None}
+        
+        ## if record exists add a common name 
+        if toAdd.has_key(taxaID) and scientificName != None:
             toAdd[taxaID]['name'] = scientificName
         elif toAdd.has_key(taxaID) and commonName != None:
             if  toAdd[taxaID]['common_name_1'] == None:
@@ -213,13 +211,14 @@ def populate_gene_table(geneInfoCount,session,engine):
     """
 
     timeStart = time.time()
-    toAdd,allTaxa = [],[]
+    toAdd = []
     totalRecords = 0
     total = geneInfoCount
     wayPoints = [round(int(w)) for w in np.linspace(0,total,20)]
     geneInfoFile = os.path.join(CONFIG['data'],"gene_info.db")
     geneInfoFid = open(geneInfoFile,'rU')
     header = geneInfoFid.next()
+    taxaIdMap = taxa_mapper(session)
 
     for record in geneInfoFid:
         record = record.rstrip("\n")
@@ -235,23 +234,18 @@ def populate_gene_table(geneInfoCount,session,engine):
         #chromosome = record[6]
         #map_location = record[7]
         description = record[8]
-        allTaxa.append(taxId)
-       
        
         ## define the table entry
         toAdd.append({'ncbi_id':ncbiId,'description':description,
                       'symbol':symbol,'synonyms':synonyms,'taxa_id':taxId})
         totalRecords += 1
         
-        if len(toAdd) >= 500000:
-            
-            taxaIdMap = taxa_mapper(allTaxa,session)
+        if len(toAdd) >= 300000:
             toRemove = []
             for ta in toAdd:
                 if taxaIdMap.has_key(ta['taxa_id']):
                     ta['taxa_id'] = taxaIdMap[ta['taxa_id']]
                 else:
-                    print("WARNING: gene '%s' has an unknown taxa skipping'%s'"%(ncbiId,taxId)) 
                     toRemove.append(ta)
 
             for ta in toRemove:
@@ -260,21 +254,18 @@ def populate_gene_table(geneInfoCount,session,engine):
             with engine.begin() as connection:
                 connection.execute(Gene.__table__.insert().
                                    values(toAdd))
-            toAdd,allTaxa = [],[]
-            del taxaIdMap
+            toAdd = []
 
         ## show progress
         if totalRecords in wayPoints:
             print("\t%s / %s"%(totalRecords,total))
 
-    print('committing changes...')            
-    taxaIdMap = taxa_mapper(allTaxa,session)
+    print('committing changes...')
     toRemove = []
     for ta in toAdd:
         if taxaIdMap.has_key(ta['taxa_id']):
             ta['taxa_id'] = taxaIdMap[ta['taxa_id']]
         else:
-            print("WARNING: gene '%s' has an unknown taxa skipping'%s'"%(ncbiId,taxId)) 
             toRemove.append(ta)
 
     for ta in toRemove:
@@ -297,13 +288,15 @@ def populate_uniprot_table(lineCount,session,engine):
     """
     
     print("...getting gene info")
-    geneInfo = read_gene_info_file(short=True)
+    #geneInfo = read_gene_info_file(short=True)
+    geneIdMap = gene_mapper(session)
     timeStart = time.time()
-    toAdd,allGenes = [],[]
+    toAdd = []
     totalRecords = 0
     wayPoints = [round(int(w)) for w in np.linspace(0,lineCount,20)]
     idmappingFile = get_idmapping_file()
     idmappingFid = open(idmappingFile,'rU')
+    print("...populating rows")
 
     for record in idmappingFid:
         record = record[:-1].split("\t")
@@ -316,17 +309,16 @@ def populate_uniprot_table(lineCount,session,engine):
 
         if ncbiId == '':
             pass
-        elif not geneInfo.has_key(ncbiId):
+        elif not geneIdMap.has_key(ncbiId):
             _geneIds = [re.sub("\s+","",_ncid) for _ncid in ncbiId.split(";")]
             ncbiId = None
         
             for _gid in _geneIds:
-                if geneInfo.has_key(_gid):
+                if geneIdMap.has_key(_gid):
                     ncbiId = _gid
         
         if ncbiId != '' and ncbiId != None:
             gene_id = str(ncbiId)
-            allGenes.append(gene_id)
         else:
             gene_id = None
         
@@ -336,7 +328,6 @@ def populate_uniprot_table(lineCount,session,engine):
         totalRecords += 1
     
         if len(toAdd) >= 100000:
-            geneIdMap = gene_mapper(allGenes,session)
             for ta in toAdd:
                 if not geneIdMap.has_key(ta['gene_id']):
                     ta['gene_id'] = None
@@ -345,12 +336,10 @@ def populate_uniprot_table(lineCount,session,engine):
                 
                 ta['gene_id'] = geneIdMap[ta['gene_id']]
 
-            del geneIdMap
-
             with engine.begin() as connection:
                 connection.execute(Uniprot.__table__.insert().
                                    values(toAdd))
-            toAdd,allGenes = [],[]
+            toAdd = []
     
 
         ## show progress
@@ -358,7 +347,6 @@ def populate_uniprot_table(lineCount,session,engine):
             print("\t%s / %s"%(totalRecords,lineCount))
 
     print('committing final changes...')
-    geneIdMap = gene_mapper(allGenes,session)
     for ta in toAdd:
         if not geneIdMap.has_key(ta['gene_id']):
             ta['gene_id'] = None
@@ -368,7 +356,6 @@ def populate_uniprot_table(lineCount,session,engine):
         ta['gene_id'] = geneIdMap[ta['gene_id']]
 
     del geneIdMap
-    del geneInfo
 
     with engine.begin() as connection:
         connection.execute(Uniprot.__table__.insert().
@@ -417,7 +404,7 @@ def populate_go_terms(engine):
             if re.search("OBSOLETE\.",goDef):
                 isObsolete = True
         
-        ## ignore obolete terms 
+        ## ignore obolete terms
         if isObsolete == True:
             goId = None
 
@@ -449,14 +436,20 @@ def populate_go_annotations(totalAnnotations,session,engine):
     """
 
     timeStart = time.time()
-    toAdd,allTaxa,allTerms,allUniprot = [],[],[],[]
+    toAdd = []
     annotationFile = get_annotation_file()
     annotationFid = open(annotationFile,'rU')
     gene2goFile = get_gene2go_file()
     gene2goFid = open(gene2goFile,'rU')
     wayPoints = [round(int(w)) for w in np.linspace(0,totalAnnotations,20)]
     annotationCount = 0
-    
+
+    print("...loading mappers")
+    termIdMap = term_mapper(session)
+    taxaIdMap = taxa_mapper(session)
+    uniprotIdMap = uniprot_mapper(session)
+    print("...populating rows")
+
     ## add annotations from uniprot annotation file
     print("...getting annotations from gene_association (uniprot)")
     for record in annotationFid:
@@ -488,35 +481,26 @@ def populate_go_annotations(totalAnnotations,session,engine):
         if annotationCount in wayPoints:
             print("\t%s / %s"%(annotationCount,totalAnnotations))
 
-        allTaxa.append(taxon)
-        allUniprot.append(dbObjectid)
-        allTerms.append(goId)
-
         toAdd.append({'go_term_id':goId,'evidence_code':evidenceCode,
                       'pubmed_refs':pubmedRefs,'uniprot_id':dbObjectId,
                       'gene_id':None,'taxa_id':taxon})
 
         if len(toAdd) >= 100000:
-
-            taxaIdMap = taxa_mapper(allTaxa,session)
-            uniprotIdMap = uniprot_mapper(allUniprot,session)
-            termIdMap = goterm_mapper(allTerms,session)
             
             toRemove = []
             for ta in toAdd:
+                ## remove invalid term ids
                 if not termIdMap.has_key(ta['go_term_id']):
                     queryTerm = session.query(GoTerm).filter_by(alternate_id=ta['go_term_id']).first()
                     if queryTerm == None:
-                        print("WARNING: 'populated go_annotations' invalid termId '%s', skipping"%ta['go_term_id'])
                         toRemove.append(ta)
                         continue
-                    
                     ta['go_term_id'] = queryTerm.id
                 else:
                     ta['go_term_id'] = termIdMap[ta['go_term_id']]
 
+                ## remove invalid uniprot ids
                 if not uniprotIdMap.has_key(ta['uniprot_id']):
-                    print("WARNING: 'populated go_annotations' invalid uniprotId '%s', skipping"%ta['uniprot_id'])
                     toRemove.append(ta)
                     continue
                     
@@ -530,36 +514,26 @@ def populate_go_annotations(totalAnnotations,session,engine):
             for ta in toRemove:
                 toAdd.remove(ta)
 
-            del taxaIdMap
-            del uniprotIdMap
-            del termIdMap
-
             with engine.begin() as connection:
                 connection.execute(GoAnnotation.__table__.insert().
                                    values(toAdd))
-            toAdd,allTaxa,allTerms,allUniprot = [],[],[],[]
-            toRemove = []
-            
-    print('committing final changes...')
-    taxaIdMap = taxa_mapper(allTaxa,session)
-    uniprotIdMap = uniprot_mapper(allUniprot,session)
-    termIdMap = goterm_mapper(allTerms,session)
-    toRemove = []
+            toAdd = []
 
+    print('committing final changes...')
+    toRemove = []
     for ta in toAdd:
+        ## remove invalid term ids
         if not termIdMap.has_key(ta['go_term_id']):
             queryTerm = session.query(GoTerm).filter_by(alternate_id=ta['go_term_id']).first()
             if queryTerm == None:
-                print("WARNING: 'populated go_annotations' invalid termId '%s', skipping"%ta['go_term_id'])
                 toRemove.append(ta)
                 continue
-                    
             ta['go_term_id'] = queryTerm.id
         else:
             ta['go_term_id'] = termIdMap[ta['go_term_id']]
 
+        ## remove invalid uniprot ids
         if not uniprotIdMap.has_key(ta['uniprot_id']):
-            print("WARNING: 'populated go_annotations' invalid uniprotId '%s', skipping"%ta['uniprot_id'])
             toRemove.append(ta)
             continue
 
@@ -573,9 +547,7 @@ def populate_go_annotations(totalAnnotations,session,engine):
     for ta in toRemove:
         toAdd.remove(ta)
 
-    del taxaIdMap
     del uniprotIdMap
-    del termIdMap
     annotationFid.close()
 
     with engine.begin() as connection:
@@ -585,7 +557,8 @@ def populate_go_annotations(totalAnnotations,session,engine):
     ## add annotations from gene2go
     print("...getting annotations from gene2go")
     header = gene2goFid.next()
-    toAdd,allTaxa,allGenes,allTerms = [],[],[],[]
+    geneIdMap = gene_mapper(allGenes,session)
+    toAdd = []
 
     for record in gene2goFid:
         record = record.rstrip("\n")
@@ -602,10 +575,6 @@ def populate_go_annotations(totalAnnotations,session,engine):
         go_term_description = record[5]
         pubmedRefs = record[6]
         go_aspect = record[7]
-    
-        allTaxa.append(taxId)
-        allGenes.append(ncbiId)
-        allTerms.append(goId)
         annotationCount += 1
 
         toAdd.append({'go_term_id':goId,'evidence_code':evidenceCode,
@@ -613,33 +582,66 @@ def populate_go_annotations(totalAnnotations,session,engine):
                       'gene_id':ncbiId,'taxa_id':taxId})
 
         if len(toAdd) >= 100000:
-            taxaIdMap = taxa_mapper(allTaxa,session)
-            geneIdMap = gene_mapper(allGenes,session)
-            termIdMap = goterm_mapper(allTerms,session)
-
+            toRemove = []
             for ta in toAdd:
-                ta['go_term_id'] = termIdMap[ta['go_term_id']]
-                ta['gene_id'] = geneIdMap[ta['gene_id']]
-                ta['taxa_id'] = taxaIdMap[ta['taxa_id']]
+                ## remove invalid term ids
+                if not termIdMap.has_key(ta['go_term_id']):
+                    queryTerm = session.query(GoTerm).filter_by(alternate_id=ta['go_term_id']).first()
+                    if queryTerm == None:
+                        toRemove.append(ta)
+                        continue
+                    ta['go_term_id'] = queryTerm.id
+                else:
+                    ta['go_term_id'] = termIdMap[ta['go_term_id']]
 
-            del taxaIdMap
-            del geneIdMap
-            del termIdMap
+                
+                ## remove invalid gene ids
+                if not uniprotIdMap.has_key(ta['uniprot_id']):
+                    toRemove.append(ta)
+                    continue
+
+                ta['gene_id'] = geneIdMap[ta['gene_id']]
+
+                if taxaIdMap.has_key(ta['taxa_id']):
+                    ta['taxa_id'] = taxaIdMap[ta['taxa_id']]
+                else:
+                    ta['taxa_id'] = None
+
+            for ta in toRemove:
+                toAdd.remove(ta)
 
             with engine.begin() as connection:
                 connection.execute(GoAnnotation.__table__.insert().
                                    values(toAdd))
-            toAdd,allTaxa,allGenes,allTerms = [],[],[],[]
+            toAdd = []
 
     print('committing final changes...')
-    taxaIdMap = taxa_mapper(allTaxa,session)
-    geneIdMap = gene_mapper(allGenes,session)
-    termIdMap = goterm_mapper(allTerms,session)
-
+    toRemove = []
     for ta in toAdd:
-        ta['go_term_id'] = termIdMap[ta['go_term_id']]
+        ## remove invalid term ids
+        if not termIdMap.has_key(ta['go_term_id']):
+            queryTerm = session.query(GoTerm).filter_by(alternate_id=ta['go_term_id']).first()
+            if queryTerm == None:
+                toRemove.append(ta)
+                continue
+            ta['go_term_id'] = queryTerm.id
+        else:
+            ta['go_term_id'] = termIdMap[ta['go_term_id']]
+
+        ## remove invalid gene ids
+        if not uniprotIdMap.has_key(ta['uniprot_id']):
+            toRemove.append(ta)
+            continue
+
         ta['gene_id'] = geneIdMap[ta['gene_id']]
-        ta['taxa_id'] = taxaIdMap[ta['taxa_id']]
+        
+        if taxaIdMap.has_key(ta['taxa_id']):
+            ta['taxa_id'] = taxaIdMap[ta['taxa_id']]
+        else:
+            ta['taxa_id'] = None
+
+    for ta in toRemove:
+        toAdd.remove(ta)
 
     del taxaIdMap
     del geneIdMap

@@ -38,15 +38,19 @@ class Taxon(Base):
                                                     self.common_name_2,
                                                     self.common_name_3)
 
-def taxa_mapper(ncbiIdList,session,myDict={}):
+def taxa_mapper(session,ncbiIdList=None,myDict={}):
     """
     a function that maps ncbi_ids to taxa.id
     if a dict is provided keys must be the string of the ncbi_id
     """
 
-    ncbiIdList = list(set(ncbiIdList))
+    if ncbiIdList:
+        ncbiIdList = dict([(i,None)for i in list(set(ncbiIdList))])
 
     for t in session.query(Taxon).yield_per(5):
+        if ncbiIdList and not ncbiIdList.has_key(g):
+            continue
+
         myDict[str(t.ncbi_id)] = t.id
 
     return myDict
@@ -80,15 +84,18 @@ class Gene(Base):
                                                    self.synonyms,
                                                    self.taxa_id)
 
-def gene_mapper(ncbiIdList,session,myDict={}):
+def gene_mapper(session,ncbiIdList=None,myDict={}):
     """
     a function that maps ncbi_ids to gene.id
     if a dict is provided keys must be the string of the ncbi_id
     """
 
-    ncbiIdList = list(set(ncbiIdList))
+    if ncbiIdList:
+        ncbiIdList = dict([(i,None)for i in list(set(ncbiIdList))])
 
     for g in session.query(Gene).yield_per(5):
+        if ncbiIdList and not ncbiIdList.has_key(g):
+            continue
         myDict[str(g.ncbi_id)] = g.id
 
     return myDict
@@ -121,15 +128,19 @@ class Uniprot(Base):
                                                       self.uniprot_taxa_id,
                                                       self.gene_id)
 
-def uniprot_mapper(uniprotIdList,session,myDict={}):
+def uniprot_mapper(session,uniprotIdList=None,myDict={}):
     """
     a function that maps uniprot_id to uniprot.id
     if a dict is provided keys must be the string of the ncbi_id
     """
 
-    uniprotIdList = list(set(uniprotIdList))
+    if uniprotIdList:
+        uniprotIdList = dict([(i,None)for i in list(set(uniprotIdList))])
 
     for u in session.query(Uniprot).yield_per(5):
+        if uniprotIdList and not uniprotIdList.has_key(g):
+            continue
+
         myDict[u.uniprot_id] = u.id
 
     return myDict
