@@ -178,9 +178,15 @@ def populate_taxon_table(engine):
             taxaCount += 1
             toAdd[taxaID] = {'ncbi_id':taxaID,'name':None,'common_name_1':None,
                             'common_name_2':None,'common_name_3':None}
-            
+        
         ## if record exists add a common name 
         if toAdd.has_key(taxaID) and scientificName != None:
+            if len(toAdd) >= 500000:
+                with engine.begin() as connection:
+                    connection.execute(Taxon.__table__.insert().
+                                       values(toAdd.values()))
+                toAdd = {}
+
             toAdd[taxaID]['name'] = scientificName
         elif toAdd.has_key(taxaID) and commonName != None:
             if  toAdd[taxaID]['common_name_1'] == None:
@@ -211,13 +217,6 @@ def populate_gene_table(geneInfoCount,session,engine):
     totalRecords = 0
     total = geneInfoCount
     wayPoints = [round(int(w)) for w in np.linspace(0,total,20)]
-
-    #print("...getting keys from Taxon table")
-    #taxaIdMap = {}
-    #for t in session.query(Taxon).yield_per(5):
-    #    taxaIdMap[str(t.ncbi_id)] = t.id
-    print("...populating rows")
-
     geneInfoFile = os.path.join(CONFIG['data'],"gene_info.db")
     geneInfoFid = open(geneInfoFile,'rU')
     header = geneInfoFid.next()
@@ -244,7 +243,7 @@ def populate_gene_table(geneInfoCount,session,engine):
                       'symbol':symbol,'synonyms':synonyms,'taxa_id':taxId})
         totalRecords += 1
         
-        if len(toAdd) >= 1000000:
+        if len(toAdd) >= 500000:
             
             taxaIdMap = taxa_mapper(allTaxa,session)
             toRemove = []
