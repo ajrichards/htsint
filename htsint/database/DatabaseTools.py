@@ -450,6 +450,7 @@ def populate_go_annotations(totalAnnotations,session,engine):
     uniprotIdMap = uniprot_mapper(session)
     print("...populating rows")
 
+    """
     ## add annotations from uniprot annotation file
     print("...getting annotations from gene_association (uniprot)")
     for record in annotationFid:
@@ -553,11 +554,12 @@ def populate_go_annotations(totalAnnotations,session,engine):
     with engine.begin() as connection:
         connection.execute(GoAnnotation.__table__.insert().
                            values(toAdd))
+    """
 
     ## add annotations from gene2go
     print("...getting annotations from gene2go")
     header = gene2goFid.next()
-    geneIdMap = gene_mapper(allGenes,session)
+    geneIdMap = gene_mapper(session)
     toAdd = []
 
     for record in gene2goFid:
