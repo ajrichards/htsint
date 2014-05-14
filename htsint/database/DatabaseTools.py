@@ -424,7 +424,7 @@ def populate_go_terms(engine):
                            values(toAdd.values()))
 
     timeStr = "...total time taken: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
-    addedStr = "...%s unique uniprot entries were added."%termCount
+    addedStr = "...%s unique go term entries were added."%termCount
     return timeStr,addedStr
 
 def populate_go_annotations(totalAnnotations,session,engine):
@@ -445,7 +445,7 @@ def populate_go_annotations(totalAnnotations,session,engine):
     annotationCount = 0
 
     print("...loading mappers")
-    termIdMap = term_mapper(session)
+    termIdMap = goterm_mapper(session)
     taxaIdMap = taxa_mapper(session)
     uniprotIdMap = uniprot_mapper(session)
     print("...populating rows")
@@ -652,7 +652,7 @@ def populate_go_annotations(totalAnnotations,session,engine):
                            values(toAdd))
 
     timeStr = "...total time taken: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
-    addedStr = "...%s unique uniprot entries were added."%annotationCount
+    addedStr = "...%s unique go annotation entries were added."%annotationCount
     return timeStr,addedStr
 
 def print_db_summary():
