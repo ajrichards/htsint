@@ -173,15 +173,19 @@ class GoTerm(Base):
                                                      self.alternate_id,
                                                      self.description)
 
-def goterm_mapper(gotermIdList,session,myDict={}):
+def goterm_mapper(session,gotermIdList=None,myDict={}):
     """
     a function that maps uniprot_id to uniprot.id
     if a dict is provided keys must be the string of the ncbi_id
     """
 
-    gotermIdList = list(set(gotermIdList))
+    if gotermIdList:
+        gotermIdList = dict([(i,None)for i in list(set(gotermIdList))])
 
-    for g in session.query(Uniprot).yield_per(5):
+    for g in session.query(GoTerm).yield_per(5):
+        if gotermIdList and not gotermIdList.has_key(g):
+            continue
+
         myDict[g.go_id] = g.id
 
     return myDict

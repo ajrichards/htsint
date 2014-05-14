@@ -54,7 +54,7 @@ push_out("Creating database with...")
 for t in Base.metadata.sorted_tables:
     push_out("\t"+t.name)
 
-## get a list of geneids from uniprot
+## determine file sizes
 timeStart = time.time()
 push_out("determining filesizes...")
 idmapCount,geneInfoCount = get_file_sizes()
