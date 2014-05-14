@@ -288,7 +288,6 @@ def populate_uniprot_table(lineCount,session,engine):
     """
     
     print("...getting gene info")
-    #geneInfo = read_gene_info_file(short=True)
     geneIdMap = gene_mapper(session)
     timeStart = time.time()
     toAdd = []
@@ -450,7 +449,6 @@ def populate_go_annotations(totalAnnotations,session,engine):
     uniprotIdMap = uniprot_mapper(session)
     print("...populating rows")
 
-    """
     ## add annotations from uniprot annotation file
     print("...getting annotations from gene_association (uniprot)")
     for record in annotationFid:
@@ -512,6 +510,8 @@ def populate_go_annotations(totalAnnotations,session,engine):
                 else:
                     ta['taxa_id'] = None
 
+            if len(toRemove) > 0:
+                print("removing...%s invalid annotations"%len(toRemove))
             for ta in toRemove:
                 toAdd.remove(ta)
 
@@ -544,7 +544,9 @@ def populate_go_annotations(totalAnnotations,session,engine):
             ta['taxa_id'] = taxaIdMap[ta['taxa_id']]
         else:
             ta['taxa_id'] = None
-
+ 
+    if len(toRemove) > 0:
+        print("removing...%s invalid annotations"%len(toRemove))
     for ta in toRemove:
         toAdd.remove(ta)
 
@@ -554,7 +556,6 @@ def populate_go_annotations(totalAnnotations,session,engine):
     with engine.begin() as connection:
         connection.execute(GoAnnotation.__table__.insert().
                            values(toAdd))
-    """
 
     ## add annotations from gene2go
     print("...getting annotations from gene2go")
@@ -579,6 +580,9 @@ def populate_go_annotations(totalAnnotations,session,engine):
         go_aspect = record[7]
         annotationCount += 1
 
+        if annotationCount in wayPoints:
+            print("\t%s / %s"%(annotationCount,totalAnnotations))
+
         toAdd.append({'go_term_id':goId,'evidence_code':evidenceCode,
                       'pubmed_refs':pubmedRefs,'uniprot_id':None,
                       'gene_id':ncbiId,'taxa_id':taxId})
@@ -595,10 +599,9 @@ def populate_go_annotations(totalAnnotations,session,engine):
                     ta['go_term_id'] = queryTerm.id
                 else:
                     ta['go_term_id'] = termIdMap[ta['go_term_id']]
-
-                
+            
                 ## remove invalid gene ids
-                if not uniprotIdMap.has_key(ta['uniprot_id']):
+                if not geneIdMap.has_key(ta['gene_id']):
                     toRemove.append(ta)
                     continue
 
@@ -609,6 +612,8 @@ def populate_go_annotations(totalAnnotations,session,engine):
                 else:
                     ta['taxa_id'] = None
 
+            if len(toRemove) > 0:
+                print("removing...%s invalid annotations"%len(toRemove))
             for ta in toRemove:
                 toAdd.remove(ta)
 
@@ -631,7 +636,7 @@ def populate_go_annotations(totalAnnotations,session,engine):
             ta['go_term_id'] = termIdMap[ta['go_term_id']]
 
         ## remove invalid gene ids
-        if not uniprotIdMap.has_key(ta['uniprot_id']):
+        if not geneIdMap.has_key(ta['gene_id']):
             toRemove.append(ta)
             continue
 
@@ -642,6 +647,8 @@ def populate_go_annotations(totalAnnotations,session,engine):
         else:
             ta['taxa_id'] = None
 
+    if len(toRemove) > 0:
+        print("removing...%s invalid annotations"%len(toRemove))
     for ta in toRemove:
         toAdd.remove(ta)
 

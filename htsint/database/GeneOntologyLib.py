@@ -153,6 +153,13 @@ def get_total_annotations():
 
         totalAnnotations += 1
 
+    gene2goFile = get_gene2go_file()
+    gene2goFid = open(gene2goFile,'rU')
+    header = gene2goFid.next()
+
+    for record in gene2goFid:
+        totalAnnotations += 1
+
     return totalAnnotations
 
 def get_gene2go_file():
