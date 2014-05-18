@@ -63,6 +63,7 @@ class GeneOntologyTest(unittest.TestCase):
         gene2go = go.get_terms()
         self.assertTrue(len(gene2go.keys()) > 10)
 
+    '''
     def testGetDicts(self):
         """
         ensure we can create, save and retrieve gene2go and go2gene dictionaries
@@ -101,7 +102,7 @@ class GeneOntologyTest(unittest.TestCase):
         for picklePath in [termsPickle,graphPickle]:
             if os.path.exists(picklePath):
                 os.remove(picklePath)
-
+    '''
 
 ### Run the tests
 if __name__ == '__main__':

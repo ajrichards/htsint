@@ -180,9 +180,9 @@ def get_gene2go_file():
 
     return annotationFile
 
-def fetch_annotations(identifier,session,idType='uniprot',asTerms=True):
+def fetch_annotations(identifiers,session,idType='uniprot',asTerms=True):
     """
-    Fetch the go annotations for a given identifier
+    Fetch the go annotations for a given list of identifiers
 
     If the identifier is 'uniprot'. Then combine the annotations from that uniportId 
     and the associated geneId if persent.
@@ -194,47 +194,46 @@ def fetch_annotations(identifier,session,idType='uniprot',asTerms=True):
 
     """
 
-    annotations = set([])
+    ## error check
+    if type(identifiers) != type([]):
+        raise Exception("fetch_annotations takes a list of identifiers")
+
+    annotations = {}
     idType = idType.lower()
     if idType not in ['uniprot','ncbi']:
         raise Exception("Invalid idType argument in fetch annotations use 'uniprot' or 'ncbi'")
 
     if idType == 'ncbi':
-        geneQuery = session.query(Gene).filter_by(ncbi_id=identifier).first()
-        uniprotQuery = session.query(Uniprot).filter_by(gene_id=identifier).all()
-
-        if geneQuery == None:
-            print("WARNING: 'fetch_annotations' could not find the ncbi gene id %s"%(identifier))
-            return []
-
-        annotations.update(session.query(GoAnnotation).filter_by(gene_id=geneQuery.id).all())
-        for uq in uniprotQuery:
-            annotations.update(session.query(GoAnnotation).filter_by(uniprot_id=uq.id).all())
+        geneQueries = session.query(Gene).filter(Gene.ncbi_id.in_(identifiers)).all()
+        
+        for geneQuery in geneQueries:
+            annotations[geneQuery.ncbi_id] = set([])
+            uniprotQuery = session.query(Uniprot).filter_by(gene_id=geneQuery.id).all()
+            annotations[geneQuery.ncbi_id].update(session.query(GoAnnotation).filter_by(gene_id=geneQuery.id).all())
+            for uq in uniprotQuery:
+                annotations[geneQuery.ncbi_id].update(session.query(GoAnnotation).filter_by(uniprot_id=uq.id).all())
     
     elif idType == 'uniprot':
-        uniprotQuery = session.query(Uniprot).filter_by(uniprot_id=identifier).first()
+        
+        uniprotQueries = session.query(Uniprot).filter(Uniprot.uniprot_id.in_(identifiers)).all()
+                                                          
+        for uniprotQuery in uniprotQueries:
+            annotations[uniprotQuery.uniprot_id] = set([])
+            annotations[uniprotQuery.uniprot_id].update(session.query(GoAnnotation).filter_by(uniprot_id=uniprotQuery.id).all())        
 
-        if uniprotQuery == None:
-            print("WARNING: 'fetch_annotations' could not find the uniprot id %s"%(identifier))
-            return []
-
-        ## add the uniprot annotations
-        annotations.update(session.query(GoAnnotation).filter_by(uniprot_id=uniprotQuery.id).all())        
-
-        ## add the gene id annotations
-        geneQuery = session.query(Gene).filter_by(id=uniprotQuery.gene_id).first()
-        if geneQuery != None: 
-            annotations.update(session.query(GoAnnotation).filter_by(gene_id=geneQuery.id).all())
+            geneQuery = session.query(Gene).filter_by(id=uniprotQuery.gene_id).first()
+            if geneQuery != None: 
+                annotations[uniprotQuery.uniprot_id].update(session.query(GoAnnotation).filter_by(gene_id=geneQuery.id).all())
         
     ## remove any null results
-    annotations = list(annotations)
-    if None in annotations:
-        annotations.remove(None)
+    for key,items in annotations.iteritems():
+        annotations[key] = list(items)
+        if None in items:
+            annotations[key].remove(None)
+        if asTerms == True:
+            annotations[key] = [session.query(GoTerm).filter_by(id = a.go_term_id).first() for a in items]
 
-    if asTerms == True:
-        return [session.query(GoTerm).filter_by(id = a.go_term_id).first() for a in annotations]
-    else:
-        return annotations
+    return annotations
 
 def read_annotation_file():
     """

@@ -13,7 +13,7 @@ The data is stored in the htsint database
 class GeneOntology(object):
     "A class to interact with Gene Ontology data"
     
-    def __init__(self,taxID=None,geneList=None,verbose=False,upass=''):
+    def __init__(self,taxID=None,geneList=None,verbose=False,upass='',idType='ncbi'):
         """
         Constructor
         
@@ -28,6 +28,10 @@ class GeneOntology(object):
         """
 
         ## error checking
+        idType = idType.lower()
+        if idType not in ['uniprot','ncbi']:
+            raise Exception("Invalid idType argument in fetch annotations use 'uniprot' or 'ncbi'")
+
         if taxID == None and geneList == None:
             raise Exception("If taxid is not supplied a 'geneList' is required")
 
@@ -60,7 +64,7 @@ class GeneOntology(object):
         Print a summary of all Gene Ontology related information in database
         """
 
-        if self.taxID != None:        
+        if self.taxID != None:
             summary = "\nSummary"
             summary += "\n----------------------------------"
             summary += "\nTaxID:       %s"%self.taxQuery.ncbi_id

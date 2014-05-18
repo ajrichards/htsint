@@ -82,12 +82,12 @@ class DatabaseTest(unittest.TestCase):
         """
     
         print("fetching annotations for uniprot id...")
-        annotations1 = fetch_annotations('P07663',self.session,idType='uniprot')
-        self.assertTrue("circadian rhythm" in [a.name for a in annotations1])
+        annotations1 = fetch_annotations(['P07663'],self.session,idType='uniprot')
+        self.assertTrue("circadian rhythm" in [a.name for a in annotations1['P07663']])
 
         print("fetching annotations for ncbi gene id...")
-        annotations2 = fetch_annotations('31251',self.session,idType='ncbi')
-        self.assertTrue("circadian rhythm" in [a.name for a in annotations2])
+        annotations2 = fetch_annotations(['31251'],self.session,idType='ncbi')
+        self.assertTrue("circadian rhythm" in [a.name for a in annotations2['31251']])
 
 
 ### Run the tests
