@@ -10,9 +10,9 @@ import getpass
 import numpy as np
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from htsint.database import get_annotation_file, get_ontology_file, get_gene2go_file
 from DatabaseTables import Base,Taxon,Gene,Uniprot,GoTerm,GoAnnotation
 from DatabaseTables import taxa_mapper,gene_mapper,uniprot_mapper,goterm_mapper
+from htsint.database import get_annotation_file, get_ontology_file, get_gene2go_file
 
 from htsint import __basedir__
 sys.path.append(__basedir__)

@@ -5,6 +5,7 @@ library of functions for use with the GeneOntology class
 
 import os,sys,re
 from htsint import __basedir__
+from DatabaseTables import Uniprot,Gene,GoTerm,GoAnnotation
 
 sys.path.append(__basedir__)
 try:
@@ -179,7 +180,7 @@ def get_gene2go_file():
 
     return annotationFile
 
-def fetch_annotations(identifier,session,idType='uniprot'):
+def fetch_annotations(identifier,session,idType='uniprot',asTerms=True):
     """
     Fetch the go annotations for a given identifier
 
@@ -188,9 +189,12 @@ def fetch_annotations(identifier,session,idType='uniprot'):
 
     If the identifier is 'geneid' the find all uniprot entries and combine all 
     uniprot and geneId results.
+
+    The arg 'asTerms' return
+
     """
 
-    annotations = []
+    annotations = set([])
     idType = idType.lower()
     if idType not in ['uniprot','ncbi']:
         raise Exception("Invalid idType argument in fetch annotations use 'uniprot' or 'ncbi'")
@@ -203,26 +207,34 @@ def fetch_annotations(identifier,session,idType='uniprot'):
             print("WARNING: 'fetch_annotations' could not find the ncbi gene id %s"%(identifier))
             return []
 
-        annotations.extend(session.query(GoAnnotation).filter_by(gene_id=geneQuery.id).all())
+        annotations.update(session.query(GoAnnotation).filter_by(gene_id=geneQuery.id).all())
         for uq in uniprotQuery:
-            annotations.extend(session.query(GoAnnotation).filter_by(uniprot_id=uq.id).all())
+            annotations.update(session.query(GoAnnotation).filter_by(uniprot_id=uq.id).all())
     
-    if idType == 'uniprot':
+    elif idType == 'uniprot':
         uniprotQuery = session.query(Uniprot).filter_by(uniprot_id=identifier).first()
 
         if uniprotQuery == None:
             print("WARNING: 'fetch_annotations' could not find the uniprot id %s"%(identifier))
             return []
 
-        annotations.extend(session.query(GoAnnotation).filter_by(uniprot_id=uq.id).all())        
+        ## add the uniprot annotations
+        annotations.update(session.query(GoAnnotation).filter_by(uniprot_id=uniprotQuery.id).all())        
+
+        ## add the gene id annotations
         geneQuery = session.query(Gene).filter_by(id=uniprotQuery.gene_id).first()
         if geneQuery != None: 
-            annotations.extend(session.query(GoAnnotation).filter_by(gene_id=geneQuery.id).all())
+            annotations.update(session.query(GoAnnotation).filter_by(gene_id=geneQuery.id).all())
         
-        uniprotQuery = session.query(Uniprot).filter_by(gene_id=identifier).all()
+    ## remove any null results
+    annotations = list(annotations)
+    if None in annotations:
+        annotations.remove(None)
 
-
-    return annotations
+    if asTerms == True:
+        return [session.query(GoTerm).filter_by(id = a.go_term_id).first() for a in annotations]
+    else:
+        return annotations
 
 def read_annotation_file():
     """

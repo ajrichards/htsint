@@ -61,7 +61,6 @@ class DatabaseTest(unittest.TestCase):
         geneQuery = self.session.query(Gene).filter_by(id=uniprotQuery.gene_id).first()
         self.assertEqual(geneQuery.ncbi_id,'31251')
 
-    '''
     def testGoTerm(self):
         """
         test the GoTerm table
@@ -73,25 +72,23 @@ class DatabaseTest(unittest.TestCase):
         print 'name',termQuery.name
         
         self.assertEqual(termQuery.aspect,"biological_process")
-        #self.assertEqual(termQuery.name,"circadian rhythm")
+        self.assertEqual(termQuery.name,"circadian rhythm")
         descLook = re.search("that recurs with a regularity of approximately 24 hours.",termQuery.description)
         self.assertTrue(termQuery.description,descLook)
-        
+
     def testGoAnnotation(self):
         """
         test the GoTerm table
         """
     
-        annotations = fetch_annotations('P07633',session,idType='uniprot')
-        
+        print("fetching annotations for uniprot id...")
+        annotations1 = fetch_annotations('P07663',self.session,idType='uniprot')
+        self.assertTrue("circadian rhythm" in [a.name for a in annotations1])
 
-        uniprotQuery = self.session.query(Uniprot).filter_by(uniprot_id='P07633').first() 
-        annotationQuery = self.session.query(GoAnnotation).filter_by(uniprot_id=uniprotQuery.id).all()
-        annotations = [aq.go_term_id for aq in annotationQuery]
-        terms = [self.session.query(GoTerm).filter_by(id = a).first().go_id for a in annotations]
-        print terms
-        self.assertTrue("GO:0007623" in terms)
-    '''
+        print("fetching annotations for ncbi gene id...")
+        annotations2 = fetch_annotations('31251',self.session,idType='ncbi')
+        self.assertTrue("circadian rhythm" in [a.name for a in annotations2])
+
 
 ### Run the tests
 if __name__ == '__main__':

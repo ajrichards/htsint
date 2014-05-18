@@ -215,9 +215,9 @@ class GoAnnotation(Base):
         self.taxa_id = taxa_id
 
     def __repr__(self):
-        return "<GoAnnotation('%s','%s','%s','%s',,'%s')>"%(self.go_term_id,
-                                                            self.evidence_code,
-                                                            self.pubmed_refs,
-                                                            self.uniprot_id,
-                                                            self.gene_id,
-                                                            self.taxa_id)
+        return "<GoAnnotation('%s','%s','%s','%s','%s','%s')>"%(self.go_term_id,
+                                                                self.evidence_code,
+                                                                self.pubmed_refs,
+                                                                self.uniprot_id,
+                                                                self.gene_id,
+                                                                self.taxa_id)
