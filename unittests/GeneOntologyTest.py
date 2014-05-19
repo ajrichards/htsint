@@ -54,15 +54,6 @@ class GeneOntologyTest(unittest.TestCase):
         go = GeneOntology(taxID=self.taxID,upass=UPASS)
         go.check_taxon(self.taxID)
     
-    def testGetTerms(self):
-        """
-        fetch term-gene relations from db
-        """
-
-        go = GeneOntology(geneList=self.geneList,upass=UPASS)
-        gene2go = go.get_terms()
-        self.assertTrue(len(gene2go.keys()) > 10)
-
     '''
     def testGetDicts(self):
         """
@@ -74,7 +65,7 @@ class GeneOntologyTest(unittest.TestCase):
             os.remove(dictsPickle)
 
         go = GeneOntology(geneList=self.geneList,upass=UPASS)
-        gene2go1,go2gene1 = go.get_dicts(filePath=dictsPickle)
+        gene2go1,go2gene1 = go.get_dicts(filePath=dictsPickle,aspect='biological_process')
         gene2go2,go2gene2 = go.get_dicts(filePath=dictsPickle)
 
         self.assertEqual(len(gene2go1.keys()),len(gene2go2.keys()))
@@ -82,6 +73,7 @@ class GeneOntologyTest(unittest.TestCase):
 
         if os.path.exists(dictsPickle) == True:
             os.remove(dictsPickle)
+    '''
 
     def testCreateGoGraph(self):
         """
@@ -94,7 +86,7 @@ class GeneOntologyTest(unittest.TestCase):
             if os.path.exists(picklePath) == True:
                 os.remove(picklePath)
 
-        go = GeneOntology(geneList=self.geneList,upass=UPASS)
+        go = GeneOntology(geneList=self.geneList,upass=UPASS,idType='ncbi')
         G = go.create_gograph(termsPath=termsPickle,graphPath=graphPickle)
         
         print 'nodes', len(G.nodes())
@@ -102,7 +94,6 @@ class GeneOntologyTest(unittest.TestCase):
         for picklePath in [termsPickle,graphPickle]:
             if os.path.exists(picklePath):
                 os.remove(picklePath)
-    '''
 
 ### Run the tests
 if __name__ == '__main__':

@@ -180,7 +180,8 @@ def get_gene2go_file():
 
     return annotationFile
 
-def fetch_annotations(identifiers,session,idType='uniprot',asTerms=True):
+def fetch_annotations(identifiers,session,aspect='biological_process',
+                      idType='uniprot',asTerms=True):
     """
     Fetch the go annotations for a given list of identifiers
 
@@ -192,11 +193,22 @@ def fetch_annotations(identifiers,session,idType='uniprot',asTerms=True):
 
     The arg 'asTerms' return
 
+    aspect is 'biological_process', 'cellular_component' or 'molecular_function'
+
     """
+
+    expEvidCodes = ["EXP","IDA","IPI","IMP","IGI","IEP"]
+    compEvidCodes = ["ISS","ISO","ISA","ISM","IGC","RCA"]
+    statEvidCodes = ["TAS","NAS","IC"]
+    nonCuratedEvidCodes = ["IEA"]
+    acceptedCodes = expEvidCodes + statEvidCodes
+
+    if aspect not in ['biological_process','cellular_component','molecular_function']:
+        raise Exception("Invalid aspect specified")
 
     ## error check
     if type(identifiers) != type([]):
-        raise Exception("fetch_annotations takes a list of identifiers")
+        raise Exception("Takes a list of identifiers")
 
     annotations = {}
     idType = idType.lower()
@@ -208,30 +220,56 @@ def fetch_annotations(identifiers,session,idType='uniprot',asTerms=True):
         
         for geneQuery in geneQueries:
             annotations[geneQuery.ncbi_id] = set([])
-            uniprotQuery = session.query(Uniprot).filter_by(gene_id=geneQuery.id).all()
-            annotations[geneQuery.ncbi_id].update(session.query(GoAnnotation).filter_by(gene_id=geneQuery.id).all())
-            for uq in uniprotQuery:
-                annotations[geneQuery.ncbi_id].update(session.query(GoAnnotation).filter_by(uniprot_id=uq.id).all())
+
+            ## add annotations from the ncbi gene id
+            results = session.query(GoAnnotation).join(GoTerm).\
+                      filter(GoAnnotation.gene_id==geneQuery.id).\
+                      filter(GoAnnotation.evidence_code.in_(acceptedCodes)).\
+                      filter(GoTerm.aspect==aspect).all()
+            if results:
+                annotations[geneQuery.ncbi_id].update(results)
+
+            ## add annotations from all associated uniprot ids
+            uniprotQueries = session.query(Uniprot).filter_by(gene_id=geneQuery.id).all()
+            for uniprotQuery in uniprotQueries:
+                results = session.query(GoAnnotation).join(GoTerm).\
+                          filter(GoAnnotation.uniprot_id==uniprotQuery.id).\
+                          filter(GoAnnotation.evidence_code.in_(acceptedCodes)).\
+                          filter(GoTerm.aspect==aspect).all()
+                if results:
+                    annotations[geneQuery.ncbi_id].update(results)
     
     elif idType == 'uniprot':
-        
         uniprotQueries = session.query(Uniprot).filter(Uniprot.uniprot_id.in_(identifiers)).all()
-                                                          
+
         for uniprotQuery in uniprotQueries:
             annotations[uniprotQuery.uniprot_id] = set([])
-            annotations[uniprotQuery.uniprot_id].update(session.query(GoAnnotation).filter_by(uniprot_id=uniprotQuery.id).all())        
+            
+            ## add results from the uniprot id
+            results = session.query(GoAnnotation).join(GoTerm).\
+                      filter(GoAnnotation.uniprot_id==uniprotQuery.id).\
+                      filter(GoAnnotation.evidence_code.in_(acceptedCodes)).\
+                      filter(GoTerm.aspect==aspect).all()
+            if results:
+                annotations[uniprotQuery.uniprot_id].update(results)
 
+            ## add results from the associated gene id
             geneQuery = session.query(Gene).filter_by(id=uniprotQuery.gene_id).first()
-            if geneQuery != None: 
-                annotations[uniprotQuery.uniprot_id].update(session.query(GoAnnotation).filter_by(gene_id=geneQuery.id).all())
-        
+            if geneQuery != None:
+                results = session.query(GoAnnotation).join(GoTerm).\
+                          filter(GoAnnotation.gene_id==geneQuery.id).\
+                          filter(GoAnnotation.evidence_code.in_(acceptedCodes)).\
+                          filter(GoTerm.aspect==aspect).all()
+            if results:
+                annotations[uniprotQuery.uniprot_id].update(results)
+                
     ## remove any null results
     for key,items in annotations.iteritems():
         annotations[key] = list(items)
         if None in items:
             annotations[key].remove(None)
         if asTerms == True:
-            annotations[key] = [session.query(GoTerm).filter_by(id = a.go_term_id).first() for a in items]
+            annotations[key] = [session.query(GoTerm).filter_by(id = a.go_term_id).first().go_id for a in items]
 
     return annotations
 

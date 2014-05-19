@@ -67,10 +67,6 @@ class DatabaseTest(unittest.TestCase):
         """
 
         termQuery = self.session.query(GoTerm).filter_by(go_id="GO:0007623").first()
-        print 'aspect',termQuery.aspect
-        print 'description',termQuery.description
-        print 'name',termQuery.name
-        
         self.assertEqual(termQuery.aspect,"biological_process")
         self.assertEqual(termQuery.name,"circadian rhythm")
         descLook = re.search("that recurs with a regularity of approximately 24 hours.",termQuery.description)

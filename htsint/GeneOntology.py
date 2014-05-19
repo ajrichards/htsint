@@ -2,8 +2,9 @@ import sys,os,cPickle
 import numpy as np
 import networkx as nx
 from htsint.database import Base,Taxon,Gene,Uniprot,GoTerm,GoAnnotation,db_connect
-from htsint.database import read_ontology_file
+from htsint.database import read_ontology_file,fetch_annotations
 from htsint.stats import EmpiricalCdf
+
 
 """
 Classes used to interact with gene ontology data
@@ -31,6 +32,8 @@ class GeneOntology(object):
         idType = idType.lower()
         if idType not in ['uniprot','ncbi']:
             raise Exception("Invalid idType argument in fetch annotations use 'uniprot' or 'ncbi'")
+
+        self.idType = idType
 
         if taxID == None and geneList == None:
             raise Exception("If taxid is not supplied a 'geneList' is required")
@@ -73,7 +76,6 @@ class GeneOntology(object):
             summary += "\nNum. Genes:  %s"%self.geneQuery.count()
             summary += "\nNum. GO Annotations:  %s"%self.annotQuery.count()
             summary += "\n"
-
         else:
             summary = "\nSummary"
             summary += "\n----------------------------------"
@@ -85,56 +87,6 @@ class GeneOntology(object):
             print summary
 
         return summary
-
-    def get_terms(self,aspect='biological_process'):
-        """
-        get terms from the database associated with the gene list
-        normally called from get_dicts
-        """
-
-        ## error checking
-        if aspect not in ['biological_process','molecular_function','cellular_component']:
-            raise Exception("Invalid aspect specified%s"%aspect)
-
-        shortAspect = {"biological_process":"Process",
-                       "molecular_function":"Function",
-                       "cellular_component":"Component"}
-        expEvidCodes = ["EXP","IDA","IPI","IMP","IGI","IEP"]
-        compEvidCodes = ["ISS","ISO","ISA","ISM","IGC","RCA"]
-        statEvidCodes = ["TAS","NAS","IC"]
-        nonCuratedEvidCodes = ["IEA"]
-
-        geneQueries = self.session.query(Gene).filter(Gene.ncbi_id.in_(self.geneList)).all()
-        if len(geneQueries) != len(self.geneList):
-            print "WARNING: %s/%s genes found in database"%(len(geneQueries),len(self.geneList))
-        if len(geneQueries) == 0:
-            raise Exception("There are no genes in gene list present in the database")
-
-        gene2go = {}
-        totalAnnotations = 0
-
-        for gq in geneQueries:
-            annotQuery = self.session.query(GoAnnotation).filter_by(gene_id=gq.id)
-            
-            if annotQuery.count() > 0:
-                annotations = set([])
-                for a in annotQuery.all():
-                    termQuery = self.session.query(GoTerm).filter_by(id=a.go_term_id).first()
-                    
-                    ## filter by evidence code
-                    if a.evidence_code in nonCuratedEvidCodes or a.evidence_code in compEvidCodes:
-                        continue
-                    
-                    ## filter by aspect
-                    if termQuery.aspect != shortAspect[aspect]:
-                        continue
-
-                    annotations.update([termQuery.go_id])
-                if len(annotations) > 0:
-                    gene2go[gq.ncbi_id] = list(annotations)
-                    totalAnnotations += len(annotations)
-
-        return gene2go
 
     def get_dicts(self,aspect='biological_process',filePath=None):
         """
@@ -152,7 +104,7 @@ class GeneOntology(object):
 
         ## gene2go
         print "...creating gene2go dictionary -- this may take several minutes or hours depending on the number of genes"
-        gene2go = self.get_terms()
+        gene2go = fetch_annotations(self.geneList,self.session,aspect=aspect,idType=self.idType,asTerms=True)
 
         ## go2gene
         print "...creating go2gene dictionary -- this may take several minutes"
@@ -199,8 +151,10 @@ class GeneOntology(object):
         goDict = _goDict[aspect]
         gene2go,go2gene = self.get_dicts(filePath=termsPath)
 
+        for a,b in gene2go.iteritems():
+            print a,b
+
         print "...creating go term graph -- this may take several minutes or hours depending on the number of genes"
-        
         ## calculate the term-term edges using term IC (-ln(p(term)))
         edgeDict = self.get_weights_by_ic(goDict,go2gene)
 
