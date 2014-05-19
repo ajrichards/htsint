@@ -26,7 +26,7 @@ class GeneDistances(object):
         ## error checking
         for path in [termGraphPath, termsPath]:
             if os.path.exists(path) == False:
-                raise Exception("Cannot find specified path\n"%path)
+                raise Exception("Cannot find specified path\n%s"%path)
         
         ## variables
         self.termsPath = os.path.realpath(termsPath)

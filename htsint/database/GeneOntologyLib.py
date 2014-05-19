@@ -201,7 +201,7 @@ def fetch_annotations(identifiers,session,aspect='biological_process',
     compEvidCodes = ["ISS","ISO","ISA","ISM","IGC","RCA"]
     statEvidCodes = ["TAS","NAS","IC"]
     nonCuratedEvidCodes = ["IEA"]
-    acceptedCodes = expEvidCodes + statEvidCodes
+    acceptedCodes = expEvidCodes + statEvidCodes + compEvidCodes
 
     if aspect not in ['biological_process','cellular_component','molecular_function']:
         raise Exception("Invalid aspect specified")
