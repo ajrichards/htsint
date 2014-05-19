@@ -54,7 +54,6 @@ class GeneOntologyTest(unittest.TestCase):
         go = GeneOntology(taxID=self.taxID,upass=UPASS)
         go.check_taxon(self.taxID)
     
-    '''
     def testGetDicts(self):
         """
         ensure we can create, save and retrieve gene2go and go2gene dictionaries
@@ -73,7 +72,6 @@ class GeneOntologyTest(unittest.TestCase):
 
         if os.path.exists(dictsPickle) == True:
             os.remove(dictsPickle)
-    '''
 
     def testCreateGoGraph(self):
         """
