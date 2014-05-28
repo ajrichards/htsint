@@ -8,9 +8,7 @@ http://www.sqlalchemy.org/trac/wiki/UsageRecipes/SchemaDisplay
 
 ### make imports
 import sys,os,re
-
-from config import CONFIG
-from DatabaseTables import Base,Taxon,Gene,Accession
+from DatabaseTables import Base,Taxon,Gene,Uniprot
 from DatabaseTools import db_connect
 
 try:
@@ -55,9 +53,9 @@ if query.symbol != 'Adh':
     print query.symbol
     sys.exit()
 
-## test the 'Accession' table
-if session.query(Accession).count() < 100:
-    print "ERROR: not enough accessions found"
+## test the 'Uniprot' table
+if session.query(Uniprot).count() < 100:
+    print "ERROR: not enough uniprot found"
     sys.exit()
 
 if createGraph == True:
@@ -68,8 +66,8 @@ if createGraph == True:
                                 rankdir='LR',           # From left to right (instead of top to bottom)
                                 concentrate=False       # Don't try to join the relation lines together 
                             )
-    #graph.write_svg('dbschema.svg')                     # write out the file 
-    graph.write_png('dbschema.png')                     # write out the file 
+    graph.write_svg('dbschema.svg')                     # write out the file 
+    #graph.write_png('dbschema.png')                     # write out the file 
 else:
     print "Not creating schema figure because 'sqlalchemy_schemadisplay' is not installed"
 
