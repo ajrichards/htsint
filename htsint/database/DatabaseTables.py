@@ -203,7 +203,7 @@ class GoAnnotation(Base):
     evidence_code = Column(String)
     pubmed_refs = Column(String)
     uniprot_id = Column(Integer, ForeignKey('uniprot.id'),nullable=True)
-    gene_id = Column(Integer, ForeignKey('gene.id'),nullable=True)
+    gene_id = Column(Integer, ForeignKey('genes.id'),nullable=True)
     taxa_id = Column(Integer,ForeignKey('taxa.id'),nullable=True)
 
     def __init__(self,go_term_id,evidence_code,pubmed_refs,uniprot_id,gene_id,taxa_id):

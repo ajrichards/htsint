@@ -47,7 +47,7 @@ push_out("Getting ready to create database...")
 
 ## conect to the database
 session,engine = db_connect(verbose=False)
-Base.metadata.drop_all(engine)
+#Base.metadata.drop_all(engine)
 Base.metadata.create_all(engine)
 
 push_out("Creating database with...")
