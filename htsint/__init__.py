@@ -8,3 +8,4 @@ from basedir import __basedir__
 from GeneOntology import GeneOntology
 from GeneDistances import GeneDistances
 from AssembleDistances import AssembleDistances
+from TaxaSummary import TaxaSummary
