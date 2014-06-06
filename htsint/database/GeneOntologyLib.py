@@ -262,7 +262,7 @@ def fetch_annotations(identifiers,session,aspect='biological_process',
                           filter(GoTerm.aspect==aspect).all()
             if results:
                 annotations[uniprotQuery.uniprot_id].update(results)
-                
+            
     ## remove any null results
     for key,items in annotations.iteritems():
         annotations[key] = list(items)

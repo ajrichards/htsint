@@ -31,12 +31,15 @@ class DatabaseTest(unittest.TestCase):
         self.session, self.engine = db_connect(upass=UPASS)
         self.testID = '7227'
 
+    
     def testTaxa(self):
         """
         test the taxa table
         """
 
-        query = self.session.query(Taxon).filter_by(ncbi_id=self.testID).first() 
+        query = self.session.query(Taxon).filter_by(ncbi_id=self.testID).all() 
+        self.assertEqual(len(query),1)
+        query = query[0]
         self.assertTrue(query not in [None])
         self.assertEqual(int(query.ncbi_id),int(self.testID))
         self.assertEqual(query.name,"Drosophila melanogaster")
@@ -78,12 +81,14 @@ class DatabaseTest(unittest.TestCase):
         """
     
         print("fetching annotations for uniprot id...")
-        annotations1 = fetch_annotations(['P07663'],self.session,idType='uniprot')
-        self.assertTrue("circadian rhythm" in [a.name for a in annotations1['P07663']])
+        annotations1 = fetch_annotations(['P07663'],self.session,idType='uniprot',asTerms=False)
+        terms1 = [self.session.query(GoTerm).filter_by(id = a.go_term_id).first().name for a in annotations1['P07663']]
+        self.assertTrue("circadian rhythm" in terms1)
 
         print("fetching annotations for ncbi gene id...")
-        annotations2 = fetch_annotations(['31251'],self.session,idType='ncbi')
-        self.assertTrue("circadian rhythm" in [a.name for a in annotations2['31251']])
+        annotations2 = fetch_annotations(['31251'],self.session,idType='ncbi',asTerms=False)
+        terms2 = [self.session.query(GoTerm).filter_by(id = a.go_term_id).first().name for a in annotations2['31251']]
+        self.assertTrue("circadian rhythm" in terms2)
 
 
 ### Run the tests
