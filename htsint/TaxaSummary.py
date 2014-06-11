@@ -23,18 +23,38 @@ class TaxaSummary(object):
         """
 
         self.session,self.engine = db_connect(upass=upass)
-        self.taxaList = self.read_file(taxaFilePath)
+        self.taxaList = list(set(self.read_file(taxaFilePath)))
         print self.taxaList
 
         ## get the taxa ids associated wtih the taxa list
-        taxaIds = [tid.id for tid in self.session.query(Taxon).filter(Taxon.ncbi_id.in_(self.taxaList)).all()]   
-        print taxaIds
+        taxaRows = []
+        for taxonId in self.taxaList:
+            query = self.session.query(Taxon).filter_by(ncbi_id=taxonId).all()
+            if len(query) > 1:
+                raise Exception("Taxon id '%s' return multiple values from database"%taxonId)
+            if query == None:
+                raise Exception("Invalid taxon '%s' provided in list"%taxonId)
+            taxaRows.append(query[0])
 
-        blah = [tid for tid in self.session.query(Taxon).filter(Taxon.ncbi_id.in_(self.taxaList)).all()]
-        for b in blah:
-            print dir(b)
-            print b.name,b.ncbi_id,b.common_name_1
+        ## print taxa name information
+        print("------------------")
+        print("taxa names")
+        print("------------------")
+        for tr in taxaRows:
+            print("id=%s,name=%s,common_name=%s"%(tr.ncbi_id,tr.name,tr.common_name_1))
+    
+        ## print gene infomation
+        print("------------------")
+        print("gene info")
+        print("------------------")
+        for taxaRow in taxaRows:
+            queryGenes = self.session.query(Gene).filter_by(taxa_id=taxaRow.id).all()
+            print("id=%s,num_genes=%s"%(tr.ncbi_id,len(queryGenes)))
+            
 
+
+
+        
         sys.exit()
 
 
