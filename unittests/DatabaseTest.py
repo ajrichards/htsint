@@ -90,6 +90,26 @@ class DatabaseTest(unittest.TestCase):
         terms2 = [self.session.query(GoTerm).filter_by(id = a.go_term_id).first().name for a in annotations2['31251']]
         self.assertTrue("circadian rhythm" in terms2)
 
+    def testAnnotationEquality(self):
+        """
+        Fetching annotations with uniprot + gene entities should get the same results as with taxa_id
+        """
+
+        taxonId = '13037'
+        taxaQuery = self.session.query(Taxon).filter_by(ncbi_id=taxonId).first()
+        annotations1 = self.session.query(GoAnnotation).filter_by(taxa_id=taxaQuery.id).all()
+        print len(annotations1)
+
+        geneIds = [g.id for g in self.session.query(Gene).filter_by(taxa_id=taxonId).all()]
+        uniprotIds = [u.id for u in self.session.query(Uniprot).filter_by(taxa_id=taxonId).all()]
+
+        geneAnnotations = self.session.query(GoAnnotation).filter(GoAnnotation.gene_id.in_(geneIds)).all()
+        uniprotAnnotations = self.session.query(GoAnnotation).filter(GoAnnotation.uniprot_id.in_(uniprotIds)).all()
+
+        annotations2 = list(set(geneAnnotations).union(set(uniprotAnnotations)))
+
+        self.assertEqual(len(annotations1),len(annotations2))
+
 
 ### Run the tests
 if __name__ == '__main__':

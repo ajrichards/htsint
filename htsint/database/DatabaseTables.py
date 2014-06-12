@@ -111,21 +111,21 @@ class Uniprot(Base):
     uniprot_id = Column(String)
     uniprot_entry = Column(String)
     refseq = Column(String)
-    uniprot_taxa_id = Column(String)
+    taxa_id = Column(Integer,ForeignKey('taxon.id'))
     gene_id = Column(Integer,ForeignKey('genes.id'),nullable=True)
 
     def __init__(self,uniprot_id,uniprot_entry,refseq,taxa_id,gene_id):
         self.uniprot_id = uniprot_id
         self.uniprot_entry = uniprot_entry
         self.refseq = refseq
-        self.uniprot_taxa_id = taxa_id
+        self.taxa_id = taxa_id
         self.gene_id = gene_id
 
     def __repr__(self):
         return "<Uniprot('%s','%s','%s','%s','%s')>"%(self.uniprot_id,
                                                       self.uniprot_entry,
                                                       self.refseq,
-                                                      self.uniprot_taxa_id,
+                                                      self.taxa_id,
                                                       self.gene_id)
 
 def uniprot_mapper(session,uniprotIdList=None,myDict={}):
