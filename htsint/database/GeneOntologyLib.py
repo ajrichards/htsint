@@ -5,7 +5,7 @@ library of functions for use with the GeneOntology class
 
 import os,sys,re
 from htsint import __basedir__
-from DatabaseTables import Uniprot,Gene,GoTerm,GoAnnotation
+from DatabaseTables import Taxon,Uniprot,Gene,GoTerm,GoAnnotation
 
 sys.path.append(__basedir__)
 try:
@@ -211,16 +211,18 @@ def fetch_annotations(identifiers,session,aspect='biological_process',
         raise Exception("Takes a list of identifiers")
 
     annotations = {}
+    taxaList = set([])
     idType = idType.lower()
     if idType not in ['uniprot','ncbi']:
         raise Exception("Invalid idType argument in fetch annotations use 'uniprot' or 'ncbi'")
 
     if idType == 'ncbi':
         geneQueries = session.query(Gene).filter(Gene.ncbi_id.in_(identifiers)).all()
-        
+                
         for geneQuery in geneQueries:
+            taxaList.update([geneQuery.taxa_id])
             annotations[geneQuery.ncbi_id] = set([])
-
+            
             ## add annotations from the ncbi gene id
             results = session.query(GoAnnotation).join(GoTerm).\
                       filter(GoAnnotation.gene_id==geneQuery.id).\
@@ -256,13 +258,32 @@ def fetch_annotations(identifiers,session,aspect='biological_process',
             ## add results from the associated gene id
             geneQuery = session.query(Gene).filter_by(id=uniprotQuery.gene_id).first()
             if geneQuery != None:
+                taxaList.update([geneQuery.taxa_id])
                 results = session.query(GoAnnotation).join(GoTerm).\
                           filter(GoAnnotation.gene_id==geneQuery.id).\
                           filter(GoAnnotation.evidence_code.in_(acceptedCodes)).\
                           filter(GoTerm.aspect==aspect).all()
             if results:
                 annotations[uniprotQuery.uniprot_id].update(results)
-            
+    
+    ## get the taxa ids from the list and check for uniprot ids without a gene id
+    ## transform taxa ids to ncbi ids
+    taxaIds = session.query(Taxon).filter(Taxon.id.in_(list(taxaList))).all()
+    print 'taxaIds', taxaIds
+    #    #taxaQueries = session.query(Gene).filter(Gene.ncbi_id.in_(identifiers)).all()
+    #    taxonRows = self.session.query(Taxon).filter(Taxon.ncbi_id.in(identifiers)).all()
+    #    if len(taxaRows) != len(identifiers):
+    #        print("ERROR: not all taxa found")
+    #        for taxon in identifiers:
+    #            if self.session.query(Taxon).filter_by(ncbi_id=taxon) == None:
+    #                print("...%s"%taxon)
+    #        raise Exception("invalid taxa list")
+    #
+    #    for taxon taxaQueries:
+    #        print t,taxaId
+    #        annots[self.taxaList[t]] = {'bytaxa':self.session.query(GoAnnotation).filter_by(taxa_id=taxaId).all()}
+
+        
     ## remove any null results
     for key,items in annotations.iteritems():
         annotations[key] = list(items)

@@ -85,7 +85,7 @@ filesToFetch = ["ftp://ftp.geneontology.org/pub/go/ontology/go.obo",
                 "ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene_info.gz",
                 "ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene2go.gz",
                 "ftp://ftp.geneontology.org/pub/go/gene-associations/gene_association.goa_uniprot_noiea.gz",
-                uniprotUrl + "idmapping/idmapping.tb.gz",
+                uniprotUrl + "idmapping/idmapping.dat.gz",
                 uniprotUrl + "idmapping/LICENSE"]
 
 ## if blast is enabled then fetch the blast files as well
