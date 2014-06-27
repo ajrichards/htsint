@@ -298,9 +298,9 @@ def populate_uniprot_table(lineCount,session,engine):
     idmappingFid = open(idmappingFile,'rU')
     idmappingReader = csv.reader(idmappingFid)
     print("...populating rows")
-    current = 'None'
+    current = None
 
-    def queue_record(uniprotKbEntry,ncbiId,refseq,ncbiTaxId,toAdd):
+    def queue_record(uniprotKbAc,uniprotKbEntry,ncbiId,refseq,ncbiTaxaId,toAdd):
         if ncbiId == None:
             pass
         elif not geneIdMap.has_key(ncbiId):
@@ -316,16 +316,28 @@ def populate_uniprot_table(lineCount,session,engine):
         else:
             gene_id = None
         
-        db_taxa_id = taxaIdMap[ta['taxa_id']]
-        if gene_id != None and geneIdMap.has_key(gene_id):
+        if gene_id and geneIdMap.has_key(gene_id):
             db_gene_id = geneIdMap[gene_id]
         else:
             db_gene_id = None
 
+        ## if no taxa id was provided try to get it from ncbi id and db
+        if ncbiTaxaId and taxaIdMap.has_key(ncbiTaxaId):
+            db_taxa_id = taxaIdMap[ncbiTaxaId] 
+        elif db_gene_id and not ncbiTaxaId:
+            db_taxa_id = session.query(Gene).filter_by(id=db_gene_id).first().id
+        else:
+            db_taxa_id = None
+
         toAdd.append({'uniprot_id':uniprotKbAc,'uniprot_entry':uniprotKbEntry,
                       'refseq':refseq,'taxa_id':db_taxa_id,'gene_id':db_gene_id})
 
+    uniprotKbEntry,ncbiId,refseq,ncbiTaxaId = None,None,None,None
+
     for record in idmappingReader:
+
+        if len(record) != 3:
+            continue
 
         uniprotKbAc = record[0]
 
@@ -333,7 +345,7 @@ def populate_uniprot_table(lineCount,session,engine):
             current = uniprotKbAc
 
         if record[1] == 'NCBI_TaxID':
-            ncbiTaxId = record[2]
+            ncbiTaxaId = record[2]
         if record[1] == 'GeneID':
             ncbiId = record[2]
         if record[1] == 'UniProtKB-ID':
@@ -345,7 +357,8 @@ def populate_uniprot_table(lineCount,session,engine):
         if current != uniprotKbAc:
             current = uniprotKbAc
             totalRecords += 1
-            queue_record(uniprotKbEntry,ncbiId,refseq,ncbiTaxId,toAdd)
+
+            queue_record(uniprotKbAc,uniprotKbEntry,ncbiId,refseq,ncbiTaxaId,toAdd)
 
             ## submit to database
             if len(toAdd) >= 100000:
@@ -354,7 +367,7 @@ def populate_uniprot_table(lineCount,session,engine):
                                        values(toAdd))
                 toAdd = []
 
-            uniprotKbEntry,ncbiId,refseq,ncbiTaxId = None,None,None,None
+            uniprotKbEntry,ncbiId,refseq,ncbiTaxaId = None,None,None,None
                 
             ## show progress
             if totalRecords in wayPoints:
@@ -362,7 +375,7 @@ def populate_uniprot_table(lineCount,session,engine):
 
     print('committing final changes...')
     if uniprotKbEntry != None:
-        queue_record(uniprotKbEntry,ncbiId,refseq,ncbiTaxId,toAdd)
+        queue_record(uniprotKbEntry,ncbiId,refseq,ncbiTaxaId,toAdd)
 
     with engine.begin() as connection:
         connection.execute(Uniprot.__table__.insert().
@@ -440,7 +453,7 @@ def populate_go_annotations(totalAnnotations,session,engine):
     """
     read the annotation file into a dictionary
     This will take some time
-    This function is intended for use with                                                    
+    This function is intended for use with 
     http://www.geneontology.org/GO.format.gaf-2_0.shtml
     """
 
@@ -524,9 +537,9 @@ def populate_go_annotations(totalAnnotations,session,engine):
         if annotationCount in wayPoints:
             print("\t%s / %s"%(annotationCount,totalAnnotations))
 
-        queue_entry(goId,evidenceCode,pubmedRefs,uniprotId,None,taxon,toAdd,uniprotMap)
+        queue_entry(goId,evidenceCode,pubmedRefs,uniprotId,None,taxon,toAdd,uniprotIdMap)
 
-        if len(toAdd) >= 100000:
+        if len(toAdd) >= 100000: # 100000
             with engine.begin() as connection:
                 connection.execute(GoAnnotation.__table__.insert().
                                    values(toAdd))

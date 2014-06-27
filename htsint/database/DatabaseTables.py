@@ -108,21 +108,21 @@ class Uniprot(Base):
     __tablename__ = 'uniprot'
 
     id = Column(Integer, Sequence('uniprot_id_seq'),primary_key=True)
-    uniprot_id = Column(String)
+    uniprot_ac = Column(String)
     uniprot_entry = Column(String)
     refseq = Column(String)
-    taxa_id = Column(Integer,ForeignKey('taxon.id'))
+    taxa_id = Column(Integer,ForeignKey('taxa.id'),nullable=True)
     gene_id = Column(Integer,ForeignKey('genes.id'),nullable=True)
 
-    def __init__(self,uniprot_id,uniprot_entry,refseq,taxa_id,gene_id):
-        self.uniprot_id = uniprot_id
+    def __init__(self,uniprot_ac,uniprot_entry,refseq,taxa_id,gene_id):
+        self.uniprot_ac = uniprot_ac
         self.uniprot_entry = uniprot_entry
         self.refseq = refseq
         self.taxa_id = taxa_id
         self.gene_id = gene_id
 
     def __repr__(self):
-        return "<Uniprot('%s','%s','%s','%s','%s')>"%(self.uniprot_id,
+        return "<Uniprot('%s','%s','%s','%s','%s')>"%(self.uniprot_ac,
                                                       self.uniprot_entry,
                                                       self.refseq,
                                                       self.taxa_id,
@@ -130,7 +130,7 @@ class Uniprot(Base):
 
 def uniprot_mapper(session,uniprotIdList=None,myDict={}):
     """
-    a function that maps uniprot_id to uniprot.id
+    a function that maps uniprot_ac to uniprot.id
     if a dict is provided keys must be the string of the ncbi_id
     """
 
@@ -141,7 +141,7 @@ def uniprot_mapper(session,uniprotIdList=None,myDict={}):
         if uniprotIdList and not uniprotIdList.has_key(g):
             continue
 
-        myDict[u.uniprot_id] = u.id
+        myDict[u.uniprot_ac] = u.id
 
     return myDict
 
