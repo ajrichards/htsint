@@ -63,8 +63,13 @@ def fetch_file(fetchURL):
     _run_subprocess(cmd)
 
 def unzip_file(fileName):
-    print 'unzipping', fileName
+    print('unzipping...%s'%fileName)
     cmd = "gunzip -c %s > %s.db"%(fileName,fileName[:-3])
+    _run_subprocess(cmd)
+
+def untar_file(fileName):
+    print('untarring...%s'%fileName)
+    cmd = "tar xzf %s"%fileName
     _run_subprocess(cmd)
 
 ## prepare a log file
@@ -73,7 +78,7 @@ writer = csv.writer(fid)
 
 def push_out(line):
     writer.writerow([line])
-    print line
+    print(line)
 
 push_out(sys.argv[0])
 push_out(time.asctime())
@@ -102,17 +107,21 @@ for fetchURL in filesToFetch:
     timeStart = time.time()
     fetch_file(fetchURL)
     fetchTime = time.time() - timeStart
-    push_out("..."%fetchTime)
+    push_out("...%s"%fetchTime)
 
     ## unzip the gz files
     if not re.search("\.gz",fileName):
         continue
 
-    if os.path.exists(fileName[:-3]+".db") == False or fetchTime > 10:
-        unzip_file(fileName)
+    if not os.path.exists(fileName[:-3]+".db") or fetchTime > 10:
+        if re.search("\.tar\.gz",fileName):
+            untar_file(fileName)
+        else:
+            unzip_file(fileName)
 
+push_out("complete.")
 fid.close()
 
 ## move back to original directory
 os.chdir(cwd)
-push_out("complete.")
+

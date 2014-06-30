@@ -21,6 +21,7 @@ noTaxa = 0
 noNcbi = 0
 total = 0
 noTaxaYesNcbi = 0
+weirdResults = 0
 
 for record in reader:
 
@@ -41,9 +42,9 @@ for record in reader:
     if record[1] == 'RefSeq':
         refseq = record[2]
 
-
     if re.search("\t",record[2]):
         print record
+        weirdResults += 1
 
     ## check to see if entry is finished
     if current != uniprotKbAc:
