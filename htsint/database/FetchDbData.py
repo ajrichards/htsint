@@ -82,6 +82,7 @@ push_out("fetching files...")
 ## fetch the files required for the database
 uniprotUrl = "ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/"
 filesToFetch = ["ftp://ftp.geneontology.org/pub/go/ontology/go.obo",
+                "ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz",
                 "ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene_info.gz",
                 "ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene2go.gz",
                 "ftp://ftp.geneontology.org/pub/go/gene-associations/gene_association.goa_uniprot_noiea.gz",
@@ -97,10 +98,12 @@ push_out("fetching blast files = %s"%str(CONFIG['blast']))
 
 for fetchURL in filesToFetch:
     fileName = os.path.split(fetchURL)[-1]
+    push_out("fetching %s..."%fileName)
     timeStart = time.time()
     fetch_file(fetchURL)
     fetchTime = time.time() - timeStart
-    
+    push_out("..."%fetchTime)
+
     ## unzip the gz files
     if not re.search("\.gz",fileName):
         continue
@@ -112,3 +115,4 @@ fid.close()
 
 ## move back to original directory
 os.chdir(cwd)
+push_out("complete.")
