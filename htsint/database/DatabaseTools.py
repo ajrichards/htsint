@@ -127,9 +127,11 @@ def get_file_sizes():
     geneInfoCount = read_gene_info_file(lineCount=True)
     idmappingFile = get_idmapping_file()
     idmappingFid = open(idmappingFile,'rU')
+    reader = csv.reader(idmappingFid,delimiter="\t")
+
     records = set([])
 
-    for record in idmappingFid:
+    for record in reader:
         records.update([record[0]])
         
     idmappingFid.close()
@@ -297,6 +299,8 @@ def populate_uniprot_table(lineCount,session,engine):
     idmappingFile = get_idmapping_file()
     idmappingFid = open(idmappingFile,'rU')
     idmappingReader = csv.reader(idmappingFid)
+    reader = csv.reader(idmappingFid,delimiter="\t")
+
     print("...populating rows")
     current = None
 
