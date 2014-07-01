@@ -328,7 +328,7 @@ def populate_uniprot_table(lineCount,session,engine):
         if ncbiTaxaId and taxaIdMap.has_key(ncbiTaxaId):
             db_taxa_id = taxaIdMap[ncbiTaxaId] 
         elif db_gene_id and not ncbiTaxaId:
-            db_taxa_id = session.query(Gene).filter_by(id=db_gene_id).first().id
+            db_taxa_id = session.query(Gene).filter_by(id=db_gene_id).first().taxa_id
         else:
             db_taxa_id = None
 
