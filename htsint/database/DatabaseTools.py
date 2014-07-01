@@ -298,8 +298,7 @@ def populate_uniprot_table(lineCount,session,engine):
     wayPoints = [round(int(w)) for w in np.linspace(0,lineCount,20)]
     idmappingFile = get_idmapping_file()
     idmappingFid = open(idmappingFile,'rU')
-    idmappingReader = csv.reader(idmappingFid)
-    reader = csv.reader(idmappingFid,delimiter="\t")
+    idmappingReader = csv.reader(idmappingFid,delimiter="\t")
 
     print("...populating rows")
     current = None
@@ -333,7 +332,7 @@ def populate_uniprot_table(lineCount,session,engine):
         else:
             db_taxa_id = None
 
-        toAdd.append({'uniprot_id':uniprotKbAc,'uniprot_entry':uniprotKbEntry,
+        toAdd.append({'uniprot_ac':uniprotKbAc,'uniprot_entry':uniprotKbEntry,
                       'refseq':refseq,'taxa_id':db_taxa_id,'gene_id':db_gene_id})
 
     uniprotKbEntry,ncbiId,refseq,ncbiTaxaId = None,None,None,None
@@ -365,7 +364,7 @@ def populate_uniprot_table(lineCount,session,engine):
             queue_record(uniprotKbAc,uniprotKbEntry,ncbiId,refseq,ncbiTaxaId,toAdd)
 
             ## submit to database
-            if len(toAdd) >= 100000:
+            if len(toAdd) >= 10:#100000:
                 with engine.begin() as connection:
                     connection.execute(Uniprot.__table__.insert().
                                        values(toAdd))
