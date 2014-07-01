@@ -364,7 +364,7 @@ def populate_uniprot_table(lineCount,session,engine):
             queue_record(uniprotKbAc,uniprotKbEntry,ncbiId,refseq,ncbiTaxaId,toAdd)
 
             ## submit to database
-            if len(toAdd) >= 10:#100000:
+            if len(toAdd) >= 100000:
                 with engine.begin() as connection:
                     connection.execute(Uniprot.__table__.insert().
                                        values(toAdd))
