@@ -47,8 +47,8 @@ push_out("Getting ready to create database...")
 
 ## conect to the database
 session,engine = db_connect(verbose=False)
-Base.metadata.drop_all(engine)
-Base.metadata.create_all(engine)
+#Base.metadata.drop_all(engine)
+#Base.metadata.create_all(engine)
 
 push_out("Creating database with...")
 for t in Base.metadata.sorted_tables:
@@ -65,33 +65,35 @@ push_out("...extraction time: %s"%time.strftime('%H:%M:%S',time.gmtime(time.time
 
 ## taxa table
 push_out("Populating the database taxa table")
-timeStr,addedStr = populate_taxon_table(engine)
-push_out(timeStr)
-push_out(addedStr)
+#timeStr,addedStr = populate_taxon_table(engine)
+#push_out(timeStr)
+#push_out(addedStr)
 
 ## gene table
 push_out("Populating the database with %s genes"%(geneInfoCount))
-timeStr,addedStr = populate_gene_table(geneInfoCount,session,engine)
-push_out(timeStr)
-push_out(addedStr)
+#timeStr,addedStr = populate_gene_table(geneInfoCount,session,engine)
+#push_out(timeStr)
+#push_out(addedStr)
 
 ##  uniprot table
 push_out("Populating the database with %s uniprot entries"%(idmapCount))
-timeStr,addedStr = populate_uniprot_table(idmapCount,session,engine)
-push_out(timeStr)
-push_out(addedStr)
+#timeStr,addedStr = populate_uniprot_table(idmapCount,session,engine)
+#push_out(timeStr)
+#push_out(addedStr)
 
 ## populate the go-terms
 push_out("Populating the database with for go terms...")
-timeStr,addedStr = populate_go_terms(engine)
-push_out(timeStr)
-push_out(addedStr)
+#timeStr,addedStr = populate_go_terms(engine)
+#push_out(timeStr)
+#push_out(addedStr)
 
 ## populate the go-annotations
 push_out("Populating the database with for go annotations...")
-timeStr,addedStr = populate_go_annotations(totalAnnotations,session,engine)
+timeStr,addedStr,ignored = populate_go_annotations(totalAnnotations,session,engine)
 push_out(timeStr)
 push_out(addedStr)
+push_out("There were %s uniprot annotations ignored"%str(ignored[0]))
+push_out("There were %s gene annotations ignored"%str(ignored[1]))
 
 print_db_summary()
 fid.close()

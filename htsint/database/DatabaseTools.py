@@ -475,11 +475,11 @@ def populate_go_annotations(totalAnnotations,session,engine):
     uniprotIdMap = uniprot_mapper(session)
     print("...populating rows")
 
-    def queue_entry(goId,evidenceCode,pubmedRefs,uniprotId,geneId,taxon,toAdd,mapper):
+    def queue_entry(goId,evidenceCode,pubmedRefs,uniprotId,geneId,taxon,toAdd,mapper,ignoredAnnotations):
 
         ## remove invalid term ids
         if not termIdMap.has_key(goId):
-            queryTerm = session.query(GoTerm).filter_by(alternate_id=ta['go_term_id']).first()
+            queryTerm = session.query(GoTerm).filter_by(alternate_id=goId).first()
             if queryTerm == None:
                 return
             go_db_id = queryTerm.id
@@ -502,14 +502,20 @@ def populate_go_annotations(totalAnnotations,session,engine):
         else:
             gene_db_id = None
 
+        ## ignore annotations that have an outdated taxon
+        if not taxaIdMap.has_key(taxon):
+            ignoredAnnotations += 1
+            return
+
         ## get the taxa foreign key
-        taxa_db_id = taxaIdMap[taxon]
+        taxon_db_id = taxaIdMap[taxon]
 
         toAdd.append({'go_term_id':go_db_id,'evidence_code':evidenceCode,
                       'pubmed_refs':pubmedRefs,'uniprot_id':uniprot_db_id,
                       'gene_id':gene_db_id,'taxa_id':taxon_db_id})
 
     ## add annotations from uniprot annotation file
+    ignoredAnnotationsUniprot = 0
     print("...getting annotations from gene_association (uniprot)")
     for record in annotationFid:
         record = record[:-1].split("\t")
@@ -540,7 +546,8 @@ def populate_go_annotations(totalAnnotations,session,engine):
         if annotationCount in wayPoints:
             print("\t%s / %s"%(annotationCount,totalAnnotations))
 
-        queue_entry(goId,evidenceCode,pubmedRefs,uniprotId,None,taxon,toAdd,uniprotIdMap)
+        queue_entry(goId,evidenceCode,pubmedRefs,uniprotId,None,taxon,toAdd,
+                    uniprotIdMap,ignoredAnnotationsUniprot)
 
         if len(toAdd) >= 100000: # 100000
             with engine.begin() as connection:
@@ -549,7 +556,7 @@ def populate_go_annotations(totalAnnotations,session,engine):
             toAdd = []
 
     print('committing final changes...')
-    
+    print('ignored annotations after uniprot...%s'%(ignoredAnnotationsUniprot))
     with engine.begin() as connection:
         connection.execute(GoAnnotation.__table__.insert().
                            values(toAdd))
@@ -558,6 +565,7 @@ def populate_go_annotations(totalAnnotations,session,engine):
     annotationFid.close()
     
     ## add annotations from gene2go
+    ignoredAnnotationsGene = 0 
     print("...getting annotations from gene2go")
     header = gene2goFid.next()
     geneIdMap = gene_mapper(session)
@@ -583,7 +591,8 @@ def populate_go_annotations(totalAnnotations,session,engine):
         if annotationCount in wayPoints:
             print("\t%s / %s"%(annotationCount,totalAnnotations))
 
-        queue_entry(goId,evidenceCode,pubmedRefs,None,ncbiId,taxon,toAdd,geneIdMap)
+        queue_entry(goId,evidenceCode,pubmedRefs,None,ncbiId,taxon,toAdd,
+                    geneIdMap,ignoredAnnotationsGene)
 
         if len(toAdd) >= 100000:
             toRemove = []
@@ -620,6 +629,7 @@ def populate_go_annotations(totalAnnotations,session,engine):
                                    values(toAdd))
             toAdd = []
 
+    print('ignored annotations after gene2go...%s'%(ignoredAnnotationsGene))
     print('committing final changes...')
     toRemove = []
     for ta in toAdd:
@@ -660,7 +670,7 @@ def populate_go_annotations(totalAnnotations,session,engine):
 
     timeStr = "...total time taken: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
     addedStr = "...%s unique go annotation entries were added."%annotationCount
-    return timeStr,addedStr
+    return timeStr,addedStr,(ignoredAnnotationsUniprot,ignoredAnnotationsGene)
 
 def print_db_summary():
     """
