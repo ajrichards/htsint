@@ -556,7 +556,7 @@ def populate_go_annotations(totalAnnotations,session,engine):
             toAdd = []
 
     print('committing final changes...')
-    print('ignored annotations after uniprot...%s'%(ignoredAnnotationsUniprot))
+    print('ignored annotations after uniprot... %s'%(ignoredAnnotationsUniprot))
     with engine.begin() as connection:
         connection.execute(GoAnnotation.__table__.insert().
                            values(toAdd))
@@ -629,7 +629,7 @@ def populate_go_annotations(totalAnnotations,session,engine):
                                    values(toAdd))
             toAdd = []
 
-    print('ignored annotations after gene2go...%s'%(ignoredAnnotationsGene))
+    print('ignored annotations after gene2go... %s'%(ignoredAnnotationsGene))
     print('committing final changes...')
     toRemove = []
     for ta in toAdd:
