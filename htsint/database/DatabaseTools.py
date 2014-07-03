@@ -602,39 +602,7 @@ def populate_go_annotations(totalAnnotations,session,engine):
 
     print('ignored annotations after gene2go... %s'%(ignoredAnnotationsGene))
     print('committing final changes...')
-    toRemove = []
-    for ta in toAdd:
-        ## remove invalid term ids
-        if not termIdMap.has_key(ta['go_term_id']):
-            queryTerm = session.query(GoTerm).filter_by(alternate_id=ta['go_term_id']).first()
-            if queryTerm == None:
-                toRemove.append(ta)
-                continue
-            ta['go_term_id'] = queryTerm.id
-        else:
-            ta['go_term_id'] = termIdMap[ta['go_term_id']]
-
-        ## remove invalid gene ids
-        if not geneIdMap.has_key(ta['gene_id']):
-            toRemove.append(ta)
-            continue
-
-        ta['gene_id'] = geneIdMap[ta['gene_id']]
-        
-        if taxaIdMap.has_key(ta['taxa_id']):
-            ta['taxa_id'] = taxaIdMap[ta['taxa_id']]
-        else:
-            ta['taxa_id'] = None
-
-    if len(toRemove) > 0:
-        print("removing...%s invalid annotations"%len(toRemove))
-    for ta in toRemove:
-        toAdd.remove(ta)
-
-    #del taxaIdMap
-    #del geneIdMap
-    #del termIdMap
-
+    
     with engine.begin() as connection:
         connection.execute(GoAnnotation.__table__.insert().
                            values(toAdd))
