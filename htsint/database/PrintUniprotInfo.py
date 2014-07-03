@@ -4,16 +4,6 @@ import time,csv,re,sys
 import numpy as np
 from htsint.database import get_idmapping_file,get_file_sizes
 
-
-
-
-idmapCount,geneInfoCount = get_file_sizes()
-print 'idmapcount', idmapCount
-print 'gene info count', geneInfoCount
-
-sys.exit()
-
-
 timeStart = time.time()
 toAdd = []
 totalRecords = 0
