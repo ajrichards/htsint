@@ -7,9 +7,14 @@ from htsint.database import get_idmapping_file,get_file_sizes
 timeStart = time.time()
 toAdd = []
 totalRecords = 0
-idmappingFile = "/usr/local/share/htsint/idmapping.dat.db"
+#idmappingFile = "/usr/local/share/htsint/idmapping.dat.db"
+#idmappingFid = open(idmappingFile,'rb')
+#reader = csv.reader(idmappingFid,delimiter="\t")
+idmappingFile = get_idmapping_file()
 idmappingFid = open(idmappingFile,'rb')
 reader = csv.reader(idmappingFid,delimiter="\t")
+
+
 
 print("...gathering data this may take a few minutes")
 bad = 0
@@ -20,9 +25,13 @@ noTaxa = 0
 noNcbi = 0
 total = 0
 noTaxaYesNcbi = 0
-weirdResults = 0
 
 for record in reader:
+
+    #print record
+
+    if re.search("P07663",record[0]):
+        print record
 
     if len(record) != 3:
         continue
@@ -41,12 +50,13 @@ for record in reader:
     if record[1] == 'RefSeq':
         refseq = record[2]
 
-    if re.search("\t",record[2]):
-        print record
-        weirdResults += 1
-
     ## check to see if entry is finished
     if current != uniprotKbAc:
+        
+        if current == 'P07663':
+            print "\nuniprotid:%s\nncbiid%s\nrefseq:%s\ntaxaid:%s"%(uniprotKbEntry,ncbiId,refseq,ncbiTaxaId)
+            sys.exit()
+
         current = uniprotKbAc
         total += 1
 
@@ -57,11 +67,10 @@ for record in reader:
         if ncbiId and ncbiTaxaId == None:
             noTaxaYesNcbi += 1
 
+        
     
         #if total > 100:
         #    sys.exit()
-
-            
 
         #print "\nuniprotid:%s\nncbiid%s\nrefseq:%s\ntaxaid:%s"%(uniprotKbEntry,ncbiId,refseq,ncbiTaxaId)
 

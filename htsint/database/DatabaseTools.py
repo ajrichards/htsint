@@ -289,21 +289,9 @@ def populate_uniprot_table(lineCount,session,engine):
     populate the uniprot table with entries from idmappings
     """
     
-    print("...getting gene info")
-    timeStart = time.time()
-    geneIdMap = gene_mapper(session)
-    taxaIdMap = taxa_mapper(session)
-    toAdd = []
-    totalRecords = 1
-    wayPoints = [round(int(w)) for w in np.linspace(0,lineCount,20)]
-    idmappingFile = get_idmapping_file()
-    idmappingFid = open(idmappingFile,'rU')
-    idmappingReader = csv.reader(idmappingFid,delimiter="\t")
-
-    print("...populating rows")
-    current = None
-
     def queue_record(uniprotKbAc,uniprotKbEntry,ncbiId,refseq,ncbiTaxaId,toAdd):
+        if uniprotKbAc == 'P07663':
+            print "\nuniprotid:%s\nncbiid:%s\nrefseq:%s\ntaxaid:%s"%(uniprotKbEntry,ncbiId,refseq,ncbiTaxaId)
         if ncbiId == None:
             pass
         elif not geneIdMap.has_key(ncbiId):
@@ -332,13 +320,32 @@ def populate_uniprot_table(lineCount,session,engine):
         else:
             db_taxa_id = None
 
+        if uniprotKbAc == 'P07663':
+            print "\nuniprotid:%s\nncbiid:%s\nrefseq:%s\ntaxaid:%s"%(uniprotKbEntry,ncbiId,refseq,ncbiTaxaId)
+            print "...db_taxa_id:%s\ndb_gene_id%s"%(db_taxa_id,db_gene_id)
+            sys.exit()
+
         toAdd.append({'uniprot_ac':uniprotKbAc,'uniprot_entry':uniprotKbEntry,
                       'refseq':refseq,'taxa_id':db_taxa_id,'gene_id':db_gene_id})
 
-    uniprotKbEntry,ncbiId,refseq,ncbiTaxaId = None,None,None,None
+    print("...getting gene info")
+    timeStart = time.time()
+    geneIdMap = gene_mapper(session)
+    taxaIdMap = taxa_mapper(session)
+    toAdd = []
+    totalRecords = 1
+    wayPoints = [round(int(w)) for w in np.linspace(0,lineCount,20)]
+    idmappingFile = get_idmapping_file()
+    idmappingFid = open(idmappingFile,'rb')
+    reader = csv.reader(idmappingFid,delimiter="\t")
 
-    for record in idmappingReader:
+    print("...populating rows")
+    current = None
+    uniprotKbAc,uniprotKbEntry,ncbiId,refseq,ncbiTaxaId = None,None,None,None,None
 
+
+    for record in reader:
+    
         if len(record) != 3:
             continue
 
@@ -358,11 +365,15 @@ def populate_uniprot_table(lineCount,session,engine):
 
         ## check to see if entry is finished
         if current != uniprotKbAc:
+        
+            if current == 'P07663':
+                print "\nuniprotid:%s\nncbiid%s\nrefseq:%s\ntaxaid:%s"%(uniprotKbEntry,ncbiId,refseq,ncbiTaxaId)
+                sys.exit()
+
             current = uniprotKbAc
-            totalRecords += 1
 
             queue_record(uniprotKbAc,uniprotKbEntry,ncbiId,refseq,ncbiTaxaId,toAdd)
-
+            
             ## submit to database
             if len(toAdd) >= 100000:
                 with engine.begin() as connection:
@@ -370,21 +381,20 @@ def populate_uniprot_table(lineCount,session,engine):
                                        values(toAdd))
                 toAdd = []
 
-            uniprotKbEntry,ncbiId,refseq,ncbiTaxaId = None,None,None,None
+            ## reset entry
+
+            uniprotKbAc,uniprotKbEntry,ncbiId,refseq,ncbiTaxaId = None,None,None,None,None
                 
             ## show progress
             if totalRecords in wayPoints:
                 print("\t%s / %s"%(totalRecords,lineCount))
 
     print('committing final changes...')
-    if uniprotKbEntry != None:
-        queue_record(uniprotKbEntry,ncbiId,refseq,ncbiTaxaId,toAdd)
+    queue_record(uniprotKbAc,uniprotKbEntry,ncbiId,refseq,ncbiTaxaId,toAdd)
 
     with engine.begin() as connection:
         connection.execute(Uniprot.__table__.insert().
                            values(toAdd))
-    #del geneIdMap
-    #del taxaIdMap
 
     idmappingFid.close()
     timeStr = "...total time taken: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
