@@ -290,8 +290,9 @@ def populate_uniprot_table(lineCount,session,engine):
     """
     
     def queue_record(uniprotKbAc,uniprotKbEntry,ncbiId,refseq,ncbiTaxaId,toAdd):
-        if uniprotKbAc == 'P07663':
-            print "\nuniprotid:%s\nncbiid:%s\nrefseq:%s\ntaxaid:%s"%(uniprotKbEntry,ncbiId,refseq,ncbiTaxaId)
+
+        #if uniprotKbAc == 'P07663':
+        #    print "\nuniprotid:%s\nncbiid:%s\nrefseq:%s\ntaxaid:%s"%(uniprotKbEntry,ncbiId,refseq,ncbiTaxaId)
         if ncbiId == None:
             pass
         elif not geneIdMap.has_key(ncbiId):
@@ -320,13 +321,11 @@ def populate_uniprot_table(lineCount,session,engine):
         else:
             db_taxa_id = None
 
-        if uniprotKbAc == 'P07663':
-            print "\nuniprotid:%s\nncbiid:%s\nrefseq:%s\ntaxaid:%s"%(uniprotKbEntry,ncbiId,refseq,ncbiTaxaId)
-            print "...db_taxa_id:%s\ndb_gene_id%s"%(db_taxa_id,db_gene_id)
-            sys.exit()
-
         toAdd.append({'uniprot_ac':uniprotKbAc,'uniprot_entry':uniprotKbEntry,
                       'refseq':refseq,'taxa_id':db_taxa_id,'gene_id':db_gene_id})
+
+        ## reset entry
+        uniprotKbAc,uniprotKbEntry,ncbiId,refseq,ncbiTaxaId = None,None,None,None,None
 
     print("...getting gene info")
     timeStart = time.time()
@@ -342,7 +341,6 @@ def populate_uniprot_table(lineCount,session,engine):
     print("...populating rows")
     current = None
     uniprotKbAc,uniprotKbEntry,ncbiId,refseq,ncbiTaxaId = None,None,None,None,None
-
 
     for record in reader:
     
@@ -366,12 +364,11 @@ def populate_uniprot_table(lineCount,session,engine):
         ## check to see if entry is finished
         if current != uniprotKbAc:
         
-            if current == 'P07663':
-                print "\nuniprotid:%s\nncbiid%s\nrefseq:%s\ntaxaid:%s"%(uniprotKbEntry,ncbiId,refseq,ncbiTaxaId)
-                sys.exit()
+            #if current == 'P07663':
+            #    print "\nuniprotid:%s\nncbiid%s\nrefseq:%s\ntaxaid:%s"%(uniprotKbEntry,ncbiId,refseq,ncbiTaxaId)
+            #    sys.exit()
 
             current = uniprotKbAc
-
             queue_record(uniprotKbAc,uniprotKbEntry,ncbiId,refseq,ncbiTaxaId,toAdd)
             
             ## submit to database
@@ -380,11 +377,7 @@ def populate_uniprot_table(lineCount,session,engine):
                     connection.execute(Uniprot.__table__.insert().
                                        values(toAdd))
                 toAdd = []
-
-            ## reset entry
-
-            uniprotKbAc,uniprotKbEntry,ncbiId,refseq,ncbiTaxaId = None,None,None,None,None
-                
+                            
             ## show progress
             if totalRecords in wayPoints:
                 print("\t%s / %s"%(totalRecords,lineCount))
