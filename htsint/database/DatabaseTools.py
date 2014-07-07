@@ -321,14 +321,6 @@ def populate_uniprot_table(lineCount,session,engine):
         else:
             db_taxa_id = None
 
-        if uniprotKbAc == 'P07663':
-            print "\nuniprotid:%s\nncbiid:%s\nrefseq:%s\ntaxaid:%s"%(uniprotKbEntry,ncbiId,refseq,ncbiTaxaId)
-            print "db_taxa_id: %s"%(db_taxa_id)
-            print "db_gene_id: %s"%(db_gene_id)
-            print session.query(Gene).filter_by(id=db_gene_id).all()
-
-            sys.exit()
-
         toAdd.append({'uniprot_ac':uniprotKbAc,'uniprot_entry':uniprotKbEntry,
                       'refseq':refseq,'taxa_id':db_taxa_id,'gene_id':db_gene_id})
 
@@ -373,10 +365,6 @@ def populate_uniprot_table(lineCount,session,engine):
         ## check to see if entry is finished
         if current != uniprotKbAc:
         
-            if current == 'P07663':
-                print "\nuniprotid:%s\nncbiid%s\nrefseq:%s\ntaxaid:%s"%(uniprotKbEntry,ncbiId,refseq,ncbiTaxaId)
-                sys.exit()
-
             queue_record(current,uniprotKbEntry,ncbiId,refseq,ncbiTaxaId,toAdd)
             current = uniprotKbAc            
 
