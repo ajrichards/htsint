@@ -7,13 +7,9 @@ from htsint.database import get_idmapping_file,get_file_sizes
 timeStart = time.time()
 toAdd = []
 totalRecords = 0
-#idmappingFile = "/usr/local/share/htsint/idmapping.dat.db"
-#idmappingFid = open(idmappingFile,'rb')
-#reader = csv.reader(idmappingFid,delimiter="\t")
 idmappingFile = get_idmapping_file()
 idmappingFid = open(idmappingFile,'rb')
 reader = csv.reader(idmappingFid,delimiter="\t")
-
 
 
 print("...gathering data this may take a few minutes")
@@ -26,12 +22,12 @@ noNcbi = 0
 total = 0
 noTaxaYesNcbi = 0
 
+
 for record in reader:
 
     #print record
-
-    if re.search("P07663",record[0]):
-        print record
+    #if re.search("P07663",record[0]):
+    #    print record
 
     if len(record) != 3:
         continue
@@ -67,8 +63,6 @@ for record in reader:
         if ncbiId and ncbiTaxaId == None:
             noTaxaYesNcbi += 1
 
-        
-    
         #if total > 100:
         #    sys.exit()
 

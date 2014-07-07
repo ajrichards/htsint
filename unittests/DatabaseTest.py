@@ -16,7 +16,6 @@ from htsint.database import Taxon,Gene,Uniprot,GoTerm,GoAnnotation
 ## global variables
 UPASS = ask_upass()
 
-
 ## test class for the main window function
 class DatabaseTest(unittest.TestCase):
     """
@@ -30,7 +29,6 @@ class DatabaseTest(unittest.TestCase):
 
         self.session, self.engine = db_connect(upass=UPASS)
         self.testID = '7227'
-
     
     def testTaxa(self):
         """
@@ -51,23 +49,28 @@ class DatabaseTest(unittest.TestCase):
         """
 
         self.assertTrue(self.session.query(Gene).count() > 4)       
-        query = self.session.query(Gene).filter_by(ncbi_id='3771877').first()
-        self.assertEqual(query.symbol,'Adh')
+        query1 = self.session.query(Gene).filter_by(ncbi_id='3771877').first()
+        self.assertEqual(query1.symbol,'Adh')
+        self.assertEqual(self.session.query(Taxon).filter_by(id=query1.taxa_id).first().ncbi_id,7227)
 
-    
+        query2 = self.session.query(Gene).filter_by(ncbi_id='31251').first()
+        self.assertEqual(query2.symbol,'per')
+        self.assertEqual(self.session.query(Taxon).filter_by(id=query2.taxa_id).first().ncbi_id,7227)
+        
     def testUniprot(self):
         """
         test the accession table
         """
 
         uniprotQuery = self.session.query(Uniprot).filter_by(uniprot_ac='P07663').first()
-        print 'uq', uniprotQuery
+        uniprotGeneQuery = self.session.query(Gene).filter_by(id=uniprotQuery.gene_id).first()
 
-        self.assertEqual(uniprotQuery.uniprot_entry,"PER_DROME")     
-        geneQuery = self.session.query(Gene).filter_by(id=uniprotQuery.gene_id).first()
-        self.assertEqual(geneQuery.ncbi_id,'31251')
+        self.assertEqual(uniprotQuery.uniprot_ac,"P07663")
+        self.assertEqual(uniprotQuery.uniprot_entry,"PER_DROME")
+        self.assertEqual(uniprotGeneQuery.ncbi_id,"31251")
+        self.assertEqual(self.session.query(Taxon).filter_by(id=uniprotQuery.taxa_id).first().ncbi_id,7227)
+        self.assertEqual(self.session.query(Taxon).filter_by(id=uniprotGeneQuery.taxa_id).first().ncbi_id,7227)
 
-    '''
     def testGoTerm(self):
         """
         test the GoTerm table
@@ -94,6 +97,7 @@ class DatabaseTest(unittest.TestCase):
         terms2 = [self.session.query(GoTerm).filter_by(id = a.go_term_id).first().name for a in annotations2['31251']]
         self.assertTrue("circadian rhythm" in terms2)
 
+    '''
     def testAnnotationEquality(self):
         """
         Fetching annotations with uniprot + gene entities should get the same results as with taxa_id
