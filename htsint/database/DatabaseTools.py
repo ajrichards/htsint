@@ -290,9 +290,6 @@ def populate_uniprot_table(lineCount,session,engine):
     """
     
     def queue_record(uniprotKbAc,uniprotKbEntry,ncbiId,refseq,ncbiTaxaId,toAdd):
-
-        if uniprotKbAc == 'P07663':
-            print "\nuniprotid:%s\nncbiid:%s\nrefseq:%s\ntaxaid:%s"%(uniprotKbEntry,ncbiId,refseq,ncbiTaxaId)
         if ncbiId == None:
             pass
         elif not geneIdMap.has_key(ncbiId):
