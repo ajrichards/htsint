@@ -162,6 +162,18 @@ def get_gene2go_file():
 
     return annotationFile
 
+def get_evidence_codes():
+    """
+    returns the list of evidence codes to be used by default
+    """
+
+    expEvidCodes = ["EXP","IDA","IPI","IMP","IGI","IEP"]
+    compEvidCodes = ["ISS","ISO","ISA","ISM","IGC","RCA"]
+    statEvidCodes = ["TAS","NAS","IC"]
+    nonCuratedEvidCodes = ["IEA"]
+
+    return expEvidCodes + statEvidCodes + compEvidCodes
+
 def fetch_annotations(identifiers,session,aspect='biological_process',
                       idType='uniprot',asTerms=True):
     """
@@ -179,11 +191,7 @@ def fetch_annotations(identifiers,session,aspect='biological_process',
 
     """
 
-    expEvidCodes = ["EXP","IDA","IPI","IMP","IGI","IEP"]
-    compEvidCodes = ["ISS","ISO","ISA","ISM","IGC","RCA"]
-    statEvidCodes = ["TAS","NAS","IC"]
-    nonCuratedEvidCodes = ["IEA"]
-    acceptedCodes = expEvidCodes + statEvidCodes + compEvidCodes
+    acceptedCodes = get_evidence_codes()
 
     if aspect not in ['biological_process','cellular_component','molecular_function']:
         raise Exception("Invalid aspect specified")
@@ -224,10 +232,10 @@ def fetch_annotations(identifiers,session,aspect='biological_process',
                     annotations[geneQuery.ncbi_id].update(results)
     
     elif idType == 'uniprot':
-        uniprotQueries = session.query(Uniprot).filter(Uniprot.uniprot_id.in_(identifiers)).all()
+        uniprotQueries = session.query(Uniprot).filter(Uniprot.uniprot_ac.in_(identifiers)).all()
 
         for uniprotQuery in uniprotQueries:
-            annotations[uniprotQuery.uniprot_id] = set([])
+            annotations[uniprotQuery.uniprot_ac] = set([])
             
             ## add results from the uniprot id
             results = session.query(GoAnnotation).join(GoTerm).\
@@ -235,7 +243,7 @@ def fetch_annotations(identifiers,session,aspect='biological_process',
                       filter(GoAnnotation.evidence_code.in_(acceptedCodes)).\
                       filter(GoTerm.aspect==aspect).all()
             if results:
-                annotations[uniprotQuery.uniprot_id].update(results)
+                annotations[uniprotQuery.uniprot_ac].update(results)
 
             ## add results from the associated gene id
             geneQuery = session.query(Gene).filter_by(id=uniprotQuery.gene_id).first()
@@ -246,12 +254,12 @@ def fetch_annotations(identifiers,session,aspect='biological_process',
                           filter(GoAnnotation.evidence_code.in_(acceptedCodes)).\
                           filter(GoTerm.aspect==aspect).all()
             if results:
-                annotations[uniprotQuery.uniprot_id].update(results)
+                annotations[uniprotQuery.uniprot_ac].update(results)
     
-    ## get the taxa ids from the list and check for uniprot ids without a gene id
-    ## transform taxa ids to ncbi ids
-    taxaIds = session.query(Taxon).filter(Taxon.id.in_(list(taxaList))).all()
-    print 'taxaIds', taxaIds
+
+#
+    #taxaIds = session.query(Taxon).filter(Taxon.id.in_(list(taxaList))).all()
+    #print 'taxaIds', taxaIds
     #    #taxaQueries = session.query(Gene).filter(Gene.ncbi_id.in_(identifiers)).all()
     #    taxonRows = self.session.query(Taxon).filter(Taxon.ncbi_id.in(identifiers)).all()
     #    if len(taxaRows) != len(identifiers):
@@ -266,6 +274,8 @@ def fetch_annotations(identifiers,session,aspect='biological_process',
     #        annots[self.taxaList[t]] = {'bytaxa':self.session.query(GoAnnotation).filter_by(taxa_id=taxaId).all()}
 
         
+
+
     ## remove any null results
     for key,items in annotations.iteritems():
         annotations[key] = list(items)

@@ -86,8 +86,7 @@ class GeneOntologyTest(unittest.TestCase):
 
         go = GeneOntology(geneList=self.geneList,upass=UPASS,idType='ncbi')
         G = go.create_gograph(termsPath=termsPickle,graphPath=graphPickle)
-        
-        print 'nodes', len(G.nodes())
+        #print 'nodes', len(G.nodes())
 
         for picklePath in [termsPickle,graphPickle]:
             if os.path.exists(picklePath):

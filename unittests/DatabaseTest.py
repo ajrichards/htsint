@@ -66,7 +66,7 @@ class DatabaseTest(unittest.TestCase):
         uniprotGeneQuery = self.session.query(Gene).filter_by(id=uniprotQuery.gene_id).first()
 
         self.assertEqual(uniprotQuery.uniprot_ac,"P07663")
-        self.assertEqual(uniprotQuery.uniprot_entry,"PER_DROME")
+        self.assertEqual(uniprotQuery.uniprot_entry,"PER_DROMO")
         self.assertEqual(uniprotGeneQuery.ncbi_id,"31251")
         self.assertEqual(self.session.query(Taxon).filter_by(id=uniprotQuery.taxa_id).first().ncbi_id,7227)
         self.assertEqual(self.session.query(Taxon).filter_by(id=uniprotGeneQuery.taxa_id).first().ncbi_id,7227)
@@ -101,19 +101,19 @@ class DatabaseTest(unittest.TestCase):
     def testAnnotationEquality(self):
         """
         Fetching annotations with uniprot + gene entities should get the same results as with taxa_id
+        This test takes some time but should still pass (by default it is commented out
+
         """
 
-        taxonId = '13037'
+        taxonId = '7091'
         taxaQuery = self.session.query(Taxon).filter_by(ncbi_id=taxonId).first()
         annotations1 = self.session.query(GoAnnotation).filter_by(taxa_id=taxaQuery.id).all()
-        print len(annotations1)
 
-        geneIds = [g.id for g in self.session.query(Gene).filter_by(taxa_id=taxonId).all()]
-        uniprotIds = [u.id for u in self.session.query(Uniprot).filter_by(taxa_id=taxonId).all()]
+        geneIds = [g.id for g in self.session.query(Gene).filter_by(taxa_id=taxaQuery.id).all()]
+        uniprotIds = [u.id for u in self.session.query(Uniprot).filter_by(taxa_id=taxaQuery.id).all()]
 
         geneAnnotations = self.session.query(GoAnnotation).filter(GoAnnotation.gene_id.in_(geneIds)).all()
         uniprotAnnotations = self.session.query(GoAnnotation).filter(GoAnnotation.uniprot_id.in_(uniprotIds)).all()
-
         annotations2 = list(set(geneAnnotations).union(set(uniprotAnnotations)))
 
         self.assertEqual(len(annotations1),len(annotations2))
