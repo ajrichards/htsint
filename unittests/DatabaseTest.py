@@ -97,6 +97,16 @@ class DatabaseTest(unittest.TestCase):
         terms2 = [self.session.query(GoTerm).filter_by(id = a.go_term_id).first().name for a in annotations2['31251']]
         self.assertTrue("circadian rhythm" in terms2)
 
+    def testGeneIdUniqueness(self):
+        """
+        test that gene ids are unique and we have only one entry for each
+        """
+        
+        taxonId = '9606'
+        taxaQuery = self.session.query(Taxon).filter_by(ncbi_id=taxonId).first()
+        geneIds = [g.ncbi_id for g in self.session.query(Gene).filter_by(taxa_id=taxaQuery.id).all()]
+        self.assertEqual(len(geneIds), len(list(set(geneIds))))
+
     '''
     def testAnnotationEquality(self):
         """

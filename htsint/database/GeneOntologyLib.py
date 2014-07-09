@@ -256,26 +256,6 @@ def fetch_annotations(identifiers,session,aspect='biological_process',
             if results:
                 annotations[uniprotQuery.uniprot_ac].update(results)
     
-
-#
-    #taxaIds = session.query(Taxon).filter(Taxon.id.in_(list(taxaList))).all()
-    #print 'taxaIds', taxaIds
-    #    #taxaQueries = session.query(Gene).filter(Gene.ncbi_id.in_(identifiers)).all()
-    #    taxonRows = self.session.query(Taxon).filter(Taxon.ncbi_id.in(identifiers)).all()
-    #    if len(taxaRows) != len(identifiers):
-    #        print("ERROR: not all taxa found")
-    #        for taxon in identifiers:
-    #            if self.session.query(Taxon).filter_by(ncbi_id=taxon) == None:
-    #                print("...%s"%taxon)
-    #        raise Exception("invalid taxa list")
-    #
-    #    for taxon taxaQueries:
-    #        print t,taxaId
-    #        annots[self.taxaList[t]] = {'bytaxa':self.session.query(GoAnnotation).filter_by(taxa_id=taxaId).all()}
-
-        
-
-
     ## remove any null results
     for key,items in annotations.iteritems():
         annotations[key] = list(items)
