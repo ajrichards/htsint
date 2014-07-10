@@ -297,13 +297,13 @@ def populate_uniprot_table(lineCount,session,engine):
 
         if ncbiId == None:
             pass
-        elif not geneIdMap.has_key(ncbiId):
-            _geneIds = [re.sub("\s+","",_ncid) for _ncid in ncbiId.split(";")]
-            ncbiId = None
-        
-            for _gid in _geneIds:
-                if geneIdMap.has_key(_gid):
-                    ncbiId = _gid
+        #elif not geneIdMap.has_key(ncbiId):
+        #    _geneIds = [re.sub("\s+","",_ncid) for _ncid in ncbiId.split(";")]
+        #    ncbiId = None
+        #
+        #    for _gid in _geneIds:
+        #        if geneIdMap.has_key(_gid):
+        #            ncbiId = _gid
         
         if ncbiId != '' and ncbiId != None:
             gene_id = str(ncbiId)
