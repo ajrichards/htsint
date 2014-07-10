@@ -107,6 +107,21 @@ class DatabaseTest(unittest.TestCase):
         geneIds = [g.ncbi_id for g in self.session.query(Gene).filter_by(taxa_id=taxaQuery.id).all()]
         self.assertEqual(len(geneIds), len(list(set(geneIds))))
 
+    def testTaxaIdConsistency:
+        """
+        Uniprot entries link to taxa ids via themselves and through Gene entries
+        """
+
+        taxonQuery = session.query(Taxon).filter_by(ncbi_id='8364').first()
+        #    geneQuery = session.query(Gene).filter_by(taxa_id=taxaQuery.id).all()
+        uniprotQuery = session.query(Uniprot).filter_by(taxa_id=taxonQuery.id).all()
+        uniprotGenes = list(set([u.gene_id for u in uniprotQuery]))
+        
+        notfinished
+        codingGenesTaxa = [g.taxa_id for g in session.query(Gene).filter(Gene.id.in_(codingGenes)).all()]
+
+
+
     '''
     def testAnnotationEquality(self):
         """

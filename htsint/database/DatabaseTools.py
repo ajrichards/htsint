@@ -290,6 +290,11 @@ def populate_uniprot_table(lineCount,session,engine):
     """
     
     def queue_record(uniprotKbAc,uniprotKbEntry,ncbiId,refseq,ncbiTaxaId,toAdd):
+
+        db_taxa_id = None
+        db_gene_id = None
+        db_gene_taxa_id = None
+
         if ncbiId == None:
             pass
         elif not geneIdMap.has_key(ncbiId):
@@ -310,11 +315,20 @@ def populate_uniprot_table(lineCount,session,engine):
         else:
             db_gene_id = None
 
+        if db_gene_id:
+            db_gene_taxa_id = session.query(Gene).filter_by(id=db_gene_id).first().taxa_id
+
         ## if no taxa id was provided try to get it from ncbi id and db
         if ncbiTaxaId and taxaIdMap.has_key(ncbiTaxaId):
             db_taxa_id = taxaIdMap[ncbiTaxaId] 
-        elif db_gene_id and not ncbiTaxaId:
-            db_taxa_id = session.query(Gene).filter_by(id=db_gene_id).first().taxa_id
+
+        ## check that the uniprot entry and the linked gene_id have same taxa id
+        if db_gene_taxa_id and db_taxa_id:
+            if db_gene_taxa_id != db_taxa_id:
+                raise Exception("failed taxa check %s %s"%(uniprotKbAc,ncbiId))
+
+        if db_gene_id and not ncbiTaxaId:
+            db_taxa_id = db_gene_taxa_id
         else:
             db_taxa_id = None
 
