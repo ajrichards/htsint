@@ -289,7 +289,7 @@ def populate_uniprot_table(lineCount,session,engine):
     populate the uniprot table with entries from idmappings
     """
     
-    def queue_record(uniprotKbAc,uniprotKbEntry,ncbiId,refseq,ncbiTaxaId,toAdd):
+    def queue_record(uniprotKbAc,uniprotKbEntry,ncbiId,refseq,ncbiTaxaId,toAdd,ftc):
 
         db_taxa_id = None
         db_gene_id = None
@@ -297,13 +297,13 @@ def populate_uniprot_table(lineCount,session,engine):
 
         if ncbiId == None:
             pass
-        #elif not geneIdMap.has_key(ncbiId):
-        #    _geneIds = [re.sub("\s+","",_ncid) for _ncid in ncbiId.split(";")]
-        #    ncbiId = None
-        #
-        #    for _gid in _geneIds:
-        #        if geneIdMap.has_key(_gid):
-        #            ncbiId = _gid
+        elif not geneIdMap.has_key(ncbiId):
+            _geneIds = [re.sub("\s+","",_ncid) for _ncid in ncbiId.split(";")]
+            ncbiId = None
+        
+            for _gid in _geneIds:
+                if geneIdMap.has_key(_gid):
+                    ncbiId = _gid
         
         if ncbiId != '' and ncbiId != None:
             gene_id = str(ncbiId)
@@ -325,7 +325,8 @@ def populate_uniprot_table(lineCount,session,engine):
         ## check that the uniprot entry and the linked gene_id have same taxa id
         if db_gene_taxa_id and db_taxa_id:
             if db_gene_taxa_id != db_taxa_id:
-                raise Exception("failed taxa check %s %s"%(uniprotKbAc,ncbiId))
+                ftc += 1
+                return
 
         if db_gene_id and not ncbiTaxaId:
             db_taxa_id = db_gene_taxa_id
@@ -348,6 +349,7 @@ def populate_uniprot_table(lineCount,session,engine):
     idmappingFile = get_idmapping_file()
     idmappingFid = open(idmappingFile,'rb')
     reader = csv.reader(idmappingFid,delimiter="\t")
+    ftc = 0 # failTaxaCheck
 
     print("...populating rows")
     current = None
@@ -376,7 +378,7 @@ def populate_uniprot_table(lineCount,session,engine):
         ## check to see if entry is finished
         if current != uniprotKbAc:
         
-            queue_record(current,uniprotKbEntry,ncbiId,refseq,ncbiTaxaId,toAdd)
+            queue_record(current,uniprotKbEntry,ncbiId,refseq,ncbiTaxaId,toAdd,ftc)
             current = uniprotKbAc            
 
             ## submit to database
@@ -391,7 +393,7 @@ def populate_uniprot_table(lineCount,session,engine):
                 print("\t%s / %s"%(totalRecords,lineCount))
 
     print('committing final changes...')
-    queue_record(uniprotKbAc,uniprotKbEntry,ncbiId,refseq,ncbiTaxaId,toAdd)
+    queue_record(uniprotKbAc,uniprotKbEntry,ncbiId,refseq,ncbiTaxaId,toAdd,ftc)
 
     with engine.begin() as connection:
         connection.execute(Uniprot.__table__.insert().
@@ -400,7 +402,7 @@ def populate_uniprot_table(lineCount,session,engine):
     idmappingFid.close()
     timeStr = "...total time taken: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
     addedStr = "...%s unique uniprot entries were added."%totalRecords
-    return timeStr,addedStr
+    return timeStr,addedStr,ftc
 
 def populate_go_terms(engine):
     """ 
