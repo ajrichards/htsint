@@ -326,6 +326,7 @@ def populate_uniprot_table(lineCount,session,engine):
         if db_gene_taxa_id and db_taxa_id:
             if db_gene_taxa_id != db_taxa_id:
                 ftc += 1
+                uniprotKbAc,uniprotKbEntry,ncbiId,refseq,ncbiTaxaId = None,None,None,None,None
                 return
 
         if db_gene_id and not ncbiTaxaId:
