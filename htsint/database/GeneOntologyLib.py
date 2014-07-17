@@ -109,7 +109,7 @@ def get_annotation_file():
     dataDir = CONFIG['data']
     annotationFile = os.path.join(dataDir,fileName)
     if os.path.exists(annotationFile) == False:
-        raise Exception("Could not find '%s' -- did you run FetchDbData.py?"%(fileName)
+        raise Exception("Could not find '%s' -- did you run FetchDbData.py?"%(fileName))
 
     return annotationFile
 

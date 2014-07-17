@@ -289,121 +289,149 @@ def populate_uniprot_table(lineCount,session,engine):
     populate the uniprot table with entries from idmappings
     """
 
-    def queue_record(uniprotKbAc,uniprotKbEntry,ncbiId,refseq,ncbiTaxaId,toAdd,ftc):
-
-        db_taxa_id = None
-        db_gene_id = None
-        db_gene_taxa_id = None
-
-        if ncbiId == None:
-            pass
-        elif not geneIdMap.has_key(ncbiId):
-            _geneIds = [re.sub("\s+","",_ncid) for _ncid in ncbiId.split(";")]
-            ncbiId = None
-        
-            for _gid in _geneIds:
-                if geneIdMap.has_key(_gid):
-                    ncbiId = _gid
-        
-        if ncbiId != '' and ncbiId != None:
-            gene_id = str(ncbiId)
-        else:
-            gene_id = None
-        
-        if gene_id and geneIdMap.has_key(gene_id):
-            db_gene_id = geneIdMap[gene_id]
-        else:
-            db_gene_id = None
-
-        if db_gene_id:
-            db_gene_taxa_id = session.query(Gene).filter_by(id=db_gene_id).first().taxa_id
-
-        ## if no taxa id was provided try to get it from ncbi id and db
-        if ncbiTaxaId and taxaIdMap.has_key(ncbiTaxaId):
-            db_taxa_id = taxaIdMap[ncbiTaxaId] 
-
-        ## check that the uniprot entry and the linked gene_id have same taxa id
-        if db_gene_taxa_id and db_taxa_id:
-            if db_gene_taxa_id != db_taxa_id:
-                ftc += 1
-                uniprotKbAc,uniprotKbEntry,ncbiId,refseq,ncbiTaxaId = None,None,None,None,None
-                return
-
-        if db_gene_id and not ncbiTaxaId:
-            db_taxa_id = db_gene_taxa_id
-        else:
-            db_taxa_id = None
-
-        toAdd.append({'uniprot_ac':uniprotKbAc,'uniprot_entry':uniprotKbEntry,
-                      'refseq':refseq,'taxa_id':db_taxa_id,'gene_id':db_gene_id})
-
-        ## reset entry
-        uniprotKbAc,uniprotKbEntry,ncbiId,refseq,ncbiTaxaId = None,None,None,None,None
-
-    print("...getting gene info")
     timeStart = time.time()
-    geneIdMap = gene_mapper(session)
-    taxaIdMap = taxa_mapper(session)
-    toAdd = []
-    totalRecords = 1
-    wayPoints = [round(int(w)) for w in np.linspace(0,lineCount,20)]
+    totalLines,totalRecords = 0,0
     idmappingFile = get_idmapping_file()
     idmappingFid = open(idmappingFile,'rb')
     reader = csv.reader(idmappingFid,delimiter="\t")
-    ftc = 0 # failTaxaCheck
+    ac2kbMap,toAdd = {},{}
+    wayPoints = [round(int(w)) for w in np.linspace(0,lineCount,20)]
 
-    print("...populating rows")
-    current = None
+    print("getting mappers...")
+    geneIdMap = gene_mapper(session)
+    taxonIdMap = taxa_mapper(session)
+    print("mappers loaded... %s"%time.strftime('%H:%M:%S',time.gmtime(time.time()-timeStart)))
 
-    debug = 0
+    def queue_entries(toAdd,geneIdMap,taxonIdMap,engine):
+
+        toCommit = {}
+
+        for uniprotKbEntry, entry in toAdd.iteritems():
+            db_gene_id = None
+            db_taxa_id = None
+            db_gene_taxa_id = None
+
+            ## convert the gene id to a database key (check old names if we cannot find it)
+            if entry['gene-id'] == None:
+                pass
+            elif geneIdMap.has_key(entry['gene-id']):
+                db_gene_id = geneIdMap[gene_id]
+            elif not geneIdMap.has_key(entry['gene-id']):
+                _geneIds = [re.sub("\s+","",_ncid) for _ncid in ncbiId.split(";")]
+                db_gene_id = None
+        
+                for _gid in _geneIds:
+                    if geneIdMap.has_key(_gid):
+                        db_gene_id= _gid
+
+            ## convert the taxa id to a database key
+            if entry['ncbi-taxa-id'] and taxaIdMap.has_key(entry['ncbi-taxa-id']):
+                db_taxa_id = taxonIdMap[entry['ncbi-taxa-id']]
+
+            ## check that the linked gene taxa is the same as the entry taxa
+            if db_gene_id:
+                db_gene_taxa_id = session.query(Gene).filter_by(id=db_gene_id).first().taxa_id
+            if db_taxa_id and db_gene_id:
+                if db_taxa_id != db_gene_taxa_id:
+                    print("WARNING: two taxa present in single uniprot entry? %s %s "%(unprotKbEntry,\
+                                                                                       entry['gene-id']))
+            ## if no taxa was provdied use the one assocated with the linked gene
+            if db_gene_taxa_id and not db_taxa_id:
+                db_taxa_id = db_gene_taxa_id
+
+            ## ready the uniprot-ac and refseq rows
+            entry['uniprot-ac'] = list(entry['uniprot-ac'])
+            if len(entry['uniprot-ac']) == 0:
+                entry['uniprot-ac'] = None
+            elif  len(entry['uniprot-ac']) == 1:
+                entry['uniprot-ac'] = entry['uniprot-ac'][0]
+            else:
+                entry['uniprot-ac'] = ";".join(entry['uniprot-ac'])
+
+            entry['refseq'] = list(entry['refseq'])
+            if len(entry['refseq']) == 0:
+                entry['refseq'] = None
+            elif  len(entry['refseq']) == 1:
+                entry['refseq'] = entry['refseq'][0]
+            else:
+                entry['refseq'] = ";".join(entry['refseq'])
+
+            ## commit to db
+            toCommit.append({'uniprot_ac':entry['uniprot-ac'],'uniprot_entry':uniprotKbEntry,
+                             'refseq':entry['refseq'],'taxa_id':db_taxa_id,'gene_id':db_gene_id})
+            
+            with engine.begin() as connection:
+                connection.execute(Uniprot.__table__.insert().
+                                   values(toCommit))
+
+    ## parse the idmapping file into the db
     for record in reader:
-        debug += 0
 
         if len(record) != 3:
             continue
 
+        uniprotKbAc,uniprotKbEntry,ncbiId,refseq,ncbiTaxaId = None,None,None,None,None
         uniprotKbAc = record[0]
-
-        if current == None:
-            current = uniprotKbAc
+        totalLines += 1
+        if totalLines in wayPoints:
+            print("\t%s / %s"%(totalLines,lineCount))
 
         if record[1] == 'NCBI_TaxID':
             ncbiTaxaId = record[2]
-        if record[1] == 'GeneID':
+        elif record[1] == 'GeneID':
             ncbiId = record[2]
-        if record[1] == 'UniProtKB-ID':
+        elif record[1] == 'UniProtKB-ID':
             uniprotKbEntry = record[2]
-        if record[1] == 'RefSeq':
+            if not ac2kbMap.has_key(uniprotKbAc):
+                ac2kbMap[uniprotKbAc] = uniprotKbEntry
+        elif record[1] == 'RefSeq':
             refseq = record[2]
+        else:
+            continue
 
-        ## check to see if entry is finished
-        if current != uniprotKbAc:
+        ## skip the XXXX-1 like uniprot ac
+        if ac2kbMap.has_key(uniprotKbAc) == False:
+            continue
+
+        ## get current key
+        uniprotKbEntry = ac2kbMap[uniprotKbAc] 
+
+        ## make new entry if necessary
+        if uniprotKbEntry and not toAdd.has_key(uniprotKbEntry):
+
+            ## queue entries in blocks
+            totalRecords += 1 
+            
+            if totalRecords % 100000 == 0:
+                queue_entries(toAdd,geneIdMap,taxonIdMap,engine)
+                toAdd,ac2kbMap = {},{}
+
+
+            ac2kbMap[uniprotKbAc] = uniprotKbEntry
+            toAdd[uniprotKbEntry] = {'ncbi-taxa-id':None,
+                                     'gene-id':None,
+                                     'uniprot-ac':set([]),
+                                     'refseq':set([])}
         
-            queue_record(current,uniprotKbEntry,ncbiId,refseq,ncbiTaxaId,toAdd,ftc)
-            current = uniprotKbAc            
+        ## populate uniprot dictionary
+        toAdd[uniprotKbEntry]['uniprot-ac'].update([uniprotKbAc])
 
-            ## submit to database
-            if len(toAdd) >= 100000:
-                with engine.begin() as connection:
-                    connection.execute(Uniprot.__table__.insert().
-                                       values(toAdd))
-                toAdd = []
-                            
-            ## show progress
-            if totalRecords in wayPoints:
-                print("\t%s / %s"%(totalRecords,lineCount))
+        if ncbiTaxaId:
+            toAdd[uniprotKbEntry]['ncbi-taxa-id'] = ncbiTaxaId
+        elif ncbiId:
+            toAdd[uniprotKbEntry]['gene-id'] = ncbiId
+        elif refseq:
+            toAdd[uniprotKbEntry]['refseq'].update([refseq])
 
-    print('committing final changes...')
-    queue_record(uniprotKbAc,uniprotKbEntry,ncbiId,refseq,ncbiTaxaId,toAdd,ftc)
+    ## queue any remaining
+    if len(toAdd.keys()) > 0:
+        queue_entries(toAdd,geneIdMap,taxonIdMap,engine)
 
-    with engine.begin() as connection:
-        connection.execute(Uniprot.__table__.insert().
-                           values(toAdd))
-
+    ## clean up
     idmappingFid.close()
     timeStr = "...total time taken: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
     addedStr = "...%s unique uniprot entries were added."%totalRecords
-    return timeStr,addedStr,ftc
+    return timeStr,addedStr
 
 def populate_go_terms(engine):
     """ 
@@ -546,10 +574,15 @@ def populate_go_annotations(totalAnnotations,session,engine):
         pubmedRefs = record[5]
         evidenceCode = record[6]
         aspect = record[8]
+        uniprotEntry = record[10]
         goTermName = record[11]
         taxon = re.sub("taxon:","",record[12])
         date = record[13]
         assignedBy = record[14]
+
+        ## parse the uniprot Entry
+        if re.search("\|",uniprotEntry):
+            uniprotEntry = re.split("\|",uniprotEntry)[0]
 
         ## ignore annotations with multiple species
         if re.search("\|",taxon):
@@ -560,7 +593,7 @@ def populate_go_annotations(totalAnnotations,session,engine):
         if annotationCount in wayPoints:
             print("\t%s / %s"%(annotationCount,totalAnnotations))
 
-        queue_entry(goId,evidenceCode,pubmedRefs,uniprotId,None,taxon,toAdd,
+        queue_entry(goId,evidenceCode,pubmedRefs,uniprotEntry,None,taxon,toAdd,
                     uniprotIdMap,ignoredAnnotationsUniprot)
 
         if len(toAdd) >= 100000: # 100000

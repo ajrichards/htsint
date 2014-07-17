@@ -13,10 +13,21 @@ annots1,annots2 = 0,0
 
 for record in annotationFid:
     record = record[:-1].split("\t")
+
     if record[0][0] == "!":
         continue
     if record[0] != 'UniProtKB':
         continue
+
+    uniprotEntry = record[10]
+    if re.search("\|",uniprotEntry):
+        uniprotEntry = re.split("\|",uniprotEntry)[0]
+
+    #for i,r in enumerate(record):
+    #    print i,r
+
+    #if annots1 == 300:
+    #    sys.exit()
 
     if re.search("\-1",record[1]):
         print record[1]

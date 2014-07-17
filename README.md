@@ -15,6 +15,7 @@ The package is a collection of functions to carry out the analysis of high-thoug
 Prerequsites 
 -----------------------------------
 
+  * https://networkx.github.io/
   * http://biopython.org/wiki/Main_Page
   * https://pypi.python.org/pypi/pymc
   * http://www.sqlalchemy.org

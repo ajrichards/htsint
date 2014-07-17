@@ -66,7 +66,7 @@ class DatabaseTest(unittest.TestCase):
         uniprotGeneQuery = self.session.query(Gene).filter_by(id=uniprotQuery.gene_id).first()
 
         self.assertEqual(uniprotQuery.uniprot_ac,"P07663")
-        self.assertEqual(uniprotQuery.uniprot_entry,"PER_DROMO")
+        self.assertEqual(uniprotQuery.uniprot_entry,"PER_DROME")
         self.assertEqual(uniprotGeneQuery.ncbi_id,"31251")
         self.assertEqual(self.session.query(Taxon).filter_by(id=uniprotQuery.taxa_id).first().ncbi_id,7227)
         self.assertEqual(self.session.query(Taxon).filter_by(id=uniprotGeneQuery.taxa_id).first().ncbi_id,7227)

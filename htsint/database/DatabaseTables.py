@@ -141,7 +141,7 @@ def uniprot_mapper(session,uniprotIdList=None,myDict={}):
         if uniprotIdList and not uniprotIdList.has_key(g):
             continue
 
-        myDict[str(u.uniprot_ac)] = u.id
+        myDict[str(u.uniprot_entry)] = u.id
 
     return myDict
 
