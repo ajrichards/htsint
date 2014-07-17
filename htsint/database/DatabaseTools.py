@@ -288,7 +288,7 @@ def populate_uniprot_table(lineCount,session,engine):
     """
     populate the uniprot table with entries from idmappings
     """
-    
+
     def queue_record(uniprotKbAc,uniprotKbEntry,ncbiId,refseq,ncbiTaxaId,toAdd,ftc):
 
         db_taxa_id = None

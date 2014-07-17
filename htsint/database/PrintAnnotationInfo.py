@@ -18,6 +18,9 @@ for record in annotationFid:
     if record[0] != 'UniProtKB':
         continue
 
+    if re.search("\-1",record[1]):
+        print record[1]
+
     taxon = re.sub("taxon:","",record[12])
     if taxon == "" or re.search("\|",taxon):
         continue
