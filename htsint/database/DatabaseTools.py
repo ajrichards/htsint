@@ -304,7 +304,7 @@ def populate_uniprot_table(lineCount,session,engine):
 
     def queue_entries(toAdd,geneIdMap,taxonIdMap,engine):
 
-        toCommit = {}
+        toCommit = []
 
         for uniprotKbEntry, entry in toAdd.iteritems():
             db_gene_id = None
@@ -315,7 +315,7 @@ def populate_uniprot_table(lineCount,session,engine):
             if entry['gene-id'] == None:
                 pass
             elif geneIdMap.has_key(entry['gene-id']):
-                db_gene_id = geneIdMap[gene_id]
+                db_gene_id = geneIdMap[entry['gene-id']]
             elif not geneIdMap.has_key(entry['gene-id']):
                 _geneIds = [re.sub("\s+","",_ncid) for _ncid in ncbiId.split(";")]
                 db_gene_id = None
@@ -325,7 +325,7 @@ def populate_uniprot_table(lineCount,session,engine):
                         db_gene_id= _gid
 
             ## convert the taxa id to a database key
-            if entry['ncbi-taxa-id'] and taxaIdMap.has_key(entry['ncbi-taxa-id']):
+            if entry['ncbi-taxa-id'] and taxonIdMap.has_key(entry['ncbi-taxa-id']):
                 db_taxa_id = taxonIdMap[entry['ncbi-taxa-id']]
 
             ## check that the linked gene taxa is the same as the entry taxa
@@ -333,7 +333,7 @@ def populate_uniprot_table(lineCount,session,engine):
                 db_gene_taxa_id = session.query(Gene).filter_by(id=db_gene_id).first().taxa_id
             if db_taxa_id and db_gene_id:
                 if db_taxa_id != db_gene_taxa_id:
-                    print("WARNING: two taxa present in single uniprot entry? %s %s "%(unprotKbEntry,\
+                    print("WARNING: two taxa present in single uniprot entry? %s %s "%(uniprotKbEntry,\
                                                                                        entry['gene-id']))
             ## if no taxa was provdied use the one assocated with the linked gene
             if db_gene_taxa_id and not db_taxa_id:

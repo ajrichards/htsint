@@ -77,7 +77,7 @@ push_out(addedStr)
 
 ##  uniprot table
 push_out("Populating the database with %s uniprot entries"%(idmapCount))
-timeStr,addedStr,failTaxaCheck = populate_uniprot_table(idmapCount,session,engine)
+timeStr,addedStr = populate_uniprot_table(idmapCount,session,engine)
 push_out(timeStr)
 push_out(addedStr)
 push_out("uniprot entries skipped due to failed taxa check: %s"%failTaxaCheck)
