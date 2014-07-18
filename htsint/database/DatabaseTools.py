@@ -317,7 +317,7 @@ def populate_uniprot_table(lineCount,session,engine):
             elif geneIdMap.has_key(entry['gene-id']):
                 db_gene_id = geneIdMap[entry['gene-id']]
             elif not geneIdMap.has_key(entry['gene-id']):
-                _geneIds = [re.sub("\s+","",_ncid) for _ncid in ncbiId.split(";")]
+                _geneIds = [re.sub("\s+","",_ncid) for _ncid in entry['gene-id'].split(";")]
                 db_gene_id = None
         
                 for _gid in _geneIds:
