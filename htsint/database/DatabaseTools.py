@@ -331,10 +331,11 @@ def populate_uniprot_table(lineCount,session,engine):
             ## check that the linked gene taxa is the same as the entry taxa
             if db_gene_id:
                 db_gene_taxa_id = session.query(Gene).filter_by(id=db_gene_id).first().taxa_id
-            if db_taxa_id and db_gene_id:
-                if db_taxa_id != db_gene_taxa_id:
-                    print("WARNING: two taxa present in single uniprot entry? %s %s "%(uniprotKbEntry,\
-                                                                                       entry['gene-id']))
+            #if db_taxa_id and db_gene_id:
+            #    if db_taxa_id != db_gene_taxa_id:
+            #        print("WARNING: two taxa present in single uniprot entry? %s %s "%(uniprotKbEntry,\
+            #                                                                           entry['gene-id']))
+
             ## if no taxa was provdied use the one assocated with the linked gene
             if db_gene_taxa_id and not db_taxa_id:
                 db_taxa_id = db_gene_taxa_id
