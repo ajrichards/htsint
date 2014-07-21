@@ -80,7 +80,6 @@ push_out("Populating the database with %s uniprot entries"%(idmapCount))
 timeStr,addedStr = populate_uniprot_table(idmapCount,session,engine)
 push_out(timeStr)
 push_out(addedStr)
-push_out("uniprot entries skipped due to failed taxa check: %s"%failTaxaCheck)
 
 ## populate the go-terms
 push_out("Populating the database with for go terms...")
