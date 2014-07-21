@@ -71,6 +71,7 @@ class DatabaseTest(unittest.TestCase):
         self.assertEqual(self.session.query(Taxon).filter_by(id=uniprotQuery.taxa_id).first().ncbi_id,7227)
         self.assertEqual(self.session.query(Taxon).filter_by(id=uniprotGeneQuery.taxa_id).first().ncbi_id,7227)
 
+    '''
     def testGoTerm(self):
         """
         test the GoTerm table
@@ -119,7 +120,7 @@ class DatabaseTest(unittest.TestCase):
         
         notfinished
         codingGenesTaxa = [g.taxa_id for g in session.query(Gene).filter(Gene.id.in_(codingGenes)).all()]
-
+    '''
 
 
     '''

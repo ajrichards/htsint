@@ -19,11 +19,13 @@ noTaxaYesNcbi = 0
 
 ac2kbMap = {}
 toAdd = {}
+totalUniprot = 0#set([])
 
 def queue_entries(toAdd,ac2kbMap):
     ## do something
-    if ac2kbMap.has_key('P07663'):
-        print toAdd['PER_DROME']
+    pass
+    #if ac2kbMap.has_key('P07663'):
+    #    print toAdd['PER_DROME']
 
 for record in reader:
 
@@ -59,26 +61,25 @@ for record in reader:
         ## queue in intervals
         totalRecords += 1 
         if totalRecords % 100000 == 0:
-            print total
             queue_entries(toAdd,ac2kbMap)
             toAdd,ac2kbMap = {},{}
 
+        #ac2kbMap[uniprotKbAc] = uniprotKbEntry
+        #toAdd[uniprotKbEntry] = {'ncbi-taxa-id':None,
+        #                         'gene-id':None,
+        #                         'uniprot-ac':set([]),
+        #                         'refseq':set([])}
+        #totalUniprot.update([uniprotKbEntry])
 
-        ac2kbMap[uniprotKbAc] = uniprotKbEntry
-        toAdd[uniprotKbEntry] = {'ncbi-taxa-id':None,
-                                 'gene-id':None,
-                                 'uniprot-ac':set([]),
-                                 'refseq':set([])}
-        
     ## populate uniprot dictionary
-    toAdd[uniprotKbEntry]['uniprot-ac'].update([uniprotKbAc])
-
-    if ncbiTaxaId:
-        toAdd[uniprotKbEntry]['ncbi-taxa-id'] = ncbiTaxaId
-    elif ncbiId:
-        toAdd[uniprotKbEntry]['gene-id'] = ncbiId
-    elif refseq:
-        toAdd[uniprotKbEntry]['refseq'].update([refseq])
+    #toAdd[uniprotKbEntry]['uniprot-ac'].update([uniprotKbAc])
+    #
+    #if ncbiTaxaId:
+    #    toAdd[uniprotKbEntry]['ncbi-taxa-id'] = ncbiTaxaId
+    #elif ncbiId:
+    #    toAdd[uniprotKbEntry]['gene-id'] = ncbiId
+    #elif refseq:
+    #    toAdd[uniprotKbEntry]['refseq'].update([refseq])
 
 print("run time... %s"%time.strftime('%H:%M:%S',time.gmtime(time.time()-timeStart)))
 

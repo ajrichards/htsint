@@ -361,9 +361,9 @@ def populate_uniprot_table(lineCount,session,engine):
             toCommit.append({'uniprot_ac':entry['uniprot-ac'],'uniprot_entry':uniprotKbEntry,
                              'refseq':entry['refseq'],'taxa_id':db_taxa_id,'gene_id':db_gene_id})
             
-            with engine.begin() as connection:
-                connection.execute(Uniprot.__table__.insert().
-                                   values(toCommit))
+        with engine.begin() as connection:
+            connection.execute(Uniprot.__table__.insert().
+                               values(toCommit))
 
     ## parse the idmapping file into the db
     for record in reader:
