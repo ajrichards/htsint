@@ -71,7 +71,6 @@ class DatabaseTest(unittest.TestCase):
         self.assertEqual(self.session.query(Taxon).filter_by(id=uniprotQuery.taxa_id).first().ncbi_id,7227)
         self.assertEqual(self.session.query(Taxon).filter_by(id=uniprotGeneQuery.taxa_id).first().ncbi_id,7227)
 
-    '''
     def testGoTerm(self):
         """
         test the GoTerm table
@@ -98,9 +97,10 @@ class DatabaseTest(unittest.TestCase):
         terms2 = [self.session.query(GoTerm).filter_by(id = a.go_term_id).first().name for a in annotations2['31251']]
         self.assertTrue("circadian rhythm" in terms2)
 
-    def testGeneIdUniqueness(self):
+    def testIdUniqueness(self):
         """
         test that gene ids are unique and we have only one entry for each
+        test that the uniprot entries are unique and we have only one for each
         """
         
         taxonId = '9606'
@@ -108,27 +108,15 @@ class DatabaseTest(unittest.TestCase):
         geneIds = [g.ncbi_id for g in self.session.query(Gene).filter_by(taxa_id=taxaQuery.id).all()]
         self.assertEqual(len(geneIds), len(list(set(geneIds))))
 
-    def testTaxaIdConsistency:
-        """
-        Uniprot entries link to taxa ids via themselves and through Gene entries
-        """
-
-        taxonQuery = session.query(Taxon).filter_by(ncbi_id='8364').first()
-        #    geneQuery = session.query(Gene).filter_by(taxa_id=taxaQuery.id).all()
-        uniprotQuery = session.query(Uniprot).filter_by(taxa_id=taxonQuery.id).all()
-        uniprotGenes = list(set([u.gene_id for u in uniprotQuery]))
-        
-        notfinished
-        codingGenesTaxa = [g.taxa_id for g in session.query(Gene).filter(Gene.id.in_(codingGenes)).all()]
-    '''
-
+        uniprotIds = [u.id for u in self.session.query(Uniprot).filter_by(taxa_id=taxaQuery.id).all()]
+        self.assertEqual(len(uniprotIds), len(list(set(uniprotIds))))
 
     '''
     def testAnnotationEquality(self):
         """
         Fetching annotations with uniprot + gene entities should get the same results as with taxa_id
-        This test takes some time but should still pass (by default it is commented out
-
+        This test takes some time but should still pass 
+        commented out by default
         """
 
         taxonId = '7091'
