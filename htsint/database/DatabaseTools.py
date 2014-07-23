@@ -664,12 +664,16 @@ def print_db_summary():
     print a summary of rows and tables for the database
     """
     
+    print('querying database...')
+    printstr = ""
     session,engine = db_connect(verbose=False)
+    printstr += "\nDATABASE - %s - SUMMARY"%CONFIG['dbname'] + "\n"
     print("\nDATABASE - %s - SUMMARY"%CONFIG['dbname'])
     for table in [Taxon,Gene,Uniprot,GoTerm,GoAnnotation]:
         print("There are %s entries in the %s table"%(session.query(table).count(),table.__tablename__))
-    print "\n"
+        printstr += "There are %s entries in the %s table"%(session.query(table).count(),table.__tablename__) + "\n"
 
+    return printstr
 
 def get_idmapping_file():
     """
