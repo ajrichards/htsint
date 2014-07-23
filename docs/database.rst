@@ -8,4 +8,10 @@ Because ``htsint`` was originally intended for use with non-model organisms and 
 Because *Entry Name* is not a stable identifier, we begin our database with UniProtKB *accession numbers*.  We are also interested in :doc:`name mapping <name-mapping>` so we include a table for `GeneIDs <http://www.ncbi.nlm.nih.gov/gene>`_.  UniProtKB accessions and NCBI's GeneID have an associated taxon.  Because the integration of functional annotation information is crucial to genomics applications we include tables for `Gene Ontology <http://www.geneontology.org>`_ terms and annotations.
 
 
+Database migration or to create a backup
+----------------------------------------
+
+   .. code-block:: bash
+
+      ~$ pg_dump -h localhost -U dbuser dbname > htsint.sql
 

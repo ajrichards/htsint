@@ -507,8 +507,6 @@ def populate_go_annotations(totalAnnotations,session,engine):
     toAdd = []
     annotationFile = get_annotation_file()
     annotationFid = open(annotationFile,'rU')
-    gene2goFile = get_gene2go_file()
-    gene2goFid = open(gene2goFile,'rU')
     wayPoints = [round(int(w)) for w in np.linspace(0,totalAnnotations,20)]
     annotationCount = 0
 
@@ -613,6 +611,8 @@ def populate_go_annotations(totalAnnotations,session,engine):
     annotationFid.close()
     
     ## add annotations from gene2go
+    gene2goFile = get_gene2go_file()
+    gene2goFid = open(gene2goFile,'rU')
     ignoredAnnotationsGene = 0 
     print("...getting annotations from gene2go")
     header = gene2goFid.next()
