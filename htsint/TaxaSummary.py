@@ -7,7 +7,7 @@ with respect to the information contained in the database
 __author__ = "Adam Richards"
 
 import csv,re,sys
-from htsint.database import db_connect,Taxon,Gene,Uniprot,GoAnnotation,fetch_annotations
+from htsint.database import db_connect,Taxon,Gene,Uniprot,GoAnnotation,fetch_annotations,get_evidence_codes
 
 class TaxaSummary(object):
     """
@@ -82,7 +82,7 @@ class TaxaSummary(object):
             
             show_contents(columns,[query[0].ncbi_id, query[0].name, query[0].common_name_1])
 
-    def print_annotation_summary(self,minCoverage=5.0,useIea=False):
+    def print_annotation_summary(self,minCoverage=0.0,useIea=False):
         """
         print a summary of the annotation information
         """
@@ -137,9 +137,12 @@ class TaxaSummary(object):
         """
         return the annotation summary information for a taxa
         """
-
+        
+        acceptedCodes = get_evidence_codes(useIea=useIea)
         taxaQuery = self.session.query(Taxon).filter_by(ncbi_id=taxonId).first()
-        annotations = self.session.query(GoAnnotation).filter_by(taxa_id=taxaQuery.id).all()
+        annotations = self.session.query(GoAnnotation).filter(GoAnnotation.taxa_id==taxaQuery.id).\
+                      filter(GoAnnotation.evidence_code.in_(acceptedCodes)).all()
+
         geneIds = [g.id for g in self.session.query(Gene).filter_by(taxa_id=taxaQuery.id).all()]
         uniprotQuery = self.session.query(Uniprot).filter_by(taxa_id=taxaQuery.id).all()
 
@@ -160,27 +163,34 @@ class TaxaSummary(object):
 
         ## remove genes covered that are not of the correct taxa (i.e. viral)
         apQuery = [self.session.query(Uniprot).filter_by(id=uid).first() for uid in annotatedProts]
-        _genesFromUniport = [self.session.query(Gene).filter_by(id=uq.gene_id) for uq in apQuery]
+        _genesFromUniprot = [self.session.query(Gene).filter_by(id=uq.gene_id).first() for uq in apQuery]
         
-        if _genesFromUniprot == None:
+        if not _genesFromUniprot:
             geneIdsFromUniprot = []
         else:
             remove_empty(_genesFromUniprot)
             genesFromUniprot = []
 
             for gene in _genesFromUniprot:
-                if self.session.query(Taxon).filter_by(id=gene.taxa_id).first().ncbi_id == taxonId:
+                if gene == None:
+                    continue
+                geneTaxonId = self.session.query(Taxon).filter_by(id=gene.taxa_id).first()
+                if int(geneTaxonId.ncbi_id) == int(taxonId):
                     genesFromUniprot.append(gene)
-            geneIdsFromUniprot = [g.id for g in genesFromUniprot]
+          
+            geneIdsFromUniprot = [str(g.id) for g in genesFromUniprot]
+
+        
+        annotatedGenes = [str(a) for a in annotatedGenes]
 
         ## get total genes covered (uniprot + ncbi)
         genesCovered = list(set(annotatedGenes).union(set(geneIdsFromUniprot)))
-        
+
         ## calculate coverage
         if len(genesCovered) == 0 or len(codingGenes) == 0:
             percentage = 0.0
         else:
-            percentage = '%s'%(round((float(len(genesCovered))/float(len(codingGenes))) * 100.0,4))
+            percentage = '%s'%(round((float(len(genesCovered))/float(len(geneIds))) * 100.0,4))
 
         results = {"num_gene":len(geneIds),
                    "num_uniprot":len(uniprotQuery),
