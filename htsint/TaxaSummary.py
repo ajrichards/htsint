@@ -82,7 +82,7 @@ class TaxaSummary(object):
             
             show_contents(columns,[query[0].ncbi_id, query[0].name, query[0].common_name_1])
 
-    def print_annotation_summary(self,minCoverage=5.0):
+    def print_annotation_summary(self,minCoverage=5.0,useIea=False):
         """
         print a summary of the annotation information
         """
@@ -120,7 +120,7 @@ class TaxaSummary(object):
         print(head)
 
         for taxon in self.taxaList:
-            summary = self.get_annotation_summary(taxon)
+            summary = self.get_annotation_summary(taxon,useIea=useIea)
 
             if float(summary["coverage"]) < minCoverage:
                 continue
@@ -133,7 +133,7 @@ class TaxaSummary(object):
                      summary["coverage"]]
             show_contents(columns,items)
 
-    def get_annotation_summary(self,taxonId):
+    def get_annotation_summary(self,taxonId,useIea=False):
         """
         return the annotation summary information for a taxa
         """
@@ -158,16 +158,29 @@ class TaxaSummary(object):
         remove_empty(annotatedGenes)
         remove_empty(annotatedProts)
 
+        ## remove genes covered that are not of the correct taxa (i.e. viral)
         apQuery = [self.session.query(Uniprot).filter_by(id=uid).first() for uid in annotatedProts]
-        #apQuery = self.session.query(Uniprot).filter(Uniprot.id.in_(annotatedProts)).all()
-        genesFromUniprot = list(set([uq.gene_id for uq in apQuery]))
-        remove_empty(genesFromUniprot)
-        genesCovered = list(set(annotatedGenes).union(set(genesFromUniprot)))
+        _genesFromUniport = [self.session.query(Gene).filter_by(id=uq.gene_id) for uq in apQuery]
+        
+        if _genesFromUniprot == None:
+            geneIdsFromUniprot = []
+        else:
+            remove_empty(_genesFromUniprot)
+            genesFromUniprot = []
 
+            for gene in _genesFromUniprot:
+                if self.session.query(Taxon).filter_by(id=gene.taxa_id).first().ncbi_id == taxonId:
+                    genesFromUniprot.append(gene)
+            geneIdsFromUniprot = [g.id for g in genesFromUniprot]
+
+        ## get total genes covered (uniprot + ncbi)
+        genesCovered = list(set(annotatedGenes).union(set(geneIdsFromUniprot)))
+        
         ## calculate coverage
         if len(genesCovered) == 0 or len(codingGenes) == 0:
             percentage = 0.0
-        percentage = '%s'%(round((float(len(genesCovered))/float(len(codingGenes))) * 100.0,4))
+        else:
+            percentage = '%s'%(round((float(len(genesCovered))/float(len(codingGenes))) * 100.0,4))
 
         results = {"num_gene":len(geneIds),
                    "num_uniprot":len(uniprotQuery),

@@ -11,7 +11,20 @@ Because *Entry Name* is not a stable identifier, we begin our database with UniP
 Database migration or to create a backup
 ----------------------------------------
 
+To create a file that may be transferred to another computer
+
    .. code-block:: bash
 
       ~$ pg_dump -h localhost -U dbuser dbname > htsint.sql
+      
 
+To add the database to another server
+
+   .. code-block:: bash
+
+      ~$ sudo su - postgres
+      ~$ psql -U postgres
+      CREATE USER dbuser WITH ENCRYPTED PASSWORD 'somepassword';
+      CREATE DATABASE newdbname WITH OWNER dbuser; 		   
+      \q
+      ~$ psql newdbname < htsint.sql

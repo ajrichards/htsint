@@ -164,7 +164,7 @@ def get_gene2go_file():
 
     return annotationFile
 
-def get_evidence_codes():
+def get_evidence_codes(useIea=False):
     """
     returns the list of evidence codes to be used by default
     """
@@ -174,10 +174,13 @@ def get_evidence_codes():
     statEvidCodes = ["TAS","NAS","IC"]
     nonCuratedEvidCodes = ["IEA"]
 
-    return expEvidCodes + statEvidCodes + compEvidCodes
+    if useIea == False:
+        return expEvidCodes + statEvidCodes + compEvidCodes
+    else:
+        return expEvidCodes + statEvidCodes + compEvidCodes + nonCuratedEvidCodes
 
 def fetch_annotations(identifiers,session,aspect='biological_process',
-                      idType='uniprot',asTerms=True):
+                      idType='uniprot',asTerms=True,useIea=False):
     """
     Fetch the go annotations for a given list of identifiers
 
@@ -193,7 +196,7 @@ def fetch_annotations(identifiers,session,aspect='biological_process',
 
     """
 
-    acceptedCodes = get_evidence_codes()
+    acceptedCodes = get_evidence_codes(useIea=useIea)
 
     if aspect not in ['biological_process','cellular_component','molecular_function']:
         raise Exception("Invalid aspect specified")
