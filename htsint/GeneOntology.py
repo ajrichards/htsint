@@ -88,7 +88,7 @@ class GeneOntology(object):
 
         return summary
 
-    def get_dicts(self,aspect='biological_process',filePath=None):
+    def get_dicts(self,aspect='biological_process',filePath=None,useIea=False):
         """
         get the go2gene and gene2go dictionaries
         """
@@ -104,7 +104,8 @@ class GeneOntology(object):
 
         ## gene2go
         print "...creating gene2go dictionary -- this may take several minutes or hours depending on the number of genes"
-        gene2go = fetch_annotations(self.geneList,self.session,aspect=aspect,idType=self.idType,asTerms=True)
+        gene2go = fetch_annotations(self.geneList,self.session,aspect=aspect,idType=self.idType,
+                                    asTerms=True,useIea=useIea)
 
         ## go2gene
         print "...creating go2gene dictionary -- this may take several minutes"
@@ -193,12 +194,15 @@ class GeneOntology(object):
             parent,child = nodes.split("#")
             G.add_edge(parent,child,weight=weight)
         
-        ## save it to pickle format
+        ## create a minimum spanning tree to save
+        mstG = nx.minimum_spanning_tree(G)
+
+        ## save mst to pickle format
         if graphPath != None:
-            nx.write_gpickle(G, graphPath)
+            nx.write_gpickle(mstG, graphPath)
             print '...saving pickle graph'
 
-        return G
+        return mstG
 
     def get_weights_by_ic(self,goDict,go2gene):
         """

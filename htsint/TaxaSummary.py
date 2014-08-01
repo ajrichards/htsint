@@ -179,7 +179,6 @@ class TaxaSummary(object):
                     genesFromUniprot.append(gene)
           
             geneIdsFromUniprot = [str(g.id) for g in genesFromUniprot]
-
         
         annotatedGenes = [str(a) for a in annotatedGenes]
 

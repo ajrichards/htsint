@@ -13,6 +13,10 @@ try:
 except:
     CONFIG = None
 
+def remove_empty(lst):
+    if None in lst:
+        lst.remove(None)
+
 def get_ontology_file():
     """
     check for presence of ontology file
@@ -178,6 +182,53 @@ def get_evidence_codes(useIea=False):
         return expEvidCodes + statEvidCodes + compEvidCodes
     else:
         return expEvidCodes + statEvidCodes + compEvidCodes + nonCuratedEvidCodes
+
+def get_annotated_genes(session,taxonId,useIea=False,aspect='biological_process',filterTaxa=True):
+    """
+    fetch annotations by taxa
+    """
+
+    if aspect not in ['biological_process','cellular_component','molecular_function']:
+        raise Exception("Invalid aspect specified")
+
+    taxaQuery = session.query(Taxon).filter_by(ncbi_id=taxonId).first()
+    acceptedCodes = get_evidence_codes(useIea=useIea)
+    annotations = session.query(GoAnnotation).join(GoTerm).\
+                  filter(GoAnnotation.taxa_id==taxaQuery.id).\
+                  filter(GoAnnotation.evidence_code.in_(acceptedCodes)).\
+                  filter(GoTerm.aspect==aspect).all()
+
+    annotatedGenes = list(set([a.gene_id for a in annotations]))
+    annotatedProts = list(set([a.uniprot_id for a in annotations]))
+    remove_empty(annotatedGenes)
+    remove_empty(annotatedProts)
+    
+    if filterTaxa == False:
+        return [session.query(Gene).filter_by(id=gid).first().ncbi_id for gid in annotatedGenes]
+
+    ## remove genes covered that are not of the correct taxa (i.e. viral) 
+    apQuery = [session.query(Uniprot).filter_by(id=uid).first() for uid in annotatedProts]
+    _genesFromUniprot = [session.query(Gene).filter_by(id=uq.gene_id).first() for uq in apQuery]
+
+    if not _genesFromUniprot:
+        geneIdsFromUniprot = []
+    else:
+        remove_empty(_genesFromUniprot)
+        genesFromUniprot = []
+
+        for gene in _genesFromUniprot:
+            if gene == None:
+                continue
+            geneTaxonId = session.query(Taxon).filter_by(id=gene.taxa_id).first()
+            if int(geneTaxonId.ncbi_id) == int(taxonId):
+                genesFromUniprot.append(gene)
+
+        geneIdsFromUniprot = [str(g.id) for g in genesFromUniprot]
+
+    annotatedGenes = list(set(annotatedGenes).union(set(geneIdsFromUniprot)))
+    remove_empty(annotatedGenes)
+
+    return [session.query(Gene).filter_by(id=gid).first().ncbi_id for gid in annotatedGenes]
 
 def fetch_annotations(identifiers,session,aspect='biological_process',
                       idType='uniprot',asTerms=True,useIea=False):
