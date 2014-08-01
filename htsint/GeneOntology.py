@@ -194,15 +194,12 @@ class GeneOntology(object):
             parent,child = nodes.split("#")
             G.add_edge(parent,child,weight=weight)
         
-        ## create a minimum spanning tree to save
-        mstG = nx.minimum_spanning_tree(G)
-
         ## save mst to pickle format
         if graphPath != None:
-            nx.write_gpickle(mstG, graphPath)
+            nx.write_gpickle(G, graphPath)
             print '...saving pickle graph'
 
-        return mstG
+        return G
 
     def get_weights_by_ic(self,goDict,go2gene):
         """
