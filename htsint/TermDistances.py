@@ -39,9 +39,13 @@ class TermDistances(object):
 
         ## load the term graph and the terms
         self.G = nx.read_gpickle(self.termGraphPath)
-        
+        tmp = open(self.termsPath,'r')
+        self.gene2go,self.go2gene = cPickle.load(tmp)
+        tmp.close()
+
         ## variables
-        self.totalTerms = float(len(self.gene2go.keys()))
+        self.terms = self.go2gene.keys()
+        self.totalTerms = float(len(self.terms))
         self.totalDistances = ((self.totalTerms*(self.totalTerms+1))/2) - self.totalTerms
 
     def create_scripts(self,email,name='dist',cpus=1):
@@ -81,7 +85,6 @@ class TermDistances(object):
                     "#$ -o %s\n"%submitLog +
                     "/usr/bin/python "+ script + args)
 
-            print script + args
             f.close()
             self.queue.append(submitFile)
             begin = stop
@@ -117,14 +120,12 @@ class TermDistances(object):
 
         count = -1
 
-        for i in range(len(int(self.totalTerms))):
-            termI = self.G.nodes()[i]
+        for i,termI in enumerate(self.terms):
             
             if i % 20 == 0:
-                print "%s/%s"%(i,len(self.totalTerms))
+                print "%s/%s"%(i,len(self.terms))
 
-            for j in range(len(int(totalTerms))):
-                termj = self.G.nodes()[j]
+            for j,termJ in enumerate(self.terms):
                 if j >= i:
                     continue
                 count += 1
@@ -132,11 +133,12 @@ class TermDistances(object):
                     continue
                 
                 ## find the distance
-                distances = self.get_distance(termsI,termsJ)
+                distance = self.get_distance(termI,termJ)
+
                 if distance != None:
                     writer.writerow([termI,termJ,distance])
 
-        outfid.close()
+        outFid.close()
 
     def get_distance(self,source,sink):
         """
@@ -144,12 +146,10 @@ class TermDistances(object):
         """
 
         minDistance = 1e8
-        if self.G.has_node(source) == False or self.G.has_node(sink):
-            return None
-
-        (dijkDist, dijkPath) = nx.bidirectional_dijkstra(self.G,source,sink)
-
-        return dikjDist
+        if self.G.has_node(source) and self.G.has_node(sink):
+            (dijkDist, dijkPath) = nx.bidirectional_dijkstra(self.G,source,sink)
+            return dijkDist
+        return None
 
 if __name__ == "__main__":
     ## read in input file      
@@ -175,11 +175,5 @@ if __name__ == "__main__":
         if o == '-r':
             resultsDir  = a
 
-    gd = GeneDistances(termsPath,termGraphPath,resultsDir)
-    gd.run(first=first,last=last)
-
-if __name__ == "__main__":
-    print "testing..."
-
-    gd = TermDistances(termsPath,graphPath)
-    gd.create_scripts('adam.richards@ecoex-moulis.cnrs.fr',cpus=100)
+    td = TermDistances(termsPath,termGraphPath,resultsDir)
+    td.run(first=first,last=last)

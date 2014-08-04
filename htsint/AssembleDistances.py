@@ -49,8 +49,9 @@ class AssembleDistances(object):
         tmp.close()
 
         ## variables
-        self.totalGenes = float(len(self.gene2go.keys()))
-        self.totalDistances = ((self.totalGenes*(self.totalGenes+1))/2) - self.totalGenes
+        self.terms = self.go2gene.keys()
+        self.totalTerms = float(len(self.terms))
+        self.totalDistances = ((self.totalTerms*(self.totalTerms+1))/2) - self.totalTerms
         self.appendedDistances = 0
 
     def run(self,name='dist',cpus=1):
