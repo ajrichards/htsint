@@ -17,7 +17,7 @@ from htsint.blast import Blast
 
 class ParallelBlast(object):
     
-    def __init__(self,queryFile,database,BLASTDB=None,resultsDir=os.path.join(".","cluster")):
+    def __init__(self,queryFile,database,BLASTDB=None,resultsDir=os.path.join(".","cluster"),cmd='blastx'):
         """ 
         Constructor
         queryFile - is a fasta file of sequences
@@ -30,6 +30,7 @@ class ParallelBlast(object):
         self.resultsDir = os.path.realpath(resultsDir)
         self.submitFileNames = []
         self.evalue = 0.05
+        self.cmd = cmd
 
         ## ensure the results directory present and clean
         for dirName in [self.resultsDir]:
@@ -47,7 +48,7 @@ class ParallelBlast(object):
 
         ## variables
         script = os.path.join(__basedir__,"blast","Blast.py")
-        
+
         handleIn = open(self.queryFile, "rU")
         total = 0
         for record in SeqIO.parse(handleIn,"fasta") :
@@ -69,8 +70,8 @@ class ParallelBlast(object):
             ## make a file for each chunk
             submitFile = os.path.join(self.resultsDir,"%s-%s.sh"%(name,i))
             submitLog =  os.path.join(self.resultsDir,"%s-%s.log"%(name,i))
-            args = " -f %s -l %s -q %s -d %s -e %s -o %s"%(begin,stop,self.queryFile,self.database,
-                                                             self.evalue,self.resultsDir)
+            args = " -f %s -l %s -q %s -d %s -e %s -o %s -c %s"%(begin,stop,self.queryFile,self.database,
+                                                                 self.evalue,self.resultsDir,self.cmd)
             f = open(submitFile, 'w')
             f.write("#!/bin/bash\n" + 
                     "#$ -S /bin/bash\n" +

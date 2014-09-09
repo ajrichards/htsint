@@ -90,7 +90,7 @@ class Blast(object):
         return newQueryFile
 
     def run_blastx(self,targetDB,outDir=".",evalue=0.05,
-                   start=None,stop=None):
+                   start=None,stop=None,cmd='blastx'):
         """
         targetDB - is the protein database to blast against
         outDir   - a place to put all output files other than cwd
@@ -123,7 +123,7 @@ class Blast(object):
         print 'Running blast'
         timeStart = time.time()
         blastx_cline = NcbiblastxCommandline(query=query, db=targetDB, evalue=evalue,
-                                             outfmt=5, out=outFilePath,cmd='blastx')
+                                             outfmt=5, out=outFilePath,cmd=cmd)
         stdout, stderr = blastx_cline()
         print "Total run time: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
 
@@ -135,12 +135,12 @@ if __name__ == "__main__":
         sys.exit()
 
     try:
-        optlist, args = getopt.getopt(sys.argv[1:], 'f:l:q:d:e:o:')
+        optlist, args = getopt.getopt(sys.argv[1:], 'f:l:q:d:e:o:c:')
     except getopt.GetoptError:
-        raise Exception(sys.argv[0] + "-f first -l last -q query_file -d database -e evalue -o outdir")
+        raise Exception(sys.argv[0] + "-f first -l last -q query_file -d database -e evalue -o outdir -c cmd")
         sys.exit()
 
-    first,last,query,database,evalue = None,None,None,None,None
+    first,last,query,database,evalue,cmd = None,None,None,None,None,None
     for o,a in optlist:
         if o == '-f':
             first = int(a)
@@ -154,6 +154,8 @@ if __name__ == "__main__":
             evalue  = float(a)
         if o == '-o':
             outdir  = a
+        if o == '-c':
+            cmd  = a
 
-    blast = Blast(query,)
-    blast.run_blastx(database,outDir=outdir,start=first,stop=last,evalue=evalue)
+    blast = Blast(query)
+    blast.run_blastx(database,outDir=outdir,start=first,stop=last,evalue=evalue,cmd=cmd)

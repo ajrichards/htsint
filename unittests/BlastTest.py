@@ -58,7 +58,7 @@ class BlastTest(unittest.TestCase):
         outFile = "adh-0-2.xml"
         targetDB = "swissprot"
         start,stop = 0,2
-        self.blast.run_blastx(targetDB,evalue=0.1,start=start,stop=stop)
+        self.blast.run_blastx(targetDB,evalue=0.1,start=start,stop=stop,cmd='blastx')
     
         ## read the blast
         parser = ParseBlast(outFile,outDir=".")
