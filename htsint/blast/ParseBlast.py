@@ -84,14 +84,15 @@ class ParseBlast(object):
             print "\rparsing... %s"%(totalResults),
             if record.alignments:
                 query = record.query
-                identifier = record.alignments[0].accession
-                hitIdLong = record.alignments[0].title
-                escore = record.alignments[0].hsps[0].expect
-                bitScore =  record.alignments[0].hsps[0].score
+                for align in record.alignments:
+                    identifier = align.accession
+                    hitIdLong = align.title
+                    escore = align.hsps[0].expect
+                    bitScore =  align.hsps[0].score
                 
-                ## remove any commas and write the results
-                self.resultsWriter.writerow([re.sub(",", "", x) for x in [query,str(identifier),hitIdLong]] + [escore,bitScore])
-                hasResults += 1
+                    ## remove any commas and write the results
+                    self.resultsWriter.writerow([re.sub(",", "", x) for x in [query,str(identifier),hitIdLong]] + [escore,bitScore])
+                    hasResults += 1
 
         self.push_out("total blasted sequences: %s"%totalResults)
         self.push_out("sequences with results : %s"%hasResults)

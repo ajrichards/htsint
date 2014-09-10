@@ -53,7 +53,7 @@ class ParseParallelBlast(object):
         ## prepare a results outfile
         self.fid2 = open(os.path.join(self.resultsDir,resultsNameBase+'_1.csv'),'w')
         self.resultsWriter = csv.writer(self.fid2)
-        self.resultsWriter.writerow(["query_contig","query_isogroup","query_length","accession","e-score","bit-score"])
+        self.resultsWriter.writerow(["query","hit-identifier","hit-identifier-long","e-score","bit-score"])
         
         ## get the start and stop points
         handleIn = open(self.queryFile, "rU")
