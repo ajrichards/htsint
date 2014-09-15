@@ -7,10 +7,11 @@ These are helper scripts to populate the database
 import sys,os,re,time,csv
 import sqlalchemy
 import getpass
+import gc
 import numpy as np
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from DatabaseTables import Base,Taxon,Gene,Uniprot,GoTerm,GoAnnotation
+from DatabaseTables import Base,Taxon,Gene,Refseq,Uniprot,GoTerm,GoAnnotation
 from DatabaseTables import taxa_mapper,gene_mapper,uniprot_mapper,goterm_mapper
 from htsint.database import get_annotation_file, get_ontology_file, get_gene2go_file
 
@@ -222,6 +223,7 @@ def populate_gene_table(geneInfoCount,session,engine):
     header = geneInfoFid.next()
     taxaIdMap = taxa_mapper(session)
 
+    gc.disable()
     for record in geneInfoFid:
         record = record.rstrip("\n")
         record = record.split("\t")
@@ -262,6 +264,7 @@ def populate_gene_table(geneInfoCount,session,engine):
         if totalRecords in wayPoints:
             print("\t%s / %s"%(totalRecords,total))
 
+    gc.enable()
     print('committing changes...')
     toRemove = []
     for ta in toAdd:
@@ -277,13 +280,156 @@ def populate_gene_table(geneInfoCount,session,engine):
         connection.execute(Gene.__table__.insert().
                            values(toAdd))
 
-    #del taxaIdMap
-
+    ## clean up
     geneInfoFid.close()
     timeStr = "...total time taken: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
     addedStr = "...%s unique genes were added."%totalRecords
     return timeStr,addedStr
-    
+
+def populate_refseq_table(session,engine):
+    """
+    populate the refseq table with entries from gene2refseq
+
+    http://www.ncbi.nlm.nih.gov/books/NBK21091/table/ch18.T.refseq_accession_numbers_and_mole/?report=objectonly
+
+    """
+
+    timeStart = time.time()
+    totalLines,totalRecords = 0,0
+    idmappingFile = get_idmapping_file()
+    idmappingFid = open(idmappingFile,'rb')
+    reader = csv.reader(idmappingFid,delimiter="\t")
+    toAdd = {}
+
+    ## get line count
+    gene2refseqFile = os.path.join(CONFIG['data'],"gene2refseq.db")
+    gene2refseqFid = open(gene2refseqFile,'rU')
+    reader = csv.reader(gene2refseqFid,delimiter="\t")
+    header = reader.next()
+    lineCount = 0
+    for linja in reader:
+        lineCount += 1
+    gene2refseqFid.close()
+
+    wayPoints = [round(int(w)) for w in np.linspace(0,lineCount,20)]
+
+    print("getting mappers...")
+    geneIdMap = gene_mapper(session)
+    taxonIdMap = taxa_mapper(session)
+    print("mappers loaded... %s"%time.strftime('%H:%M:%S',time.gmtime(time.time()-timeStart)))
+
+    def queue_entries(toAdd,geneIdMap,taxonIdMap,engine):
+
+        toCommit = []
+        for entry in toAdd:
+            db_gene_id = None
+            db_taxa_id = None
+
+            ## convert the gene id to a database key (check old names if we cannot find it)
+            if entry['gene_id'] == None:
+                pass
+            elif geneIdMap.has_key(entry['gene_id']):
+                db_gene_id = geneIdMap[entry['gene_id']]
+            elif not geneIdMap.has_key(entry['gene_id']):
+                _geneIds = [re.sub("\s+","",_ncid) for _ncid in entry['gene_id'].split(";")]
+                db_gene_id = None
+        
+                for _gid in _geneIds:
+                    if geneIdMap.has_key(_gid):
+                        db_gene_id= _gid
+
+            ## convert the taxa id to a database key
+            if entry['taxa_id'] and taxonIdMap.has_key(entry['taxa_id']):
+                db_taxa_id = taxonIdMap[entry['taxa_id']]
+
+            for key in entry.iterkeys():
+                if len(entry[key]) == 0:
+                    entry[key] = None
+
+            ## commit to db
+            toCommit.append({'status':entry['status'],
+                             'RNA_nucleotide_accession':entry['RNA_nucleotide_accession'],
+                             'RNA_nucleotide_gi':entry['RNA_nucleotide_gi'],
+                             'protein_accession':entry['protein_accession'],
+                             'protein_gi':entry['protein_gi'],
+                             'genomic_nucleotide_accession':entry['genomic_nucleotide_accession'],
+                             'genomic_nucleotide_gi':entry['genomic_nucleotide_gi'],
+                             'start_position_on_the_genomic_accession':entry['start_position_on_the_genomic_accession'],
+                             'end_position_on_the_genomic_accession':entry['end_position_on_the_genomic_accession'],
+                             'orientation':entry['orientation'],
+                             'assembly':entry['assembly'],
+                             'mature_peptide_accession':entry['mature_peptide_accession'],
+                             'mature_peptide_gi':entry['mature_peptide_gi'],
+                             'taxa_id':db_taxa_id,
+                             'gene_id':db_gene_id
+                         })
+            
+        with engine.begin() as connection:
+            connection.execute(Refseq.__table__.insert().
+                               values(toCommit))
+
+
+    ## go through file and populate
+    gene2refseqFid = open(gene2refseqFile,'rU')
+    reader = csv.reader(gene2refseqFid,delimiter="\t")
+    header = reader.next()
+    totalRecords = 0
+    gc.disable()
+    for linja in reader:
+        totalRecords += 1
+        taxaId = linja[0]
+        geneId = linja[1]
+        status = linja[2]
+        RNA_nucleotide_accession = linja[3]
+        RNA_nucleotide_gi = linja[4]
+        protein_accession = linja[5]
+        protein_gi = linja[6]
+        genomic_nucleotide_accession = linja[7]
+        genomic_nucleotide_gi = linja[8]
+        start_position_on_the_genomic_accession = linja[9]
+        end_position_on_the_genomic_accession = linja[10]
+        orientation = linja[11]
+        assembly = linja[12]
+        mature_peptide_accession = linja[13]
+        mature_peptide_gi = linja[14]
+        symbol = linja[15]
+
+        ## define the table entry
+        toAdd.append({'status':status,
+                      'RNA_nucleotide_accession': RNA_nucleotide_accession,
+                      'RNA_nucleotide_gi':RNA_nucleotide_gi,
+                      'protein_accession':protein_accession,
+                      'protein_gi':protein_gi,
+                      'genomic_nucleotide_accession':genomic_nucleotide_accession,
+                      'genomic_nucleotide_gi':genomic_nucleotide_gi,
+                      'start_position_on_the_genomic_accession': start_position_on_the_genomic_accession,
+                      'end_position_on_the_genomic_accession': end_position_on_the_genomic_accession,
+                      'orientation':orientation,
+                      'assembly':assembly,
+                      'mature_peptide_accession':mature_peptide_accession,
+                      'mature_peptide_gi':mature_peptide_gi,
+                      'taxa_id':taxaId,
+                      'gene_id':geneId
+                  })
+
+        if len(toAdd) >= 300000:
+            queue_entries(toAdd,geneIdMap,taxonIdMap,engine)
+            toAdd = []
+
+        ## show progress
+        if totalRecords in wayPoints:
+            print("\t%s / %s"%(totalRecords,total))
+
+    if len(toAdd) > 0:
+        queue_entries(toAdd,geneIdMap,taxonIdMap,engine)
+
+    ## clean up
+    gc.enable()
+    gene2refseqFid.close()
+    timeStr = "...total time taken: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
+    addedStr = "...%s unique refseq entries were added."%totalRecords
+    return timeStr,addedStr
+
 def populate_uniprot_table(lineCount,session,engine):
     """
     populate the uniprot table with entries from idmappings
@@ -329,17 +475,17 @@ def populate_uniprot_table(lineCount,session,engine):
                 db_taxa_id = taxonIdMap[entry['ncbi-taxa-id']]
 
             ## check that the linked gene taxa is the same as the entry taxa
-            if db_gene_id:
-                db_gene_taxa_id = session.query(Gene).filter_by(id=db_gene_id).first().taxa_id
+            #if db_gene_id:
+            #    db_gene_taxa_id = session.query(Gene).filter_by(id=db_gene_id).first().taxa_id
             #if db_taxa_id and db_gene_id:
             #    if db_taxa_id != db_gene_taxa_id:
             #        print("WARNING: two taxa present in single uniprot entry? %s %s "%(uniprotKbEntry,\
             #                                                                           entry['gene-id']))
 
             ## if no taxa was provdied use the one assocated with the linked gene
-            if db_gene_taxa_id and not db_taxa_id:
-                db_taxa_id = db_gene_taxa_id
-
+            if not db_taxa_id:
+                db_taxa_id = session.query(Gene).filter_by(id=db_gene_id).first().taxa_id
+            
             ## ready the uniprot-ac and refseq rows
             entry['uniprot-ac'] = list(entry['uniprot-ac'])
             if len(entry['uniprot-ac']) == 0:

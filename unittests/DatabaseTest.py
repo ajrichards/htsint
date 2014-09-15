@@ -11,7 +11,7 @@ if mpl.get_backend() != 'agg':
     mpl.use('agg')
 
 from htsint.database import db_connect,ask_upass,fetch_annotations
-from htsint.database import Taxon,Gene,Uniprot,GoTerm,GoAnnotation
+from htsint.database import Taxon,Gene,Refseq,Uniprot,GoTerm,GoAnnotation
 
 ## global variables
 UPASS = ask_upass()
@@ -56,10 +56,29 @@ class DatabaseTest(unittest.TestCase):
         query2 = self.session.query(Gene).filter_by(ncbi_id='31251').first()
         self.assertEqual(query2.symbol,'per')
         self.assertEqual(self.session.query(Taxon).filter_by(id=query2.taxa_id).first().ncbi_id,7227)
+
+    def testRefseq(self):
+        """
+        test the refseq table
+        if there are more than one isoform for a protein we should get back more than one result
+
+        """
+
+        refseqQuery = self.session.query(Refseq).filter_by(protein_accession='NP_001027267.1').all()
+        self.assertTrue(len(refseqQuery)>1)
+        print refseqQuery
+        print "testing still incomplete"
+
+        #refseqGeneQuery = self.session.query(Gene).filter_by(id=uniprotQuery.gene_id).first()
+        #self.assertEqual(uniprotQuery.uniprot_ac,"P07663")
+        #self.assertEqual(uniprotQuery.uniprot_entry,"PER_DROME")
+        #self.assertEqual(uniprotGeneQuery.ncbi_id,"31251")
+        #self.assertEqual(self.session.query(Taxon).filter_by(id=uniprotQuery.taxa_id).first().ncbi_id,7227)
+        #self.assertEqual(self.session.query(Taxon).filter_by(id=uniprotGeneQuery.taxa_id).first().ncbi_id,7227)
         
     def testUniprot(self):
         """
-        test the accession table
+        test the uniprot table
         """
 
         uniprotQuery = self.session.query(Uniprot).filter_by(uniprot_ac='P07663').first()

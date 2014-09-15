@@ -27,7 +27,7 @@ except:
 from DatabaseTables import Base,Taxon,Gene,Uniprot,GoTerm,GoAnnotation
 from DatabaseTools import db_connect, get_file_sizes,print_db_summary
 from DatabaseTools import populate_taxon_table,populate_gene_table,populate_uniprot_table
-from DatabaseTools import populate_go_terms, populate_go_annotations
+from DatabaseTools import populate_go_terms, populate_go_annotations, populate_refseq_table
 from GeneOntologyLib import read_annotation_file,get_annotation_file,get_total_annotations
 
 ##debug
@@ -75,7 +75,13 @@ timeStr,addedStr = populate_gene_table(geneInfoCount,session,engine)
 push_out(timeStr)
 push_out(addedStr)
 
-##  uniprot table
+## refseq table
+push_out("Populating the refseq table")
+timeStr,addedStr = populate_refseq_table(session,engine)
+push_out(timeStr)
+push_out(addedStr)
+
+## uniprot table
 push_out("Populating the database with %s uniprot entries"%(idmapCount))
 timeStr,addedStr = populate_uniprot_table(idmapCount,session,engine)
 push_out(timeStr)
