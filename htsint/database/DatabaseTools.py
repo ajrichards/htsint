@@ -223,7 +223,6 @@ def populate_gene_table(geneInfoCount,session,engine):
     header = geneInfoFid.next()
     taxaIdMap = taxa_mapper(session)
 
-    gc.disable()
     for record in geneInfoFid:
         record = record.rstrip("\n")
         record = record.split("\t")
@@ -244,7 +243,7 @@ def populate_gene_table(geneInfoCount,session,engine):
                       'symbol':symbol,'synonyms':synonyms,'taxa_id':taxId})
         totalRecords += 1
         
-        if len(toAdd) >= 300000:
+        if len(toAdd) >= 200000:
             toRemove = []
             for ta in toAdd:
                 if taxaIdMap.has_key(ta['taxa_id']):
@@ -264,7 +263,6 @@ def populate_gene_table(geneInfoCount,session,engine):
         if totalRecords in wayPoints:
             print("\t%s / %s"%(totalRecords,total))
 
-    gc.enable()
     print('committing changes...')
     toRemove = []
     for ta in toAdd:
@@ -299,7 +297,7 @@ def populate_refseq_table(session,engine):
     idmappingFile = get_idmapping_file()
     idmappingFid = open(idmappingFile,'rb')
     reader = csv.reader(idmappingFid,delimiter="\t")
-    toAdd = {}
+    toAdd = []
 
     ## get line count
     gene2refseqFile = os.path.join(CONFIG['data'],"gene2refseq.db")
@@ -341,9 +339,11 @@ def populate_refseq_table(session,engine):
             ## convert the taxa id to a database key
             if entry['taxa_id'] and taxonIdMap.has_key(entry['taxa_id']):
                 db_taxa_id = taxonIdMap[entry['taxa_id']]
+            else:
+                continue
 
             for key in entry.iterkeys():
-                if len(entry[key]) == 0:
+                if len(entry[key]) == 0 or entry[key] == "-":
                     entry[key] = None
 
             ## commit to db
@@ -374,7 +374,7 @@ def populate_refseq_table(session,engine):
     reader = csv.reader(gene2refseqFid,delimiter="\t")
     header = reader.next()
     totalRecords = 0
-    gc.disable()
+
     for linja in reader:
         totalRecords += 1
         taxaId = linja[0]
@@ -412,19 +412,18 @@ def populate_refseq_table(session,engine):
                       'gene_id':geneId
                   })
 
-        if len(toAdd) >= 300000:
+        if len(toAdd) >= 300000
             queue_entries(toAdd,geneIdMap,taxonIdMap,engine)
             toAdd = []
 
         ## show progress
         if totalRecords in wayPoints:
-            print("\t%s / %s"%(totalRecords,total))
+            print("\t%s / %s"%(totalRecords,lineCount))
 
     if len(toAdd) > 0:
         queue_entries(toAdd,geneIdMap,taxonIdMap,engine)
 
     ## clean up
-    gc.enable()
     gene2refseqFid.close()
     timeStr = "...total time taken: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
     addedStr = "...%s unique refseq entries were added."%totalRecords
@@ -484,7 +483,9 @@ def populate_uniprot_table(lineCount,session,engine):
 
             ## if no taxa was provdied use the one assocated with the linked gene
             if not db_taxa_id:
-                db_taxa_id = session.query(Gene).filter_by(id=db_gene_id).first().taxa_id
+                dgeneQuery = session.query(Gene).filter_by(id=db_gene_id).first()
+                if dgeneQuery:
+                    db_taxa_id = dgeneQuery.taxa_id 
             
             ## ready the uniprot-ac and refseq rows
             entry['uniprot-ac'] = list(entry['uniprot-ac'])
@@ -788,7 +789,7 @@ def populate_go_annotations(totalAnnotations,session,engine):
         queue_entry(goId,evidenceCode,pubmedRefs,None,ncbiId,taxon,toAdd,
                     geneIdMap,ignoredAnnotationsGene)
 
-        if len(toAdd) >= 100000:
+        if len(toAdd) >= 100000: #100000
             with engine.begin() as connection:
                 connection.execute(GoAnnotation.__table__.insert().
                                    values(toAdd))
@@ -815,7 +816,7 @@ def print_db_summary():
     session,engine = db_connect(verbose=False)
     printstr += "\nDATABASE - %s - SUMMARY"%CONFIG['dbname'] + "\n"
     print("\nDATABASE - %s - SUMMARY"%CONFIG['dbname'])
-    for table in [Taxon,Gene,Uniprot,GoTerm,GoAnnotation]:
+    for table in [Taxon,Gene,Refseq,Uniprot,GoTerm,GoAnnotation]:
         print("There are %s entries in the %s table"%(session.query(table).count(),table.__tablename__))
         printstr += "There are %s entries in the %s table"%(session.query(table).count(),table.__tablename__) + "\n"
 
