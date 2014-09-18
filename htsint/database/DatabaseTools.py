@@ -412,7 +412,7 @@ def populate_refseq_table(session,engine):
                       'gene_id':geneId
                   })
 
-        if len(toAdd) >= 300000
+        if len(toAdd) >= 300000:
             queue_entries(toAdd,geneIdMap,taxonIdMap,engine)
             toAdd = []
 
@@ -482,10 +482,10 @@ def populate_uniprot_table(lineCount,session,engine):
             #                                                                           entry['gene-id']))
 
             ## if no taxa was provdied use the one assocated with the linked gene
-            if not db_taxa_id:
-                dgeneQuery = session.query(Gene).filter_by(id=db_gene_id).first()
-                if dgeneQuery:
-                    db_taxa_id = dgeneQuery.taxa_id 
+            #if not db_taxa_id:
+            #    dgeneQuery = session.query(Gene).filter_by(id=db_gene_id).first()
+            #    if dgeneQuery:
+            #        db_taxa_id = dgeneQuery.taxa_id 
             
             ## ready the uniprot-ac and refseq rows
             entry['uniprot-ac'] = list(entry['uniprot-ac'])
