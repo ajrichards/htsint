@@ -61,20 +61,12 @@ class DatabaseTest(unittest.TestCase):
         """
         test the refseq table
         if there are more than one isoform for a protein we should get back more than one result
-
         """
 
         refseqQuery = self.session.query(Refseq).filter_by(protein_accession='NP_001027267.1').all()
+        actualGeneQuery = self.session.query(Gene).filter_by(ncbi_id='3771877').first()
         self.assertTrue(len(refseqQuery)>1)
-        print refseqQuery
-        print "testing still incomplete"
-
-        #refseqGeneQuery = self.session.query(Gene).filter_by(id=uniprotQuery.gene_id).first()
-        #self.assertEqual(uniprotQuery.uniprot_ac,"P07663")
-        #self.assertEqual(uniprotQuery.uniprot_entry,"PER_DROME")
-        #self.assertEqual(uniprotGeneQuery.ncbi_id,"31251")
-        #self.assertEqual(self.session.query(Taxon).filter_by(id=uniprotQuery.taxa_id).first().ncbi_id,7227)
-        #self.assertEqual(self.session.query(Taxon).filter_by(id=uniprotGeneQuery.taxa_id).first().ncbi_id,7227)
+        self.assertTrue(refseqQuery[0].gene_id,actualGeneQuery.id)
         
     def testUniprot(self):
         """
@@ -101,6 +93,8 @@ class DatabaseTest(unittest.TestCase):
         descLook = re.search("that recurs with a regularity of approximately 24 hours.",termQuery.description)
         self.assertTrue(termQuery.description,descLook)
 
+
+    '''
     def testGoAnnotation(self):
         """
         test the GoTerm table
@@ -115,6 +109,7 @@ class DatabaseTest(unittest.TestCase):
         annotations2 = fetch_annotations(['31251'],self.session,idType='ncbi',asTerms=False)
         terms2 = [self.session.query(GoTerm).filter_by(id = a.go_term_id).first().name for a in annotations2['31251']]
         self.assertTrue("circadian rhythm" in terms2)
+    '''
 
     def testIdUniqueness(self):
         """
