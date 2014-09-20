@@ -65,9 +65,9 @@ class DatabaseTest(unittest.TestCase):
 
         refseqQuery = self.session.query(Refseq).filter_by(protein_accession='NP_001027267.1').all()
         actualGeneQuery = self.session.query(Gene).filter_by(ncbi_id='3771877').first()
-        self.assertTrue(len(refseqQuery)>1)
+        self.assertTrue(len(refseqQuery)>0)
         self.assertTrue(refseqQuery[0].gene_id,actualGeneQuery.id)
-        
+    
     def testUniprot(self):
         """
         test the uniprot table
@@ -92,8 +92,7 @@ class DatabaseTest(unittest.TestCase):
         self.assertEqual(termQuery.name,"circadian rhythm")
         descLook = re.search("that recurs with a regularity of approximately 24 hours.",termQuery.description)
         self.assertTrue(termQuery.description,descLook)
-
-
+        
     '''
     def testGoAnnotation(self):
         """
@@ -124,6 +123,7 @@ class DatabaseTest(unittest.TestCase):
 
         uniprotIds = [u.id for u in self.session.query(Uniprot).filter_by(taxa_id=taxaQuery.id).all()]
         self.assertEqual(len(uniprotIds), len(list(set(uniprotIds))))
+
 
     '''
     def testAnnotationEquality(self):
