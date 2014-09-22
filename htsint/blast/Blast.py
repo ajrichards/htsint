@@ -89,7 +89,7 @@ class Blast(object):
 
         return newQueryFile
 
-    def run_blastx(self,targetDB,outDir=".",evalue=0.05,
+    def run_blast(self,targetDB,outDir=".",evalue=0.05,
                    start=None,stop=None,cmd='blastx'):
         """
         targetDB - is the protein database to blast against
@@ -158,4 +158,4 @@ if __name__ == "__main__":
             cmd  = a
 
     blast = Blast(query)
-    blast.run_blastx(database,outDir=outdir,start=first,stop=last,evalue=evalue,cmd=cmd)
+    blast.run_blast(database,outDir=outdir,start=first,stop=last,evalue=evalue,cmd=cmd)
