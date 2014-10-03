@@ -38,7 +38,7 @@ class Taxon(Base):
                                                     self.common_name_2,
                                                     self.common_name_3)
 
-def taxa_mapper(session,ncbiIdList=None,myDict={}):
+def taxa_mapper(session,ncbiIdList=None,myDict={},yieldPer=5):
     """
     a function that maps ncbi_ids to taxa.id
     if a dict is provided keys must be the string of the ncbi_id
@@ -47,8 +47,8 @@ def taxa_mapper(session,ncbiIdList=None,myDict={}):
     if ncbiIdList:
         ncbiIdList = dict([(i,None)for i in list(set(ncbiIdList))])
 
-    for t in session.query(Taxon).yield_per(5):
-        if ncbiIdList and not ncbiIdList.has_key(g):
+    for t in session.query(Taxon).yield_per(yieldPer):
+        if ncbiIdList and not ncbiIdList.has_key(str(t)):
             continue
 
         myDict[str(t.ncbi_id)] = t.id
@@ -192,20 +192,34 @@ class Uniprot(Base):
                                                       self.taxa_id,
                                                       self.gene_id)
 
-def uniprot_mapper(session,uniprotIdList=None,myDict={}):
+def uniprot_mapper(session,uniprotIdList=None,myDict={},gene=False,taxa=False):
     """
     a function that maps uniprot_entry to uniprot.id
     if a dict is provided keys must be the string of the ncbi_id
+
+    session - current sqlalchemy session
+    uniprotIdList - returns all entries in the table unless a list of uniProt_entries are provided
+    myDict - provides a means to expand or update an existing dictionary
+    gene - appends to the returned values the database gene id
+    taxa - appends to the returned values the database taxa_id
+
     """
 
     if uniprotIdList:
         uniprotIdList = dict([(i,None)for i in list(set(uniprotIdList))])
 
     for u in session.query(Uniprot).yield_per(5):
-        if uniprotIdList and not uniprotIdList.has_key(g):
+        if uniprotIdList and not uniprotIdList.has_key(u):
             continue
 
-        myDict[str(u.uniprot_entry)] = u.id
+        if gene == False and taxa == False:
+            myDict[str(u.uniprot_entry)] = u.id
+        elif gene == True and taxa == False:
+            myDict[str(u.uniprot_entry)] = {'id':u.id,'gene_id':u.gene_id}
+        elif gene == False and taxa == True:
+            myDict[str(u.uniprot_entry)] = {'id':u.id,'taxa_id':u.taxa_id}
+        elif gene == True and taxa == True:
+            myDict[str(u.uniprot_entry)] = {'id':u.id,'gene_id':u.gene_id,'taxa_id':u.taxa_id}
 
     return myDict
 
