@@ -56,7 +56,7 @@ class BlastTest(unittest.TestCase):
         ## run the blast
         self.blast = Blast(self.queryFile)
         outFile = "adh-0-2.xml"
-        targetDB = "swissprot"
+        targetDB = "uniprot_sprot.fasta.db"
         start,stop = 0,2
         self.blast.run_blast(targetDB,evalue=0.1,start=start,stop=stop,cmd='blastx')
     

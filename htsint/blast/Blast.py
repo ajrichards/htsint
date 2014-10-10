@@ -40,7 +40,7 @@ class Blast(object):
     A generic class to run blast
     """
 
-    def __init__(self,queryFile,BLASTDB="/usr/share/blast"):
+    def __init__(self,queryFile,BLASTDB="/usr/local/share/htsint"):
         """
         Constructor
             queryFile - is a fasta file of sequences

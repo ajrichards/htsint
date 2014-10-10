@@ -24,7 +24,7 @@ class ParseBlast(object):
     parse the xml files for BLAST results
     """
 
-    def __init__(self,filePath,outDir=".",fhResults=None,fhLog=None):
+    def __init__(self,filePath,outDir=".",fhResults=None,fhLog=None,BLASTDB=None):
         """
         outDir    - location of where to put results
         fhResults - results file handle (csv.writer)
@@ -55,6 +55,10 @@ class ParseBlast(object):
             self.resultsWriter.writerow(["query","hit-identifier","hit-identifier-long","e-score","bit-score"])
         else:
             self.resultsWriter = fhResults
+
+        ## set the environmental variable if specified  
+        if BLASTDB != None:
+            os.environ['BLASTDB'] = BLASTDB
 
     def push_out(self,line):
         """
