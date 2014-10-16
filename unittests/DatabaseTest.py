@@ -29,7 +29,8 @@ class DatabaseTest(unittest.TestCase):
 
         self.session, self.engine = db_connect(upass=UPASS)
         self.testID = '7227'
-    
+
+    '''
     def testTaxa(self):
         """
         test the taxa table
@@ -92,8 +93,7 @@ class DatabaseTest(unittest.TestCase):
         self.assertEqual(termQuery.name,"circadian rhythm")
         descLook = re.search("that recurs with a regularity of approximately 24 hours.",termQuery.description)
         self.assertTrue(termQuery.description,descLook)
-        
-    '''
+           
     def testGoAnnotation(self):
         """
         test the GoTerm table
@@ -108,7 +108,6 @@ class DatabaseTest(unittest.TestCase):
         annotations2 = fetch_annotations(['31251'],self.session,idType='ncbi',asTerms=False)
         terms2 = [self.session.query(GoTerm).filter_by(id = a.go_term_id).first().name for a in annotations2['31251']]
         self.assertTrue("circadian rhythm" in terms2)
-    '''
 
     def testIdUniqueness(self):
         """
@@ -121,9 +120,9 @@ class DatabaseTest(unittest.TestCase):
         geneIds = [g.ncbi_id for g in self.session.query(Gene).filter_by(taxa_id=taxaQuery.id).all()]
         self.assertEqual(len(geneIds), len(list(set(geneIds))))
 
-        uniprotIds = [u.id for u in self.session.query(Uniprot).filter_by(taxa_id=taxaQuery.id).all()]
+        uniprotIds = [u.uniprot_ac for u in self.session.query(Uniprot).filter_by(taxa_id=taxaQuery.id).all()]
         self.assertEqual(len(uniprotIds), len(list(set(uniprotIds))))
-
+    '''
 
     '''
     def testAnnotationEquality(self):
@@ -146,6 +145,39 @@ class DatabaseTest(unittest.TestCase):
 
         self.assertEqual(len(annotations1),len(annotations2))
     '''
+
+    def testAnnotationSpeed(self):
+        """
+        test the GoTerm table
+        commented out by default
+        """
+    
+        #taxonId = 1297549
+        #taxaQuery = self.session.query(Taxon.id,Taxon.ncbi_id).filter_by(ncbi_id=taxonId).first()
+        #uniprotQuery = self.session.query(Uniprot.id).filter_by(taxa_id=taxaQuery.id).all()
+        #geneIds = [g.id for g in self.session.query(Gene).filter_by(taxa_id=taxaQuery.id).all()]
+        #geneIds = [g for g in self.session.query(Gene.id,Gene.ncbi_id).filter_by(taxa_id=taxaQuery.id).all()]
+        #print taxaQuery 
+        #print geneIds
+        #print len(uniprotQuery)
+
+        print 'blah'
+        timeStart = time.time()
+        print("fetching annotations for uniprot id...")
+        annotations1 = fetch_annotations(['P56645','O54943'],self.engine,self.session,idType='uniprot',asTerms=False)
+        terms1 = [self.session.query(GoTerm).filter_by(id = a.go_term_id).first().name for a in annotations1['P07663']]
+        print terms1
+        print("fetch time: %s"%time.strftime('%H:%M:%S',time.gmtime(time.time()-timeStart)))
+        #self.assertTrue("circadian rhythm" in terms1)
+        
+
+        #print("fetching annotations for ncbi gene id...")
+        #annotations2 = fetch_annotations(['31251'],self.session,idType='ncbi',asTerms=False)
+        #terms2 = [self.session.query(GoTerm).filter_by(id = a.go_term_id).first().name for a in annotations2['31251']]
+        #self.assertTrue("circadian rhythm" in terms2)
+
+
+
 
 ### Run the tests
 if __name__ == '__main__':
