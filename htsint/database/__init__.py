@@ -3,6 +3,7 @@ import sys,os
 ## database functions and classes
 from GeneOntologyLib import read_ontology_file,get_annotation_file,get_ontology_file,get_gene2go_file
 from GeneOntologyLib import get_total_annotations,get_evidence_codes,fetch_annotations,get_annotated_genes
+from GeneOntologyLib import fetch_taxa_annotations
 from DatabaseTables import Base,Taxon,Gene,Refseq,Uniprot,GoTerm,GoAnnotation
 from DatabaseTables import taxa_mapper,gene_mapper,uniprot_mapper,goterm_mapper
 from DatabaseTools import get_idmapping_file,get_file_sizes,print_db_summary

@@ -3,19 +3,40 @@
 Installation
 ======================
 
-``htsint`` is a Python package.  The NGS analysis pipelines available through ``htsint`` make extensive use of the Python ecosystem so there are a fair number of prerequsites.  ``htsint`` is developed and tested under Linux and OSX operating systems so the installation is specific to these systems, however, all of the prerequisites are operating system independent and these instructions could be modified for Windows and other operating systems fairly easily.
+hts-integrate (``htsint``) is intended to run under GNU/Linux or another UNIX-based environment.  The software is tested with Ubuntu 14.04 and OSX although it should run under any operating system as it is simply a Python package with an attached PostgreSQL (or another) database.  Because Debian based distros are common in the bioinformatics world, some installation details are Debian specific, though they may be modified for other systems.  
+
+Running local BLAST through hts-integrate is optional.  For BLAST functionality of the package install the Suite of `BLAST+ tools <http://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=Download>`_. 
+
+   .. code-block:: bash
+     
+      ~$ sudo apt-get install ncbi-blast+  
 
 
-Setting up your system
---------------------------
+Install hst-integrate
+______________________
 
-These are the instructions that are tested under Ubuntu 13.10.  They may be modified for other distros or operating systems by following the links and installing as specified for your OS.
+``htsint`` is at its core a Python package so it may be installed (or upgraded) like most other packages in the `Python package index <Python Package Index>`_.
+
+
+   .. code-block:: bash
+
+      ~$ pip install htsint
+
+   .. code-block:: bash
+
+      ~$ pip install htsint --upgrade
+
+
+.. note:: hts-integrate can also be installed from source.
+
+Setting up your database
+_______________________________
 
    1. Obtain the source for ``htsint``
 
-      .. code-block: bash
+      .. code-block:: bash
 
-         ~$ git co https://github.com/ajrichards/hts-integrate.git
+         ~$ git clone https://github.com/ajrichards/hts-integrate.git
          
 
    2. Create a `PostgreSQL <http://www.postgresql.org>`_ database.
@@ -60,38 +81,44 @@ These are the instructions that are tested under Ubuntu 13.10.  They may be modi
       If you leave the ``dbpass`` field blank ``htsint`` will prompt you each time it needs access to the database.
       Also, be sure that you change the ``data`` directory to somewhere ``htsint`` can read and write.
 
-   4. Install the prerequsites and package itself
 
+Installing from source
+___________________________________
 
-      The core packages.
+Installation from source requires that the prerequsites are present before proceeding.
+
+First install the prerequsite Python packages.
 
       .. code-block:: bash
 
          ~$ sudo apt-get install python-numpy python-matplotlib python-networkx python-biopython
-
-      The database packages.
-
-      .. code-block:: bash
-
-         ~$ sudo apt-get install python-psycopg2 python-sqlalchemy ncbi-blast+
-
-      The statistics packages.
-
-      .. code-block:: bash
- 
          ~$ sudo apt-get install python-scipy python-pymc
 
-      Install ``htsint``
+Then install the database (see previous section for details on setup).
+
+      .. code-block:: bash
+
+         ~$ sudo apt-get install python-psycopg2 python-sqlalchemy 
+        
+Install ``htsint``
 
       .. code-block:: bash
 
          ~$ cd /hts-integrate
          ~$ sudo python setup.py install
 
+Unittests
+^^^^^^^^^^^^^^
 
-Next you will need to download the data and populate the database.  Instructions for this are on the :doc:`database <database>` page.  Once everything is setup you can run the unittests to ensure everything is working properly.
+First you will need to download the data and populate the database.  Instructions for this are on the :doc:`database <database>` page.  Once everything is setup you can run the unittests to ensure everything is working properly.
 
    .. code-block:: bash 
       
          ~$ cd /hts-integrate
          ~$ python runTests.py
+
+Links
+__________
+ 
+   * `How to run BLAST on a local computer <http://www.ncbi.nlm.nih.gov/guide/howto/run-blast-local>`_
+   * `Pip documentation <https://pip.readthedocs.org/en/latest/>`_
