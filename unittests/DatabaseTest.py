@@ -121,7 +121,7 @@ class DatabaseTest(unittest.TestCase):
         """
     
         print("fetching annotations for taxa")
-        annotations,goTerms = fetch_taxa_annotations(['7091'],self.engine,idType='uniprot',useIea=False,verbose=True)
+        annotations,goTerms = fetch_taxa_annotations(['7091'],self.engine,useIea=False,verbose=True)
         termNames = [goTerms[annot] for annot in annotations['Q9NL89']]
         self.assertTrue("regulation of innate immune response" in termNames)
 

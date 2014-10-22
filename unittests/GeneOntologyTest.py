@@ -27,32 +27,24 @@ class GeneOntologyTest(unittest.TestCase):
         simple setup
         """
 
-        self.taxID = 7227
-        self.geneList = ['30970','30971','30972','30973','30975','30976','30977','30978','30979','30980',
-                         '30981','30982','30983','30984','30985','30986','30988','30990','30991','30994']
-
+        self.taxId = 7227
+        
     def testGeneLists(self):
         """
         make sure gene lists are properly created via both methods
         """
         
         ## via taxid method
-        go = GeneOntology(taxID=self.taxID,upass=UPASS)
-        self.assertTrue(len(go.geneList) > 1e04)
-        self.assertEqual(go.taxID,self.taxID)
-
-        ## via a gene list (mixed taxa mode)
-        go = GeneOntology(geneList=self.geneList,upass=UPASS)
-        self.assertEqual(len(go.geneList),len(self.geneList))
-        self.assertEqual(go.taxID,None)
+        go = GeneOntology(self.taxId,upass=UPASS)
+        self.assertEqual(go.taxId,self.taxId)
 
     def testCheckTaxon(self):
         """
         ensure taxon check works
         """
 
-        go = GeneOntology(taxID=self.taxID,upass=UPASS)
-        go.check_taxon(self.taxID)
+        go = GeneOntology([self.taxId],upass=UPASS)
+        go.check_taxon(self.taxId)
     
     def testGetDicts(self):
         """
@@ -63,12 +55,12 @@ class GeneOntologyTest(unittest.TestCase):
         if os.path.exists(dictsPickle) == True:
             os.remove(dictsPickle)
 
-        go = GeneOntology(geneList=self.geneList,upass=UPASS)
-        gene2go1,go2gene1 = go.get_dicts(filePath=dictsPickle,aspect='biological_process')
-        gene2go2,go2gene2 = go.get_dicts(filePath=dictsPickle)
+        go = GeneOntology([self.taxId],upass=UPASS,idType='ncbi',useIea=False,\
+                          aspect='biological_process')
+        gene2go,go2gene = go.get_dicts(termsPath=dictsPickle)
 
-        self.assertEqual(len(gene2go1.keys()),len(gene2go2.keys()))
-        self.assertEqual(len(go2gene1.keys()),len(go2gene2.keys()))
+        #self.assertEqual(len(gene2go1.keys()),len(gene2go2.keys()))
+        #self.assertEqual(len(go2gene1.keys()),len(go2gene2.keys()))
 
         if os.path.exists(dictsPickle) == True:
             os.remove(dictsPickle)
@@ -84,7 +76,7 @@ class GeneOntologyTest(unittest.TestCase):
             if os.path.exists(picklePath) == True:
                 os.remove(picklePath)
 
-        go = GeneOntology(geneList=self.geneList,upass=UPASS,idType='ncbi')
+        go = GeneOntology(self.taxId,upass=UPASS,idType='ncbi')
         G = go.create_gograph(termsPath=termsPickle,graphPath=graphPickle)
         #print 'nodes', len(G.nodes())
 

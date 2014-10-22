@@ -4,8 +4,7 @@ library of functions for use with the GeneOntology class
 """
 
 import os,sys,re,time
-from sqlalchemy.sql import select, and_
-from sqlalchemy.orm import aliased
+from sqlalchemy.sql import select
 from htsint import __basedir__
 from DatabaseTables import Taxon,Uniprot,Gene,GoTerm,GoAnnotation
 
@@ -362,7 +361,7 @@ def fetch_annotations(identifiers,engine,aspect='biological_process',
 
 
 def fetch_taxa_annotations(identifiers,engine,aspect='biological_process',
-                           idType='uniprot',useIea=True,verbose=False):
+                           useIea=True,verbose=False):
     """
     Fetch the go annotations for a given list of taxa
 
@@ -393,9 +392,6 @@ def fetch_taxa_annotations(identifiers,engine,aspect='biological_process',
     uniprotAnnotations = {}
     gene2uniprot,uniprot2gene = {},{}
     taxaList = set([])
-    idType = idType.lower()
-    if idType not in ['uniprot','ncbi']:
-        raise Exception("Invalid idType argument in fetch annotations use 'uniprot' or 'ncbi'")
 
     ## translate the ncbi taxa ids into db ids
     if verbose:
@@ -480,10 +476,7 @@ def fetch_taxa_annotations(identifiers,engine,aspect='biological_process',
         for key,items in annotations.iteritems():
             annotations[key] = list(items)
 
-    if idType == 'uniprot':
-        return uniprotAnnotations,goTerms
-    if idType == 'ncbi':
-        return geneAnnotations,goTerms
+    return geneAnnotations,uniprotAnnotations
 
 def read_annotation_file():
     """

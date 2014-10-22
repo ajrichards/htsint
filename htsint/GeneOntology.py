@@ -1,10 +1,11 @@
 import sys,os,cPickle
 import numpy as np
 import networkx as nx
+from sqlalchemy.sql import select
 from htsint.database import Base,Taxon,Gene,Uniprot,GoTerm,GoAnnotation,db_connect
-from htsint.database import read_ontology_file,fetch_annotations
+from htsint.database import read_ontology_file,fetch_taxa_annotations
 from htsint.stats import EmpiricalCdf
-
+from htsint.blast import create_blast_map
 
 """
 Classes used to interact with gene ontology data
@@ -14,18 +15,12 @@ The data is stored in the htsint database
 class GeneOntology(object):
     "A class to interact with Gene Ontology data"
     
-    def __init__(self,taxID=None,geneList=None,verbose=False,upass='',idType='ncbi'):
+    def __init__(self,taxaList,verbose=False,upass='',idType='ncbi',useIea=True,\
+                 aspect='biological_process'):
         """
         Constructor
         
-        taxID - is the NCBI taxid (int)
-                i.e. for xenopus
-                go = GeneOntology(8364)
-
-                if no taxID is supplied then the class is in 'mixed' taxa mode
-                and a geneList must be supplied.
-        geneList - a list of ncbi gene ids
-
+        taxaList a list of NCBI taxa ids
         """
 
         ## error checking
@@ -33,26 +28,74 @@ class GeneOntology(object):
         if idType not in ['uniprot','ncbi']:
             raise Exception("Invalid idType argument in fetch annotations use 'uniprot' or 'ncbi'")
 
-        self.idType = idType
-
-        if taxID == None and geneList == None:
-            raise Exception("If taxid is not supplied a 'geneList' is required")
-
         ## start a database session
         self.session,self.engine = db_connect(verbose=verbose,upass=upass)
 
-        if geneList != None:
-            self.geneList = geneList
-            self.taxID = None
-        else:
-            self.taxID = taxID
-            self.check_taxon(taxID)
-            self.taxQuery = self.session.query(Taxon).filter_by(ncbi_id=self.taxID).first()
-            self.geneQuery = self.session.query(Gene).filter_by(taxa_id=self.taxQuery.id)
-            self.geneList = [g.ncbi_id for g in self.geneQuery.all()]
-            self.geneQuery = self.session.query(Gene).filter_by(taxa_id=self.taxQuery.id)
-            self.annotQuery = self.session.query(GoAnnotation).filter_by(taxa_id=self.taxQuery.id)
+        ## global variables
+        self.taxaList = taxaList
+        self.idType = idType
+        self.useIea = useIea
+        self.aspect = aspect
+
+    def summarize(self,refTaxon,termsPath):
+        """
+        GO object summary and sanity check
+        """
+
+        refTaxon = str(refTaxon)
+        if refTaxon not in self.taxaList:
+            raise Exception("refTaxon not present in taxaList")
+
+        conn = self.engine.connect()
+        gene2go,go2gene = self.get_dicts(termsPath=termsPath)
+
+        s = select([Taxon.id,Taxon.ncbi_id,Taxon.name]).where(Taxon.ncbi_id.in_(self.taxaList))
+        _taxaQueries = conn.execute(s)
+        taxaQueries = _taxaQueries.fetchall()
+        taxaMap = dict([(str(r['ncbi_id']),str(r['id'])) for r in taxaQueries])
+
+        gene2id = {}
+        for tquery in taxaQueries: 
+            s = select([Gene.id,Gene.ncbi_id],Gene.taxa_id==tquery['id'])
+            _geneQueries = conn.execute(s)
+            taxaDict = dict([(str(r['ncbi_id']),str(r['id'])) for r in _geneQueries.fetchall()])
+            if str(tquery['ncbi_id']) == refTaxon:
+                refGenes = taxaDict.copy()
+
+            print("there are  %s genes from %s (%s)"%(len(taxaDict.keys()),tquery['name'],tquery['ncbi_id']))
+            gene2id.update(taxaDict)
+
+        ## check for unmatched genes
+        unmatched = 0
+        for gene in gene2go.iterkeys():
+            if not gene2id.has_key(gene):
+                unmatched += 1
         
+        print("Summary")
+        print("IEA annotations: %s"%self.useIea)
+        print("total genes in combined taxa: %s"%(len(gene2id.keys())))
+        if unmatched > 0:
+            print("WARNING: there were unmatched genes unmatched: %s"%unmatched)
+        print("total genes with at least one annotation: %s"%(len(gene2go.keys())))
+        print("total unique annotations: %s"%(len(go2gene.keys())))
+        print("---------------------")
+
+        _gene2go,_prot2go = fetch_taxa_annotations([refTaxon],self.engine,aspect=self.aspect,\
+                                                   useIea=self.useIea)
+
+        total= 0
+        for k,v in _gene2go.iteritems():
+            total += len(v)
+        print('RefTaxa genes: %s'%(len(refGenes.keys())))
+        print('Only RefTaxa: %s annotated genes, %s total annotations'%(len(_gene2go.keys()), total))
+        
+        total= 0
+        for k,v in gene2go.iteritems():
+            total += len(v)
+        print('With additional taxa: %s annotated genes, %s total annotations'%(len(gene2go.keys()), total))
+        print('Percent annotation: %s'%(float(len(gene2go.keys())) / float(len(refGenes.keys()))))
+                                       
+
     def check_taxon(self,taxID):
         """
         check if taxon is in database
@@ -62,50 +105,61 @@ class GeneOntology(object):
         if taxQuery == None:
             raise Exception("Taxon:%s not found in database"%taxID)
         
-    def print_summary(self,show=True):
-        """
-        Print a summary of all Gene Ontology related information in database
-        """
-
-        if self.taxID != None:
-            summary = "\nSummary"
-            summary += "\n----------------------------------"
-            summary += "\nTaxID:       %s"%self.taxQuery.ncbi_id
-            summary += "\nSpecies:     %s"%self.taxQuery.name
-            summary += "\nCommon Name: %s"%self.taxQuery.common_name_1
-            summary += "\nNum. Genes:  %s"%self.geneQuery.count()
-            summary += "\nNum. GO Annotations:  %s"%self.annotQuery.count()
-            summary += "\n"
-        else:
-            summary = "\nSummary"
-            summary += "\n----------------------------------"
-            summary += "\nTaxID:       mixed taxa"
-            summary += "\nNum. Genes:  %s"%len(self.geneList)
-            summary += "\n"
-
-        if show == True:
-            print summary
-
-        return summary
-
-    def get_dicts(self,aspect='biological_process',filePath=None,useIea=False):
+    def get_dicts(self,refTaxon=None,blastPath=None,evalue=0.00001,\
+                  termsPath=None,log=None):
         """
         get the go2gene and gene2go dictionaries
+        log - csv.writer object
         """
 
-        if aspect not in ['biological_process','molecular_function','cellular_component']:
-            raise Exception("Invalid aspect specified%s"%aspect)
+        conn = self.engine.connect()
 
-        if filePath != None and os.path.exists(filePath):
-            tmp = open(filePath,'r')
+        if self.aspect not in ['biological_process','molecular_function','cellular_component']:
+            raise Exception("Invalid aspect specified%s"%self.aspect)
+
+        if termsPath != None and os.path.exists(termsPath):
+            tmp = open(termsPath,'r')
             gene2go,go2gene = cPickle.load(tmp)
             tmp.close()
             return gene2go,go2gene
 
         ## gene2go
-        print "...creating gene2go dictionary -- this may take several minutes or hours depending on the number of genes"
-        gene2go = fetch_annotations(self.geneList,self.session,aspect=aspect,idType=self.idType,
-                                    asTerms=True,useIea=useIea)
+        print "...creating gene2go dictionary -- this may take several minutes or longer on the number of genes"
+        gene2go,prot2go = fetch_taxa_annotations(self.taxaList,self.engine,aspect=self.aspect,\
+                                                 useIea=self.useIea)
+
+        ## use a blast map to infer annotations
+        if blastPath != None and refTaxon != None:
+            blastMap1,blastMap2 = create_blast_map(refTaxon,self.taxaList,blastPath,verbose=True,evalue=evalue)
+            _gene2go = gene2go.copy()
+            gene2go = {}
+
+            s = select([Taxon.id,Taxon.ncbi_id,Taxon.name]).where(Taxon.ncbi_id.in_(self.taxaList))
+            _taxaQueries = conn.execute(s)
+            taxaQueries = _taxaQueries.fetchall()
+            taxaMap = dict([(str(r['ncbi_id']),str(r['id'])) for r in taxaQueries])
+            refTaxonId = taxaMap[refTaxon]
+        
+            ## loop through all the genes
+            s = select([Gene.ncbi_id],Gene.taxa_id==refTaxonId)
+            _geneQueries = conn.execute(s)
+            refGenes = [str(r['ncbi_id']) for r in _geneQueries.fetchall()]
+
+            genesWithBlastHits = 0
+            for gene in refGenes:
+                annotations = []
+                if _gene2go.has_key(gene):
+                    annotations.extend(_gene2go[gene])
+                    if log != None:
+                        log.writerow([gene,str(_gene2go[gene]),'direct'])
+                if blastMap2.has_key(gene):
+                    for hit in blastMap2[gene]:
+                        if _gene2go.has_key(hit):
+                            annotations.extend(_gene2go[hit])
+                            if log != None:
+                                log.writerow([gene,str(_gene2go[hit]),'inferred from %s'%hit])
+                if len(annotations) > 0:
+                    gene2go[gene] = list(set(annotations))
 
         ## go2gene
         print "...creating go2gene dictionary -- this may take several minutes"
@@ -119,16 +173,16 @@ class GeneOntology(object):
         for term,genes in go2gene.iteritems():
             go2gene[term] = list(genes)
         
-        if filePath == None:
+        if termsPath == None:
             print "INFO: For large gene list it is useful to specify a file path for the pickle file"
         else:
-            tmp = open(filePath,'w')
+            tmp = open(termsPath,'w')
             cPickle.dump([gene2go,go2gene],tmp)
             tmp.close()
 
         return gene2go,go2gene
 
-    def create_gograph(self,aspect='biological_process',termsPath=None,graphPath=None):
+    def create_gograph(self,termsPath=None,graphPath=None):
         """
         creates the go graph for a given species
         aspect = 'biological_process','molecular_function' or 'cellular_component'
@@ -139,8 +193,8 @@ class GeneOntology(object):
 
         print '...creating gograph'
         ## error checking
-        if aspect not in ['biological_process','molecular_function','cellular_component']:
-            raise Exception("Invalid aspect specified%s"%aspect)
+        if self.aspect not in ['biological_process','molecular_function','cellular_component']:
+            raise Exception("Invalid aspect specified%s"%self.aspect)
 
         ## load pickled version if present
         if graphPath != None and os.path.exists(graphPath):
@@ -149,15 +203,18 @@ class GeneOntology(object):
 
         ## load all the ontology related information as a set of dictionaries
         _goDict = read_ontology_file()
-        goDict = _goDict[aspect]
-        gene2go,go2gene = self.get_dicts(filePath=termsPath)
+        goDict = _goDict[self.aspect]
+        gene2go,go2gene = self.get_dicts(termsPath=termsPath)
 
-        for a,b in gene2go.iteritems():
-            print a,b
+        #for a,b in gene2go.iteritems():
+        #    print a,b
 
         print "...creating go term graph -- this may take several minutes or hours depending on the number of genes"
         ## calculate the term-term edges using term IC (-ln(p(term)))
         edgeDict = self.get_weights_by_ic(goDict,go2gene)
+
+        if len(edgeDict) == 0:
+            raise Exception("No edges were found -- annotation information may be two sparse")
 
         ## terms without distances set to max
         print "...finding term-term distances"
@@ -208,7 +265,7 @@ class GeneOntology(object):
         """
 
         print "...... terms", len(go2gene.keys())
-
+        
         total = 0
         for term,genes in go2gene.iteritems():
             total += len(genes)
@@ -238,17 +295,6 @@ if __name__ == "__main__":
     """
 
     ## testing with a species
-    go = GeneOntology(taxID=7227)
-    go.print_summary()
-    #go.create_gograph()
-
-    ## testing with a gene list
-    geneList = ['30970','30971','30972','30973','30975','30976','30977','30978','30979','30980',
-                '30981','30982','30983','30984','30985','30986','30988','30990','30991','30994',
-                '30995','30996','30998','31000','31001','31002','31003','31004','31005','31006']
-
-    go = GeneOntology(geneList=geneList)
-    go.print_summary()
+    go = GeneOntology(['7091'],useIea=True)
     go.create_gograph()
 
-    #go.create_gograph()
