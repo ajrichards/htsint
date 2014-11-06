@@ -1,12 +1,72 @@
 #!/usr/bin/env python
 
-import os,csv
+import os,sys,csv,re
 from sqlalchemy.sql import select
 from htsint.database import db_connect,Taxon,Gene
 
+
+def get_blast_assembly(resultsFilePath,evalue=0.00001):
+    """
+    load assembly blast results into dictionary
+    """
+
+    if not os.path.exists(resultsFilePath):
+        raise Exception("cannot find results file path %s"%resultsFilePath)
+
+    results = {}
+    fid = open(resultsFilePath,'rU')
+    reader = csv.reader(fid)
+    header = reader.next()
+    print header
+
+    ## loop through file and save best
+    uniqueQueries = set([])
+    foo1Queries = set([])
+    foo2Queries = set([])
+    foo3Queries = set([])
+    totalQueries = 0
+
+    for linja in reader:
+        queryId = linja[0]
+        foo1,foo2 = queryId.split("|")
+        foo3 = re.sub("\_i\d+","",foo2)
+        hitId = linja[1]
+        hitNcbiId = linja[2]
+        _evalue = float(linja[3])
+
+        # filtering
+        totalQueries += 1
+        if '-' in linja:
+            continue
+        if _evalue > evalue:
+            continue
+
+        uniqueQueries.update([queryId])
+        foo1Queries.update([foo1])
+        foo2Queries.update([foo2])
+        foo3Queries.update([foo3])
+
+        ## use the best evalue
+        if not results.has_key(queryId):
+            results[queryId] = (hitNcbiId,_evalue)
+        if _evalue < results[queryId][1]:
+            results[queryId] = (hitNcbiId,_evalue)
+
+    uniqueQueries = list(uniqueQueries)
+    foo1Queries = list(foo1Queries)
+    foo2Queries = list(foo2Queries)
+
+    print("total queries: %s"%totalQueries)
+    print("unique: %s"%len(uniqueQueries))
+    print("foo1: %s"%len(foo1Queries))
+    print("foo2: %s"%len(foo2Queries))
+    print("foo3: %s"%len(foo2Queries))
+        
+    return results
+
 def create_blast_map(refTaxon,taxaList,resultsFilePath,evalue=0.00001,verbose=False):
     """
-    read a summarized blast results file and create a map
+    read a summarized reference blast results file and create a map
     results are gene centric
 
     example results file looks like this
@@ -79,9 +139,9 @@ def create_blast_map(refTaxon,taxaList,resultsFilePath,evalue=0.00001,verbose=Fa
         
         ## use the best evalue
         if not results[taxId].has_key(linja[1]):
-            results[taxId][linja[1]] = (linja[3],evalue)
-        if evalue < results[taxId][linja[1]][1]:
-            results[taxId][linja[1]] = (linja[3],evalue)
+            results[taxId][linja[1]] = (linja[3],_evalue)
+        if _evalue < results[taxId][linja[1]][1]:
+            results[taxId][linja[1]] = (linja[3],_evalue)
 
     fid.close()
     

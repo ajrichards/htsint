@@ -33,7 +33,7 @@ class ParseBlast(object):
         """
 
         ## error checking
-        if filePath == None or not re.search("\.xml",filePath):
+        if filePath == None or not re.search("\.xml|\.outfmt5",filePath):
             raise Exception("invalid results file -  must be of type xml \n%s"%filePath)
 
         self.filePath = filePath
@@ -42,14 +42,14 @@ class ParseBlast(object):
         ## prepare a log file
         if fhLog == None:
             resultsHomeDir,fileName = os.path.split(filePath)
-            self.fid1 = open(os.path.join(outDir,'%s_1.log'%re.sub("\.xml","",fileName)),'w')
+            self.fid1 = open(os.path.join(outDir,'%s_parsed.log'%re.sub("\.xml|\.outfmt5","",fileName)),'w')
             self.logWriter = csv.writer(self.fid1)
         else:
             self.logWriter = fhLog
 
         ## prepare a summary file
         if fhResults == None:
-            summaryFilePath = os.path.join(outDir,'%s_1.csv'%re.sub("\.xml","",fileName))
+            summaryFilePath = os.path.join(outDir,'%s_parsed.csv'%re.sub("\.xml|\.outfmt5","",fileName))
             self.fid2 = open(summaryFilePath,'w')
             self.resultsWriter = csv.writer(self.fid2)
             self.resultsWriter.writerow(["query","hit-identifier","hit-identifier-long","e-score","bit-score"])
