@@ -100,7 +100,8 @@ class ParseBlast(object):
                     hasResults += 1
 
         self.push_out("total blasted sequences: %s"%totalResults)
-        self.push_out("sequences with results : %s"%hasResults)
+        self.push_out("sequences with at least one match : %s"%hasResults)
+        self.push_out("percentage of sequences at least one match: %s"%(float(hasResults) / totalResults))
 
         ## clean up
         if self.fid1 != None:

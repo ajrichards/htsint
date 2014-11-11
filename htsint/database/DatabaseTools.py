@@ -7,7 +7,6 @@ These are helper scripts to populate the database
 import sys,os,re,time,csv
 import sqlalchemy
 import getpass
-import gc
 import numpy as np
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
