@@ -5,13 +5,39 @@ from sqlalchemy.sql import select
 from htsint.database import db_connect,Taxon,Gene
 
 
-def get_blast_assembly(resultsFilePath,evalue=0.00001):
+def get_blast_map(resultsFilePath,evalue=0.00001,taxaList=None):
     """
     load assembly blast results into dictionary
+
+    if taxaList is provided then only genes from given taxa will be included in map
+
     """
 
     if not os.path.exists(resultsFilePath):
         raise Exception("cannot find results file path %s"%resultsFilePath)
+
+
+    if taxaList != None:
+        ## prepare database connections
+        session,engine = db_connect()
+        conn = engine.connect()
+        s = select([Taxon.id,Taxon.ncbi_id,Taxon.name]).where(Taxon.ncbi_id.in_(taxaList))
+        _taxaQueries = conn.execute(s)
+        taxaQueries = _taxaQueries.fetchall()
+        totalQueries = set([])
+        filteredQueries = set([])
+        filteredHits = set([])
+        selectedTaxa = [str(tquery['id']) for tquery in taxaQueries]
+        taxa2name = dict([(str(tquery['id']),str(tquery['ncbi_id'])) for tquery in taxaQueries])
+        
+        ## create a gene2taxa dictionary
+        gene2taxa,gene2desc = {},{}
+        for tquery in taxaQueries:
+            s = select([Gene.taxa_id,Gene.ncbi_id,Gene.description],Gene.taxa_id==tquery['id'])
+            _geneQueries = conn.execute(s)
+            geneQueries = _geneQueries.fetchall()
+            gene2taxa.update(dict([(str(r['ncbi_id']),str(r['taxa_id'])) for r in geneQueries]))
+            gene2desc.update(dict([(str(r['ncbi_id']),str(r['description'])) for r in geneQueries]))
 
     results = {}
     fid = open(resultsFilePath,'rU')
@@ -21,15 +47,11 @@ def get_blast_assembly(resultsFilePath,evalue=0.00001):
 
     ## loop through file and save best
     uniqueQueries = set([])
-    foo1Queries = set([])
-    foo2Queries = set([])
-    foo3Queries = set([])
     totalQueries = 0
+    unfilteredQueries = 0
 
     for linja in reader:
         queryId = linja[0]
-        foo1,foo2 = queryId.split("|")
-        foo3 = re.sub("\_i\d+","",foo2)
         hitId = linja[1]
         hitNcbiId = linja[2]
         _evalue = float(linja[3])
@@ -41,11 +63,12 @@ def get_blast_assembly(resultsFilePath,evalue=0.00001):
         if _evalue > evalue:
             continue
 
-        uniqueQueries.update([queryId])
-        foo1Queries.update([foo1])
-        foo2Queries.update([foo2])
-        foo3Queries.update([foo3])
+        if taxaList and gene2taxa.has_key(str(hitNcbiId)) == False:
+            continue
 
+        unfilteredQueries += 1
+        uniqueQueries.update([queryId])        
+        
         ## use the best evalue
         if not results.has_key(queryId):
             results[queryId] = (hitNcbiId,_evalue)
@@ -53,16 +76,32 @@ def get_blast_assembly(resultsFilePath,evalue=0.00001):
             results[queryId] = (hitNcbiId,_evalue)
 
     uniqueQueries = list(uniqueQueries)
-    foo1Queries = list(foo1Queries)
-    foo2Queries = list(foo2Queries)
-
+    
     print("total queries: %s"%totalQueries)
+    print("unfiltered queries: %s"%unfilteredQueries)
     print("unique: %s"%len(uniqueQueries))
-    print("foo1: %s"%len(foo1Queries))
-    print("foo2: %s"%len(foo2Queries))
-    print("foo3: %s"%len(foo2Queries))
         
     return results
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def create_blast_map(refTaxon,taxaList,resultsFilePath,evalue=0.00001,verbose=False):
     """

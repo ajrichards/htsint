@@ -29,7 +29,7 @@ def read_RSEM_counts_files(geneFilePath,isoformFilePath):
     for linja in reader1:
         check += 1
         results1[linja[0]] = {'transcript':linja[1],'length':float(linja[2]),'eff_length':float(linja[3]),\
-                              'exp_count':float(linja[4]),'TPM':float(linja[5]),'FPKM':float(linja[6])}
+                              'exp_count':int(round(float(linja[4]))),'TPM':float(linja[5]),'FPKM':float(linja[6])}
     fid1.close()
     if check != len(results1.keys()):
         raise Exception("Rows in gene count file are not first columns unique")
