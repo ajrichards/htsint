@@ -5,17 +5,19 @@ from sqlalchemy.sql import select
 from htsint.database import db_connect,Taxon,Gene
 
 
-def get_blast_map(resultsFilePath,evalue=0.00001,taxaList=None):
+def get_blast_map(resultsFilePath,evalue=0.00001,taxaList=None,asGenes=False):
     """
     load assembly blast results into dictionary
 
     if taxaList is provided then only genes from given taxa will be included in map
 
+    if asGene == True the results are provided with keys to genes not isoforms
+
+
     """
 
     if not os.path.exists(resultsFilePath):
         raise Exception("cannot find results file path %s"%resultsFilePath)
-
 
     if taxaList != None:
         ## prepare database connections
@@ -55,6 +57,9 @@ def get_blast_map(resultsFilePath,evalue=0.00001,taxaList=None):
         hitId = linja[1]
         hitNcbiId = linja[2]
         _evalue = float(linja[3])
+
+        if asGenes == True:
+            queryId = re.sub("_i\d+","",queryId)
 
         # filtering
         totalQueries += 1

@@ -5,8 +5,8 @@ tools for expression and count based tasks
 
 """
 
-import os,sys,csv,gc
-
+import os,sys,csv,gc,re
+import numpy as np
 
 def read_RSEM_counts_files(geneFilePath,isoformFilePath):
     """
@@ -53,3 +53,114 @@ def read_RSEM_counts_files(geneFilePath,isoformFilePath):
     gc.enable()
 
     return results1, results2
+
+def read_count_matrix(matFilePath,delimiter="\t"):
+    """
+    csv file output normally after concatenation of RSEM samples
+    assumes that row one are the samples and col one are the transcripts
+    """
+
+    print 'reading', matFilePath
+
+    if not os.path.exists(matFilePath):
+        raise Exception("Cannot find matFilePath\n%s"%matFilePath)
+
+    fid = open(matFilePath,'rb')
+    reader = csv.reader(fid,delimiter=delimiter)
+    header = reader.next()
+
+    ## get the gene and sample ids
+    transcriptIds = []
+    sampleIds = np.array(header[1:])
+    gc.disable()
+    for linja in reader:
+        transcriptIds.append(linja[0])
+    gc.enable()
+    transcriptIds = np.array(transcriptIds)
+    fid.close()
+
+    ## fill in the matrix
+    mat = np.zeros((transcriptIds.shape[0],sampleIds.shape[0]),dtype=int)
+    fid = open(matFilePath,'rb')
+    reader = csv.reader(fid,delimiter=delimiter)
+    header = reader.next()
+    row = 0 
+    for linja in reader:
+        mat[row,:] = [int(float(i)) for i in linja[1:]]
+        row +=1
+    fid.close()
+
+    return transcriptIds,sampleIds,mat
+
+def read_de_results(filePath,delimiter=",",tool="edgeR"):
+    """
+    read the differential expression output from DESeq or edgeR
+
+    """
+
+    print 'reading', filePath
+
+    if not os.path.exists(filePath):
+        raise Exception("Cannot find matFilePath\n%s"%filePath)
+
+    if tool not in ["edgeR","DESeq"]:
+        raise Exception("invalid tool specified use 'edgeR' or 'DESeq'")
+
+    fid = open(filePath,'rb')
+    reader = csv.reader(fid,delimiter=delimiter)
+    
+    ## get columnIds
+    header = reader.next()
+    columnIds = np.array(header[1:])
+
+    ## get the gene and sample ids
+    transcriptIds = []
+
+    gc.disable()
+    for linja in reader:
+        transcriptIds.append(linja[0])
+    gc.enable()
+    transcriptIds = np.array(transcriptIds)
+    fid.close()
+
+    ## fill in the matrix
+    mat = np.zeros((transcriptIds.shape[0],columnIds.shape[0]))
+    fid = open(filePath,'rb')
+    reader = csv.reader(fid,delimiter=delimiter)
+    header = reader.next()
+    row = 0 
+    for linja in reader:
+        _row = [re.sub("NA","NaN",i) for i in linja[1:]]             
+        mat[row,:] = [float(i) for i in _row]
+        row +=1
+    fid.close()
+
+    return transcriptIds,columnIds,mat
+    [(x, y) for x in [1,2,3] for y in [3,1,4] if x != y]#
+
+def create_count_matrix(results,label,sampleList):
+    """
+    this function is untested
+    """
+
+    ## use first sample to get rows
+    mat = np.zeros((len(results[0].keys()),len(sampleList)))
+    keys = sorted(np.array(results[0].keys()))
+
+    for j,sample in enumerate(sampleList):
+        for i,key in enumerate(keys):
+            mat[i,j] = results[j][key]['exp_count']
+
+    ## write to file 
+    fid = open("%s-counts.csv"%label,'w')
+    writer = csv.writer(fid)
+    if re.search("gene",label):
+        writer.writerow(["gene"]+sampleList)
+    else:
+        writer.writerow(["isoform"]+sampleList)
+
+    for r in range(mat.shape[0]):
+        row = [keys[r]] + [int(i) for i in mat[r,:].tolist()]
+        writer.writerow(row)
+
+    fid.close()

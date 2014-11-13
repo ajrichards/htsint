@@ -4,4 +4,4 @@ blast related classes and functions
 """
 
 from LatexLib import LatexReportCreator
-from ExpressionLib import read_RSEM_counts_files
+from ExpressionLib import read_RSEM_counts_files,read_count_matrix,read_de_results
