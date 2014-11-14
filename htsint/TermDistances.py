@@ -9,13 +9,28 @@ import os,sys,csv,shutil,cPickle,getopt
 import numpy as np
 import networkx as nx
 from basedir import __basedir__
+from multiprocessing import Pool, cpu_count
+
+
+def get_distance_mp(args):
+    """
+    find shortest path length (same as class function except abstracted out to work with multiprocessing)
+    """
+
+    source,sink,G = args
+    minDistance = 1e8
+    if G.has_node(source) and G.has_node(sink):
+        (dijkDist, dijkPath) = nx.bidirectional_dijkstra(G,source,sink)
+        return dijkDist
+    else:
+        return None
 
 class TermDistances(object):
     """
     a class to represent distances among all gene-ontology terms
     """
 
-    def __init__(self,termsPath,termGraphPath,resultsDir=os.path.join(".","htsint-tmp")):
+    def __init__(self,termsPath,termGraphPath,resultsDir=os.path.join(".","htsint-tmp"),cluster=True):
         """
         Constructor
         
@@ -91,8 +106,7 @@ class TermDistances(object):
 
     def submit(self):
         """
-        submit the file to the cluster
-        
+        submit the file to the cluster        
         """
     
         if len(self.queue) == 0:
@@ -114,9 +128,9 @@ class TermDistances(object):
 
         if first == None or last == None:
             first = 0
-            last = int(self.totalTerms)
+            last = int(self.totalDistances)
 
-        toRun = range(first,last) 
+        toRun = range(first,last)
 
         count = -1
 
@@ -150,6 +164,38 @@ class TermDistances(object):
             (dijkDist, dijkPath) = nx.bidirectional_dijkstra(self.G,source,sink)
             return dijkDist
         return None
+
+    def run_with_multiprocessing(self,resultsFilePath):
+
+        ## create a results file )
+        outFid = open(resultsFilePath,'wa')
+        writer = csv.writer(outFid)
+        writer.writerow(["i","j","distance"])
+
+        ## assemble the pairwise terms
+        pairwiseTerms = []
+        for i,termI in enumerate(self.terms):
+            for j,termJ in enumerate(self.terms):
+                if j >= i:
+                    continue
+                pairwiseTerms.append((termI,termJ,self.G))
+                
+        pairwiseTerms = pairwiseTerms[:100]
+
+        ## run using multiprocessing
+        po = Pool(processes=cpu_count()-1)
+        _results = po.map_async(get_distance_mp,pairwiseTerms)
+        results =  _results.get()
+        
+        for pt in pairwiseTerms:
+            if results[i] != None:
+                writer.writerow([pt[0],pt[1],results[i]])
+
+        #po = Pool(processes=cpu_count()-1)
+        #_results = po.map_async(self.run(0,self.totalDistancesgreat_circle,(mat[i,:] for i in range(mat.shape[0])))
+        #results =  _results.get()
+
+        outFid.close()
 
 if __name__ == "__main__":
     ## read in input file      
