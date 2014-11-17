@@ -9,21 +9,21 @@ import os,sys,csv,shutil,cPickle,getopt
 import numpy as np
 import networkx as nx
 from basedir import __basedir__
-from multiprocessing import Pool, cpu_count
+from multiprocessing import Pool, cpu_count, Manager
 
-
-def get_distance_mp(args):
+def mp_worker((source,sink,graphPath)):
     """
-    find shortest path length (same as class function except abstracted out to work with multiprocessing)
+    find shortest path length
     """
-
-    source,sink,G = args
+    G = nx.read_gpickle(graphPath)
     minDistance = 1e8
     if G.has_node(source) and G.has_node(sink):
         (dijkDist, dijkPath) = nx.bidirectional_dijkstra(G,source,sink)
-        return dijkDist
     else:
-        return None
+        dijkDist = None
+    
+    if dijkDist:
+        return [source,sink,dijkDist]
 
 class TermDistances(object):
     """
@@ -122,9 +122,12 @@ class TermDistances(object):
 
         ## create a results file 
         outFile = os.path.join(self.resultsDir,"out-%s-%s.csv"%(first,last))
-        outFid = open(outFile,'wa')
+        outFid = open(outFile,'w')
         writer = csv.writer(outFid)
         writer.writerow(["i","j","distance"])
+        outFid.close()
+        outFid = open(outFile,'a')
+        writer = csv.writer(outFid)
 
         if first == None or last == None:
             first = 0
@@ -165,37 +168,50 @@ class TermDistances(object):
             return dijkDist
         return None
 
-    def run_with_multiprocessing(self,resultsFilePath):
+    def run_with_multiprocessing(self,resultsFilePath,chunkSize=1000,cpus=7):
 
         ## create a results file )
-        outFid = open(resultsFilePath,'wa')
+        outFid = open(resultsFilePath,'w')
         writer = csv.writer(outFid)
         writer.writerow(["i","j","distance"])
 
         ## assemble the pairwise terms
+        print("loading data")
         pairwiseTerms = []
         for i,termI in enumerate(self.terms):
             for j,termJ in enumerate(self.terms):
                 if j >= i:
                     continue
-                pairwiseTerms.append((termI,termJ,self.G))
+                pairwiseTerms.append([termI,termJ,self.termGraphPath])
                 
-        pairwiseTerms = pairwiseTerms[:100]
+        print("loaded.")
 
-        ## run using multiprocessing
-        po = Pool(processes=cpu_count()-1)
-        _results = po.map_async(get_distance_mp,pairwiseTerms)
-        results =  _results.get()
+        #####################################
+        #print("DEBUG is on")
+        #pairwiseTerms = pairwiseTerms[:1000]
+        #chunkSize = 300
+        ####################################
+
+        start = 0
+        stop = chunkSize
         
-        for pt in pairwiseTerms:
-            if results[i] != None:
-                writer.writerow([pt[0],pt[1],results[i]])
-
-        #po = Pool(processes=cpu_count()-1)
-        #_results = po.map_async(self.run(0,self.totalDistancesgreat_circle,(mat[i,:] for i in range(mat.shape[0])))
-        #results =  _results.get()
+        numChunks = int(np.ceil(float(len(pairwiseTerms) / float(chunkSize))))
+        for chunk in range(numChunks):
+            p = Pool(cpus)
+            _results = p.map_async(mp_worker,pairwiseTerms[start:start+chunkSize])
+            results = _results.get()
+            p.close()
+            p.join()
+ 
+            for row in results:
+                if row:
+                    writer.writerow(row)
+        
+            print("%s"%((start+chunkSize)/float(len(pairwiseTerms)) * 100.0)+"% complete")
+            start += chunkSize
 
         outFid.close()
+        #_results = p.map(mp_worker, pairwiseTerms)
 
 if __name__ == "__main__":
     ## read in input file      
@@ -223,3 +239,36 @@ if __name__ == "__main__":
 
     td = TermDistances(termsPath,termGraphPath,resultsDir)
     td.run(first=first,last=last)
+
+
+"""
+import multiprocessing
+
+class MyFancyClass(object):
+    
+    def __init__(self, name):
+        self.name = name
+    
+    def do_something(self):
+        proc_name = multiprocessing.current_process().name
+        print 'Doing something fancy in %s for %s!' % (proc_name, self.name)
+
+
+def worker(q):
+    obj = q.get()
+    obj.do_something()
+
+
+if __name__ == '__main__':
+    queue = multiprocessing.Queue()
+
+    p = multiprocessing.Process(target=worker, args=(queue,))
+    p.start()
+    
+    queue.put(MyFancyClass('Fancy Dan'))
+    
+    # Wait for the worker to finish
+    queue.close()
+    queue.join_thread()
+    p.join()
+"""
