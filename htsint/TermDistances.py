@@ -122,9 +122,12 @@ class TermDistances(object):
 
         ## create a results file 
         outFile = os.path.join(self.resultsDir,"out-%s-%s.csv"%(first,last))
-        outFid = open(outFile,'wa')
+        outFid = open(outFile,'w')
         writer = csv.writer(outFid)
         writer.writerow(["i","j","distance"])
+        outFid.close()
+        outFid = open(outFile,'a')
+        writer = csv.writer(outFid)
 
         if first == None or last == None:
             first = 0
@@ -165,7 +168,7 @@ class TermDistances(object):
             return dijkDist
         return None
 
-    def run_with_multiprocessing(self,resultsFilePath):
+    def run_with_multiprocessing(self,resultsFilePath,chunkSize=1000,cpus=7):
 
         ## create a results file )
         outFid = open(resultsFilePath,'w')
@@ -183,38 +186,29 @@ class TermDistances(object):
                 
         print("loaded.")
 
+        #####################################
         #print("DEBUG is on")
         #pairwiseTerms = pairwiseTerms[:1000]
-        #chunkSize = 500
-        
-        chunkSize = 100000
+        #chunkSize = 300
+        ####################################
+
         start = 0
         stop = chunkSize
         
         numChunks = int(np.ceil(float(len(pairwiseTerms) / float(chunkSize))))
-        print numChunks
-
         for chunk in range(numChunks):
-            p = Pool(cpu_count()-2)
+            p = Pool(cpus)
             _results = p.map_async(mp_worker,pairwiseTerms[start:start+chunkSize])
             results = _results.get()
-            
+            p.close()
+            p.join()
+ 
             for row in results:
                 if row:
                     writer.writerow(row)
         
             print("%s"%((start+chunkSize)/float(len(pairwiseTerms)) * 100.0)+"% complete")
             start += chunkSize
-
-        #p = Pool(cpu_count()-2)
-        #_results = p.map_async(mp_worker,pairwiseTerms)
-        #results = _results.get()
-        ## writing results to file
-        #print("writing results to file...")
-        #for row in results:
-        #    if row:
-        #        writer.writerow(row)
-        #
 
         outFid.close()
         #_results = p.map(mp_worker, pairwiseTerms)
