@@ -70,7 +70,7 @@ def db_connect(verbose=False,upass=''):
             
     ## create connection to db and create necessary tables 
     print "connecting to database: %s"%dbname
-    engine = create_engine('postgres://%s:%s@%s:%s/%s'%(uname,upass,dbhost,port,dbname),echo=verbose)
+    engine = create_engine('postgresql://%s:%s@%s:%s/%s'%(uname,upass,dbhost,port,dbname),echo=verbose)
     connection = engine.connect()
     Session = sessionmaker(bind=engine)
     session = Session()

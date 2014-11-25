@@ -54,14 +54,17 @@ def read_RSEM_counts_files(geneFilePath,isoformFilePath):
 
     return results1, results2
 
-def read_count_matrix(matFilePath,delimiter="\t"):
+def read_matrix(matFilePath,delimiter=",",mtype='int'):
     """
-    csv file output normally after concatenation of RSEM samples
     assumes that row one are the samples and col one are the transcripts
+    matrix can only be of mtype 'int' or 'float'
+
     """
 
     print 'reading', matFilePath
 
+    if mtype not in ['int','float']:
+        raise Exception("mtype must be 'int' or 'float'")
     if not os.path.exists(matFilePath):
         raise Exception("Cannot find matFilePath\n%s"%matFilePath)
 
@@ -80,13 +83,16 @@ def read_count_matrix(matFilePath,delimiter="\t"):
     fid.close()
 
     ## fill in the matrix
-    mat = np.zeros((transcriptIds.shape[0],sampleIds.shape[0]),dtype=int)
+    mat = np.zeros((transcriptIds.shape[0],sampleIds.shape[0]),dtype=mtype)
     fid = open(matFilePath,'rb')
     reader = csv.reader(fid,delimiter=delimiter)
     header = reader.next()
     row = 0 
     for linja in reader:
-        mat[row,:] = [int(float(i)) for i in linja[1:]]
+        if mtype == 'int':
+            mat[row,:] = [int(float(i)) for i in linja[1:]]
+        else:
+            mat[row,:] = [float(i) for i in linja[1:]]
         row +=1
     fid.close()
 
