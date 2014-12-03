@@ -5,7 +5,7 @@ from sqlalchemy.sql import select
 from htsint.database import db_connect,Taxon,Gene
 
 
-def get_blast_map(resultsFilePath,evalue=0.00001,taxaList=None,asGenes=False):
+def get_blast_map(resultsFilePath,evalue=0.00001,taxaList=None,asGenes=False,append=False):
     """
     load assembly blast results into dictionary
 
@@ -53,10 +53,18 @@ def get_blast_map(resultsFilePath,evalue=0.00001,taxaList=None,asGenes=False):
     unfilteredQueries = 0
 
     for linja in reader:
-        queryId = linja[0]
-        hitId = linja[1]
-        hitNcbiId = linja[2]
-        _evalue = float(linja[3])
+        
+        if len(linja) == 4:
+            queryId = linja[0]
+            hitId = linja[1]
+            hitNcbiId = linja[2]
+            _evalue = float(linja[3])
+        else:
+            queryId = linja[0]
+            queryNcbi = linja[1]
+            hitId = linja[2]
+            hitNcbiId = linja[3]
+            _evalue = linja[4]
 
         if asGenes == True:
             queryId = re.sub("_i\d+","",queryId)
@@ -72,14 +80,20 @@ def get_blast_map(resultsFilePath,evalue=0.00001,taxaList=None,asGenes=False):
             continue
 
         unfilteredQueries += 1
-        uniqueQueries.update([queryId])        
+        uniqueQueries.update([queryId])
         
         ## use the best evalue
         if not results.has_key(queryId):
-            results[queryId] = (hitNcbiId,_evalue)
+            if append:
+                results[queryId] = [(hitNcbiId,_evalue)]
+            else:
+                results[queryId] = (hitNcbiId,_evalue)
         if _evalue < results[queryId][1]:
-            results[queryId] = (hitNcbiId,_evalue)
-
+            if append:
+                results[queryId].append((hitNcbiId,_evalue))
+            else:
+                results[queryId] = (hitNcbiId,_evalue)
+                
     uniqueQueries = list(uniqueQueries)
     
     print("total queries: %s"%totalQueries)
@@ -87,25 +101,6 @@ def get_blast_map(resultsFilePath,evalue=0.00001,taxaList=None,asGenes=False):
     print("unique: %s"%len(uniqueQueries))
         
     return results
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 def create_blast_map(refTaxon,taxaList,resultsFilePath,evalue=0.00001,verbose=False):
