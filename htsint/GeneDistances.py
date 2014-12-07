@@ -52,6 +52,8 @@ class GeneDistances(object):
         header = reader.next()
 
         for linja in reader:
+            if len(linja) != 3:
+                continue
             if not termDist.has_key(linja[0]):
                 termDist[linja[0]] = {}
             if not termDist[linja[0]].has_key(linja[1]):
@@ -72,6 +74,7 @@ class GeneDistances(object):
         """
 
         minDistance = 1e8
+        td = 1e8
         for source in sourceTerms:            
             for sink in sinkTerms:
                 if source == sink:
