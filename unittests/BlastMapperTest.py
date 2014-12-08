@@ -25,16 +25,23 @@ class BlastTest(unittest.TestCase):
 
         self.parsedFile = os.path.join(os.path.dirname(__file__),"blast-parsed.csv")
         self.bm = BlastMapper()
-
-
-    def testSummarize(self):
+        
+    def test01Summarize(self):
         """
         test the summarize function
         """
 
-        self.bm.load_parsed(self.parsedFile)
+        summaryFile = re.sub("\.csv","",self.parsedFile)+"_summary.csv"
+        if os.path.exists(summaryFile):
+            os.remove(summaryFile)
+                          
+        self.bm.create_summarized(self.parsedFile)
 
-        print 'cool'
+        self.assertTrue(os.path.exists(summaryFile))
+
+    def test02Something(self):
+        print os.path.exists(re.sub("\.csv","",self.parsedFile)+"_summary.csv")
+        
 
 ### Run the tests
 if __name__ == '__main__':

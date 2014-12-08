@@ -50,7 +50,7 @@ class ParseBlast(object):
         ## prepare a summary file
         if fhResults == None:
             if outFile == None:
-                outFile = os.path.join(outDir,'%s_parsed.csv'%re.sub("\.xml|\.outfmt5","",fileName))
+                outFile = os.path.join('.','%s_parsed.csv'%re.sub("\.xml|\.outfmt5","",fileName))
             self.fid2 = open(outFile,'w')
             self.resultsWriter = csv.writer(self.fid2)
             self.resultsWriter.writerow(["query","hit-identifier","hit-identifier-long","e-score","bit-score"])

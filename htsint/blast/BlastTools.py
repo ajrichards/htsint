@@ -33,13 +33,13 @@ def get_blast_map(resultsFilePath,evalue=0.00001,taxaList=None,asGenes=False,app
         taxa2name = dict([(str(tquery['id']),str(tquery['ncbi_id'])) for tquery in taxaQueries])
         
         ## create a gene2taxa dictionary
-        gene2taxa,gene2desc = {},{}
-        for tquery in taxaQueries:
-            s = select([Gene.taxa_id,Gene.ncbi_id,Gene.description],Gene.taxa_id==tquery['id'])
-            _geneQueries = conn.execute(s)
-            geneQueries = _geneQueries.fetchall()
-            gene2taxa.update(dict([(str(r['ncbi_id']),str(r['taxa_id'])) for r in geneQueries]))
-            gene2desc.update(dict([(str(r['ncbi_id']),str(r['description'])) for r in geneQueries]))
+        #gene2taxa,gene2desc = {},{}
+        #for tquery in taxaQueries:
+        #    s = select([Gene.taxa_id,Gene.ncbi_id,Gene.description],Gene.taxa_id==tquery['id'])
+        #    _geneQueries = conn.execute(s)
+        #    geneQueries = _geneQueries.fetchall()
+        #    gene2taxa.update(dict([(str(r['ncbi_id']),str(r['taxa_id'])) for r in geneQueries]))
+        #    gene2desc.update(dict([(str(r['ncbi_id']),str(r['description'])) for r in geneQueries]))
 
     results = {}
     fid = open(resultsFilePath,'rU')

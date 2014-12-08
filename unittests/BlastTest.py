@@ -61,11 +61,11 @@ class BlastTest(unittest.TestCase):
         self.blast.run_blast(targetDB,evalue=0.1,start=start,stop=stop,cmd='blastx')
     
         ## read the blast
-        parser = ParseBlast(outFile,outDir=".")
+        parser = ParseBlast(outFile)
         parser.run()
 
         ## clean up
-        for fn in ["adh-0-2_1.csv", "adh-0-2_1.log","adh-0-2.fasta","adh-0-2.xml"]:
+        for fn in ["adh-0-2_parsed.csv", "adh-0-2_parsed.log","adh-0-2.fasta","adh-0-2.xml"]:
             self.assertTrue(os.path.exists(fn))
             os.remove(fn)
     
