@@ -45,6 +45,8 @@ class BlastMapper(object):
                 if gene2id.has_key(uniprotDict[hitId]):
                     geneId = gene2id[uniprotDict[hitId]]
                 speciesId = _speciesId
+        if speciesId == '-':
+            print hitId, [(sid,uniprotDict.__contains__(hitId)) for sid,uniprotDict in uniprot2id.iteritems()]
 
         return geneId,speciesId
 
