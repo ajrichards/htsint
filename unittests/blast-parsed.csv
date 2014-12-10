@@ -1,195 +1,90 @@
 query,hit-identifier,hit-identifier-long,e-score,bit-score
 GG1111|c0_g1_i1 len=389 path=[1:0-21 23:22-102 520:103-104 221:105-236 353:237-333 106:334-388],197632,gnl|BL_ORD_ID|197632 sp|Q9JK45|KCNQ5_MOUSE Potassium voltage-gated channel subfamily KQT member 5 OS=Mus musculus GN=Kcnq5 PE=1 SV=2,4.06357e-20,223.0
-GG1111|c0_g1_i1 len=389 path=[1:0-21 23:22-102 520:103-104 221:105-236 353:237-333 106:334-388],197631,gnl|BL_ORD_ID|197631 sp|Q9NR82|KCNQ5_HUMAN Potassium voltage-gated channel subfamily KQT member 5 OS=Homo sapiens GN=KCNQ5 PE=1 SV=3,4.91675e-20,222.0
 GG1111|c0_g1_i1 len=389 path=[1:0-21 23:22-102 520:103-104 221:105-236 353:237-333 106:334-388],197629,gnl|BL_ORD_ID|197629 sp|Q9JK97|KCNQ4_MOUSE Potassium voltage-gated channel subfamily KQT member 4 OS=Mus musculus GN=Kcnq4 PE=2 SV=2,8.78881e-08,128.0
-GG1111|c0_g1_i1 len=389 path=[1:0-21 23:22-102 520:103-104 221:105-236 353:237-333 106:334-388],197628,gnl|BL_ORD_ID|197628 sp|P56696|KCNQ4_HUMAN Potassium voltage-gated channel subfamily KQT member 4 OS=Homo sapiens GN=KCNQ4 PE=1 SV=2,2.04545e-07,125.0
 GG11110|c0_g1_i1 len=296 path=[1:0-295],77040,gnl|BL_ORD_ID|77040 sp|A8WGU8|CSMT1_XENTR Protein ccsmst1 OS=Xenopus tropicalis GN=ccsmst1 PE=3 SV=2,1.01375e-51,415.0
-GG11110|c0_g1_i1 len=296 path=[1:0-295],77036,gnl|BL_ORD_ID|77036 sp|Q1ECT8|CSMT1_BOVIN Protein CCSMST1 OS=Bos taurus GN=CCSMST1 PE=2 SV=1,2.00609e-15,174.0
-GG11110|c0_g1_i1 len=296 path=[1:0-295],77039,gnl|BL_ORD_ID|77039 sp|Q5RFR4|CSMT1_PONAB Protein CCSMST1 OS=Pongo abelii GN=CCSMST1 PE=2 SV=1,4.98659e-15,171.0
-GG11110|c0_g1_i1 len=296 path=[1:0-295],77037,gnl|BL_ORD_ID|77037 sp|Q4G0I0|CSMT1_HUMAN Protein CCSMST1 OS=Homo sapiens GN=CCSMST1 PE=2 SV=1,1.28662e-14,168.0
 GG11110|c0_g1_i1 len=296 path=[1:0-295],77038,gnl|BL_ORD_ID|77038 sp|Q6RUT7|CSMT1_MOUSE Protein CCSMST1 OS=Mus musculus GN=Ccsmst1 PE=3 SV=1,6.27015e-12,149.0
 GG11111|c0_g1_i1 len=364 path=[1:0-68 70:69-363],232447,gnl|BL_ORD_ID|232447 sp|Q3TN34|MILK2_MOUSE MICAL-like protein 2 OS=Mus musculus GN=Micall2 PE=1 SV=1,2.58743e-26,269.0
 GG11111|c0_g1_i1 len=364 path=[1:0-68 70:69-363],232448,gnl|BL_ORD_ID|232448 sp|D3ZEN0|MILK2_RAT MICAL-like protein 2 OS=Rattus norvegicus GN=Micall2 PE=1 SV=2,5.73239e-26,266.0
-GG11111|c0_g1_i1 len=364 path=[1:0-68 70:69-363],232446,gnl|BL_ORD_ID|232446 sp|Q8IY33|MILK2_HUMAN MICAL-like protein 2 OS=Homo sapiens GN=MICALL2 PE=1 SV=1,1.55333e-25,262.0
 GG11111|c0_g1_i1 len=364 path=[1:0-68 70:69-363],232445,gnl|BL_ORD_ID|232445 sp|D3ZQL6|MILK1_RAT MICAL-like protein 1 OS=Rattus norvegicus GN=Micall1 PE=1 SV=1,4.00052e-19,214.0
 GG11111|c0_g1_i1 len=364 path=[1:0-68 70:69-363],232444,gnl|BL_ORD_ID|232444 sp|Q8BGT6|MILK1_MOUSE MICAL-like protein 1 OS=Mus musculus GN=Micall1 PE=1 SV=3,5.25352e-19,213.0
-GG11111|c0_g1_i1 len=364 path=[1:0-68 70:69-363],232442,gnl|BL_ORD_ID|232442 sp|E1BBG2|MILK1_BOVIN MICAL-like protein 1 OS=Bos taurus GN=MICALL1 PE=1 SV=2,2.71326e-18,208.0
-GG11111|c0_g1_i1 len=364 path=[1:0-68 70:69-363],232443,gnl|BL_ORD_ID|232443 sp|Q8N3F8|MILK1_HUMAN MICAL-like protein 1 OS=Homo sapiens GN=MICALL1 PE=1 SV=2,3.75346e-18,207.0
 GG11111|c0_g1_i1 len=364 path=[1:0-68 70:69-363],232315,gnl|BL_ORD_ID|232315 sp|Q8CJ19|MICA3_MOUSE Protein-methionine sulfoxide oxidase MICAL3 OS=Mus musculus GN=Mical3 PE=2 SV=2,2.43515e-12,164.0
-GG11111|c0_g1_i1 len=364 path=[1:0-68 70:69-363],232313,gnl|BL_ORD_ID|232313 sp|G3MWR8|MICA3_BOVIN Protein-methionine sulfoxide oxidase MICAL3 OS=Bos taurus GN=MICAL3 PE=3 SV=1,4.74502e-12,162.0
-GG11111|c0_g1_i1 len=364 path=[1:0-68 70:69-363],232314,gnl|BL_ORD_ID|232314 sp|Q7RTP6|MICA3_HUMAN Protein-methionine sulfoxide oxidase MICAL3 OS=Homo sapiens GN=MICAL3 PE=1 SV=2,1.11847e-10,151.0
 GG11111|c0_g1_i1 len=364 path=[1:0-68 70:69-363],223547,gnl|BL_ORD_ID|223547 sp|F1QH17|MCA3A_DANRE Protein-methionine sulfoxide oxidase mical3a OS=Danio rerio GN=mical3a PE=2 SV=2,1.34412e-09,142.0
 GG11111|c0_g1_i1 len=364 path=[1:0-68 70:69-363],223548,gnl|BL_ORD_ID|223548 sp|F1QWK4|MCA3B_DANRE Protein-methionine sulfoxide oxidase mical3b OS=Danio rerio GN=mical3b PE=3 SV=2,2.28594e-09,140.0
 GG11111|c0_g1_i1 len=364 path=[1:0-68 70:69-363],232304,gnl|BL_ORD_ID|232304 sp|E7F9T0|MICA1_DANRE Protein-methionine sulfoxide oxidase mical1 OS=Danio rerio GN=mical1 PE=3 SV=1,1.53606e-08,134.0
 GG11111|c0_g1_i1 len=364 path=[1:0-68 70:69-363],223545,gnl|BL_ORD_ID|223545 sp|F1RA39|MCA2B_DANRE Protein-methionine sulfoxide oxidase mical2b OS=Danio rerio GN=mical2b PE=2 SV=2,4.35783e-08,130.0
-GG11111|c0_g1_i1 len=364 path=[1:0-68 70:69-363],232320,gnl|BL_ORD_ID|232320 sp|Q6ZW33|MICLK_HUMAN MICAL C-terminal-like protein OS=Homo sapiens GN=MICALCL PE=2 SV=3,1.37222e-07,126.0
 GG11111|c0_g1_i1 len=364 path=[1:0-68 70:69-363],232321,gnl|BL_ORD_ID|232321 sp|Q9D5U9|MICLK_MOUSE MICAL C-terminal-like protein OS=Mus musculus GN=Micalcl PE=1 SV=2,1.69049e-07,125.0
 GG11111|c0_g1_i1 len=364 path=[1:0-68 70:69-363],232322,gnl|BL_ORD_ID|232322 sp|Q4G091|MICLK_RAT MICAL C-terminal-like protein OS=Rattus norvegicus GN=Micalcl PE=2 SV=1,1.74416e-07,125.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],232448,gnl|BL_ORD_ID|232448 sp|D3ZEN0|MILK2_RAT MICAL-like protein 2 OS=Rattus norvegicus GN=Micall2 PE=1 SV=2,7.33755e-36,334.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],232447,gnl|BL_ORD_ID|232447 sp|Q3TN34|MILK2_MOUSE MICAL-like protein 2 OS=Mus musculus GN=Micall2 PE=1 SV=1,1.22123e-35,332.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],232446,gnl|BL_ORD_ID|232446 sp|Q8IY33|MILK2_HUMAN MICAL-like protein 2 OS=Homo sapiens GN=MICALL2 PE=1 SV=1,1.26787e-34,324.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],232443,gnl|BL_ORD_ID|232443 sp|Q8N3F8|MILK1_HUMAN MICAL-like protein 1 OS=Homo sapiens GN=MICALL1 PE=1 SV=2,3.61548e-26,261.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],232442,gnl|BL_ORD_ID|232442 sp|E1BBG2|MILK1_BOVIN MICAL-like protein 1 OS=Bos taurus GN=MICALL1 PE=1 SV=2,3.7065e-26,261.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],232445,gnl|BL_ORD_ID|232445 sp|D3ZQL6|MILK1_RAT MICAL-like protein 1 OS=Rattus norvegicus GN=Micall1 PE=1 SV=1,9.37023e-26,258.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],232444,gnl|BL_ORD_ID|232444 sp|Q8BGT6|MILK1_MOUSE MICAL-like protein 1 OS=Mus musculus GN=Micall1 PE=1 SV=3,9.56161e-26,258.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],232308,gnl|BL_ORD_ID|232308 sp|F1MF74|MICA2_BOVIN Protein-methionine sulfoxide oxidase MICAL2 OS=Bos taurus GN=MICAL2 PE=3 SV=2,2.23535e-20,219.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],8293,gnl|BL_ORD_ID|8293 sp|P05095|ACTNA_DICDI Alpha-actinin A OS=Dictyostelium discoideum GN=abpA PE=1 SV=2,8.0125e-20,214.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],232313,gnl|BL_ORD_ID|232313 sp|G3MWR8|MICA3_BOVIN Protein-methionine sulfoxide oxidase MICAL3 OS=Bos taurus GN=MICAL3 PE=3 SV=1,1.14564e-19,214.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],232314,gnl|BL_ORD_ID|232314 sp|Q7RTP6|MICA3_HUMAN Protein-methionine sulfoxide oxidase MICAL3 OS=Homo sapiens GN=MICAL3 PE=1 SV=2,1.15143e-19,214.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],232309,gnl|BL_ORD_ID|232309 sp|O94851|MICA2_HUMAN Protein-methionine sulfoxide oxidase MICAL2 OS=Homo sapiens GN=MICAL2 PE=1 SV=1,1.17365e-19,214.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],232315,gnl|BL_ORD_ID|232315 sp|Q8CJ19|MICA3_MOUSE Protein-methionine sulfoxide oxidase MICAL3 OS=Mus musculus GN=Mical3 PE=2 SV=2,3.88577e-19,210.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],232311,gnl|BL_ORD_ID|232311 sp|D4A1F2|MICA2_RAT Protein-methionine sulfoxide oxidase MICAL2 OS=Rattus norvegicus GN=Mical2 PE=3 SV=1,5.47694e-19,208.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],223547,gnl|BL_ORD_ID|223547 sp|F1QH17|MCA3A_DANRE Protein-methionine sulfoxide oxidase mical3a OS=Danio rerio GN=mical3a PE=2 SV=2,7.82221e-19,208.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],232310,gnl|BL_ORD_ID|232310 sp|Q8BML1|MICA2_MOUSE Protein-methionine sulfoxide oxidase MICAL2 OS=Mus musculus GN=Mical2 PE=1 SV=1,1.10665e-18,206.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],112630,gnl|BL_ORD_ID|112630 sp|Q8NDI1|EHBP1_HUMAN EH domain-binding protein 1 OS=Homo sapiens GN=EHBP1 PE=1 SV=3,5.79595e-17,193.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],112631,gnl|BL_ORD_ID|112631 sp|Q69ZW3|EHBP1_MOUSE EH domain-binding protein 1 OS=Mus musculus GN=Ehbp1 PE=1 SV=3,6.56596e-17,193.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],112624,gnl|BL_ORD_ID|112624 sp|Q99MS7|EH1L1_MOUSE EH domain-binding protein 1-like protein 1 OS=Mus musculus GN=Ehbp1l1 PE=1 SV=1,9.50996e-17,192.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],112623,gnl|BL_ORD_ID|112623 sp|Q8N3D4|EH1L1_HUMAN EH domain-binding protein 1-like protein 1 OS=Homo sapiens GN=EHBP1L1 PE=1 SV=2,1.07397e-16,192.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],432141,gnl|BL_ORD_ID|432141 sp|Q01082|SPTB2_HUMAN Spectrin beta chain non-erythrocytic 1 OS=Homo sapiens GN=SPTBN1 PE=1 SV=2,4.41993e-16,187.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],432142,gnl|BL_ORD_ID|432142 sp|Q62261|SPTB2_MOUSE Spectrin beta chain non-erythrocytic 1 OS=Mus musculus GN=Sptbn1 PE=1 SV=2,4.72517e-16,187.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],223545,gnl|BL_ORD_ID|223545 sp|F1RA39|MCA2B_DANRE Protein-methionine sulfoxide oxidase mical2b OS=Danio rerio GN=mical2b PE=2 SV=2,5.00381e-16,187.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],432168,gnl|BL_ORD_ID|432168 sp|O15020|SPTN2_HUMAN Spectrin beta chain non-erythrocytic 2 OS=Homo sapiens GN=SPTBN2 PE=1 SV=3,5.15861e-16,187.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],432169,gnl|BL_ORD_ID|432169 sp|Q9QWN8|SPTN2_RAT Spectrin beta chain non-erythrocytic 2 OS=Rattus norvegicus GN=Sptbn2 PE=1 SV=2,5.72916e-16,187.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],8297,gnl|BL_ORD_ID|8297 sp|Q7PKQ5|ACTN_ANOGA Alpha-actinin sarcomeric OS=Anopheles gambiae GN=Actn PE=3 SV=2,7.05863e-16,185.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],232312,gnl|BL_ORD_ID|232312 sp|F6QZ15|MICA2_XENTR Protein-methionine sulfoxide oxidase mical2 OS=Xenopus tropicalis GN=mical2 PE=3 SV=1,7.60592e-16,185.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],432160,gnl|BL_ORD_ID|432160 sp|Q00963|SPTCB_DROME Spectrin beta chain OS=Drosophila melanogaster GN=beta-Spec PE=1 SV=2,1.25696e-15,184.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],432170,gnl|BL_ORD_ID|432170 sp|Q9H254|SPTN4_HUMAN Spectrin beta chain non-erythrocytic 4 OS=Homo sapiens GN=SPTBN4 PE=1 SV=2,1.90927e-15,183.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],8298,gnl|BL_ORD_ID|8298 sp|P18091|ACTN_DROME Alpha-actinin sarcomeric OS=Drosophila melanogaster GN=Actn PE=1 SV=2,2.07409e-15,181.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],432138,gnl|BL_ORD_ID|432138 sp|P11277|SPTB1_HUMAN Spectrin beta chain erythrocytic OS=Homo sapiens GN=SPTB PE=1 SV=5,5.24898e-15,179.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],432139,gnl|BL_ORD_ID|432139 sp|P15508|SPTB1_MOUSE Spectrin beta chain erythrocytic OS=Mus musculus GN=Sptb PE=1 SV=4,6.05214e-15,179.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],8280,gnl|BL_ORD_ID|8280 sp|Q3ZC55|ACTN2_BOVIN Alpha-actinin-2 OS=Bos taurus GN=ACTN2 PE=2 SV=1,3.85121e-14,172.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],8283,gnl|BL_ORD_ID|8283 sp|Q9JI91|ACTN2_MOUSE Alpha-actinin-2 OS=Mus musculus GN=Actn2 PE=1 SV=2,4.11875e-14,172.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],8282,gnl|BL_ORD_ID|8282 sp|P35609|ACTN2_HUMAN Alpha-actinin-2 OS=Homo sapiens GN=ACTN2 PE=1 SV=1,4.3628e-14,171.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],8284,gnl|BL_ORD_ID|8284 sp|Q0III9|ACTN3_BOVIN Alpha-actinin-3 OS=Bos taurus GN=ACTN3 PE=2 SV=1,1.15363e-13,168.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],8286,gnl|BL_ORD_ID|8286 sp|O88990|ACTN3_MOUSE Alpha-actinin-3 OS=Mus musculus GN=Actn3 PE=2 SV=1,1.22127e-13,168.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],8285,gnl|BL_ORD_ID|8285 sp|Q08043|ACTN3_HUMAN Alpha-actinin-3 OS=Homo sapiens GN=ACTN3 PE=1 SV=2,1.49434e-13,167.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],8281,gnl|BL_ORD_ID|8281 sp|P20111|ACTN2_CHICK Alpha-actinin-2 OS=Gallus gallus GN=ACTN2 PE=2 SV=1,3.43165e-13,165.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],8277,gnl|BL_ORD_ID|8277 sp|Q2PFV7|ACTN1_MACFA Alpha-actinin-1 OS=Macaca fascicularis GN=ACTN1 PE=2 SV=1,3.1805e-12,157.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],8276,gnl|BL_ORD_ID|8276 sp|P12814|ACTN1_HUMAN Alpha-actinin-1 OS=Homo sapiens GN=ACTN1 PE=1 SV=2,3.21104e-12,157.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],8279,gnl|BL_ORD_ID|8279 sp|Q9Z1P2|ACTN1_RAT Alpha-actinin-1 OS=Rattus norvegicus GN=Actn1 PE=1 SV=1,3.24187e-12,157.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],8274,gnl|BL_ORD_ID|8274 sp|Q3B7N2|ACTN1_BOVIN Alpha-actinin-1 OS=Bos taurus GN=ACTN1 PE=2 SV=1,3.53303e-12,157.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],8275,gnl|BL_ORD_ID|8275 sp|P05094|ACTN1_CHICK Alpha-actinin-1 OS=Gallus gallus GN=ACTN1 PE=1 SV=3,3.53476e-12,157.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],8278,gnl|BL_ORD_ID|8278 sp|Q7TPR4|ACTN1_MOUSE Alpha-actinin-1 OS=Mus musculus GN=Actn1 PE=1 SV=1,3.92459e-12,157.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],85346,gnl|BL_ORD_ID|85346 sp|Q2KN97|CYTSA_CHICK Cytospin-A OS=Gallus gallus GN=SPECC1L PE=2 SV=2,4.97321e-12,156.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],223548,gnl|BL_ORD_ID|223548 sp|F1QWK4|MCA3B_DANRE Protein-methionine sulfoxide oxidase mical3b OS=Danio rerio GN=mical3b PE=3 SV=2,5.98815e-12,156.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],85345,gnl|BL_ORD_ID|85345 sp|Q2KNA0|CYTSA_CANFA Cytospin-A OS=Canis familiaris GN=SPECC1L PE=2 SV=1,7.00552e-12,155.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],85347,gnl|BL_ORD_ID|85347 sp|Q2KN93|CYTSA_DANRE Cytospin-A OS=Danio rerio GN=specc1la PE=2 SV=2,8.27079e-12,155.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],85350,gnl|BL_ORD_ID|85350 sp|Q2KNA1|CYTSA_PANTR Cytospin-A OS=Pan troglodytes GN=SPECC1L PE=2 SV=1,8.8043e-12,154.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],85349,gnl|BL_ORD_ID|85349 sp|Q2KN98|CYTSA_MOUSE Cytospin-A OS=Mus musculus GN=Specc1l PE=1 SV=1,9.06194e-12,154.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],85348,gnl|BL_ORD_ID|85348 sp|Q69YQ0|CYTSA_HUMAN Cytospin-A OS=Homo sapiens GN=SPECC1L PE=1 SV=2,9.14608e-12,154.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],11875,gnl|BL_ORD_ID|11875 sp|O13728|AIN1_SCHPO Alpha-actinin-like protein 1 OS=Schizosaccharomyces pombe (strain 972 / ATCC 24843) GN=ain1 PE=3 SV=1,1.11045e-11,153.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],232304,gnl|BL_ORD_ID|232304 sp|E7F9T0|MICA1_DANRE Protein-methionine sulfoxide oxidase mical1 OS=Danio rerio GN=mical1 PE=3 SV=1,1.16669e-11,154.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],85351,gnl|BL_ORD_ID|85351 sp|Q2KN99|CYTSA_RAT Cytospin-A OS=Rattus norvegicus GN=Specc1l PE=2 SV=1,1.21726e-11,153.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],447035,gnl|BL_ORD_ID|447035 sp|Q8WXH0|SYNE2_HUMAN Nesprin-2 OS=Homo sapiens GN=SYNE2 PE=1 SV=3,1.38097e-11,154.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],447036,gnl|BL_ORD_ID|447036 sp|Q6ZWQ0|SYNE2_MOUSE Nesprin-2 OS=Mus musculus GN=Syne2 PE=1 SV=2,2.38948e-11,152.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],8288,gnl|BL_ORD_ID|8288 sp|Q90734|ACTN4_CHICK Alpha-actinin-4 OS=Gallus gallus GN=ACTN4 PE=1 SV=1,2.46616e-11,151.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],85353,gnl|BL_ORD_ID|85353 sp|Q2KN95|CYTSA_TETNG Cytospin-A OS=Tetraodon nigroviridis GN=specc1l PE=2 SV=1,2.67744e-11,151.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],85355,gnl|BL_ORD_ID|85355 sp|Q5M775|CYTSB_HUMAN Cytospin-B OS=Homo sapiens GN=SPECC1 PE=1 SV=1,2.74576e-11,151.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],8291,gnl|BL_ORD_ID|8291 sp|Q5RCS6|ACTN4_PONAB Alpha-actinin-4 OS=Pongo abelii GN=ACTN4 PE=2 SV=1,2.80006e-11,150.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],8289,gnl|BL_ORD_ID|8289 sp|O43707|ACTN4_HUMAN Alpha-actinin-4 OS=Homo sapiens GN=ACTN4 PE=1 SV=2,2.82688e-11,150.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],85352,gnl|BL_ORD_ID|85352 sp|Q2KN94|CYTSA_TAKRU Cytospin-A OS=Takifugu rubripes GN=specc1l PE=2 SV=1,3.09207e-11,150.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],8287,gnl|BL_ORD_ID|8287 sp|A5D7D1|ACTN4_BOVIN Alpha-actinin-4 OS=Bos taurus GN=ACTN4 PE=2 SV=1,3.19968e-11,150.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],8290,gnl|BL_ORD_ID|8290 sp|P57780|ACTN4_MOUSE Alpha-actinin-4 OS=Mus musculus GN=Actn4 PE=1 SV=1,3.45459e-11,150.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],8292,gnl|BL_ORD_ID|8292 sp|Q9QXQ0|ACTN4_RAT Alpha-actinin-4 OS=Rattus norvegicus GN=Actn4 PE=1 SV=2,3.55323e-11,150.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],432171,gnl|BL_ORD_ID|432171 sp|Q9NRC6|SPTN5_HUMAN Spectrin beta chain non-erythrocytic 5 OS=Homo sapiens GN=SPTBN5 PE=1 SV=1,8.99992e-11,147.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],85354,gnl|BL_ORD_ID|85354 sp|Q2KN96|CYTSA_XENTR Cytospin-A OS=Xenopus tropicalis GN=specc1l PE=2 SV=1,1.18612e-10,146.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],85356,gnl|BL_ORD_ID|85356 sp|Q5SXY1|CYTSB_MOUSE Cytospin-B OS=Mus musculus GN=Specc1 PE=1 SV=2,1.48981e-10,145.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],427767,gnl|BL_ORD_ID|427767 sp|Q2TAL5|SMTL2_HUMAN Smoothelin-like protein 2 OS=Homo sapiens GN=SMTNL2 PE=2 SV=1,8.0038e-10,138.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],427768,gnl|BL_ORD_ID|427768 sp|Q8CI12|SMTL2_MOUSE Smoothelin-like protein 2 OS=Mus musculus GN=Smtnl2 PE=1 SV=1,1.13133e-09,137.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],427766,gnl|BL_ORD_ID|427766 sp|Q2KI85|SMTL2_BOVIN Smoothelin-like protein 2 OS=Bos taurus GN=SMTNL2 PE=2 SV=1,2.06612e-09,135.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],427771,gnl|BL_ORD_ID|427771 sp|Q921U8|SMTN_MOUSE Smoothelin OS=Mus musculus GN=Smtn PE=2 SV=2,3.1854e-09,135.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],427770,gnl|BL_ORD_ID|427770 sp|P53814|SMTN_HUMAN Smoothelin OS=Homo sapiens GN=SMTN PE=1 SV=7,4.72839e-09,133.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],106800,gnl|BL_ORD_ID|106800 sp|Q91ZU6|DYST_MOUSE Dystonin OS=Mus musculus GN=Dst PE=1 SV=2,5.2306e-09,134.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],488656,gnl|BL_ORD_ID|488656 sp|P46939|UTRO_HUMAN Utrophin OS=Homo sapiens GN=UTRN PE=1 SV=2,6.43268e-09,133.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],298030,gnl|BL_ORD_ID|298030 sp|Q9JI55|PLEC_CRIGR Plectin (Fragment) OS=Cricetulus griseus GN=PLEC PE=1 SV=1,1.08437e-08,131.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],298033,gnl|BL_ORD_ID|298033 sp|P30427|PLEC_RAT Plectin OS=Rattus norvegicus GN=Plec PE=1 SV=2,1.08694e-08,131.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],298032,gnl|BL_ORD_ID|298032 sp|Q9QXS1|PLEC_MOUSE Plectin OS=Mus musculus GN=Plec PE=1 SV=3,1.08699e-08,131.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],106799,gnl|BL_ORD_ID|106799 sp|Q03001|DYST_HUMAN Dystonin OS=Homo sapiens GN=DST PE=1 SV=4,1.21611e-08,131.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],232303,gnl|BL_ORD_ID|232303 sp|F1MH07|MICA1_BOVIN Protein-methionine sulfoxide oxidase MICAL1 OS=Bos taurus GN=MICAL1 PE=2 SV=1,1.35684e-08,130.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],513375,gnl|BL_ORD_ID|513375 sp|Q75JP5|Y2471_DICDI Calponin homology domain-containing protein DDB_G0272472 OS=Dictyostelium discoideum GN=DDB_G0272472 PE=4 SV=1,2.56061e-08,128.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],298031,gnl|BL_ORD_ID|298031 sp|Q15149|PLEC_HUMAN Plectin OS=Homo sapiens GN=PLEC PE=1 SV=3,3.6666e-08,127.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],97469,gnl|BL_ORD_ID|97469 sp|P11533|DMD_CHICK Dystrophin OS=Gallus gallus GN=DMD PE=2 SV=1,3.68593e-08,127.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],79086,gnl|BL_ORD_ID|79086 sp|Q54HG2|CTXA_DICDI Cortexillin-1 OS=Dictyostelium discoideum GN=ctxA PE=1 SV=1,4.13952e-08,125.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],79090,gnl|BL_ORD_ID|79090 sp|Q9Y0T3|CTXB_POLPA Cortexillin-2 OS=Polysphondylium pallidum GN=ctxB PE=3 SV=1,5.78675e-08,124.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],97472,gnl|BL_ORD_ID|97472 sp|Q5GN48|DMD_PIG Dystrophin OS=Sus scrofa GN=DMD PE=1 SV=1,6.33675e-08,126.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],97470,gnl|BL_ORD_ID|97470 sp|P11532|DMD_HUMAN Dystrophin OS=Homo sapiens GN=DMD PE=1 SV=3,6.45729e-08,125.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],97468,gnl|BL_ORD_ID|97468 sp|O97592|DMD_CANFA Dystrophin OS=Canis familiaris GN=DMD PE=2 SV=1,6.70231e-08,125.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],79089,gnl|BL_ORD_ID|79089 sp|Q550R2|CTXB_DICDI Cortexillin-2 OS=Dictyostelium discoideum GN=ctxB PE=1 SV=1,8.35372e-08,123.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],427763,gnl|BL_ORD_ID|427763 sp|A8MU46|SMTL1_HUMAN Smoothelin-like protein 1 OS=Homo sapiens GN=SMTNL1 PE=1 SV=1,9.28632e-08,122.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],97471,gnl|BL_ORD_ID|97471 sp|P11531|DMD_MOUSE Dystrophin OS=Mus musculus GN=Dmd PE=1 SV=3,1.9208e-07,122.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],232307,gnl|BL_ORD_ID|232307 sp|D3ZBP4|MICA1_RAT Protein-methionine sulfoxide oxidase MICAL1 OS=Rattus norvegicus GN=Mical1 PE=3 SV=1,2.40749e-07,121.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],427764,gnl|BL_ORD_ID|427764 sp|Q99LM3|SMTL1_MOUSE Smoothelin-like protein 1 OS=Mus musculus GN=Smtnl1 PE=1 SV=1,3.60045e-07,118.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],232306,gnl|BL_ORD_ID|232306 sp|Q8VDP3|MICA1_MOUSE Protein-methionine sulfoxide oxidase MICAL1 OS=Mus musculus GN=Mical1 PE=1 SV=1,4.10175e-07,119.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],79087,gnl|BL_ORD_ID|79087 sp|Q9Y0T4|CTXA_POLPA Cortexillin-1 OS=Polysphondylium pallidum GN=ctxA PE=3 SV=1,9.91258e-07,115.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],220635,gnl|BL_ORD_ID|220635 sp|Q9QXZ0|MACF1_MOUSE Microtubule-actin cross-linking factor 1 OS=Mus musculus GN=Macf1 PE=1 SV=2,1.21613e-06,116.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],220634,gnl|BL_ORD_ID|220634 sp|Q9UPN3|MACF1_HUMAN Microtubule-actin cross-linking factor 1 isoforms 1/2/3/5 OS=Homo sapiens GN=MACF1 PE=1 SV=4,2.00267e-06,114.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],232305,gnl|BL_ORD_ID|232305 sp|Q8TDZ2|MICA1_HUMAN Protein-methionine sulfoxide oxidase MICAL1 OS=Homo sapiens GN=MICAL1 PE=1 SV=2,2.827e-06,112.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],220636,gnl|BL_ORD_ID|220636 sp|D3ZHV2|MACF1_RAT Microtubule-actin cross-linking factor 1 OS=Rattus norvegicus GN=Macf1 PE=1 SV=1,2.97716e-06,113.0
 GG11113|c0_g1_i1 len=217 path=[1:0-216],97467,gnl|BL_ORD_ID|97467 sp|Q9TW65|DMD_CAEEL Dystrophin-1 OS=Caenorhabditis elegans GN=dys-1 PE=1 SV=2,1.97912e-05,106.0
-GG11113|c0_g1_i1 len=217 path=[1:0-216],8294,gnl|BL_ORD_ID|8294 sp|O76329|ACTNB_DICDI Interaptin OS=Dictyostelium discoideum GN=abpD PE=1 SV=1,3.86143e-05,104.0
 GG11114|c0_g1_i1 len=244 path=[1:0-243],232447,gnl|BL_ORD_ID|232447 sp|Q3TN34|MILK2_MOUSE MICAL-like protein 2 OS=Mus musculus GN=Micall2 PE=1 SV=1,1.01515e-33,319.0
 GG11114|c0_g1_i1 len=244 path=[1:0-243],232448,gnl|BL_ORD_ID|232448 sp|D3ZEN0|MILK2_RAT MICAL-like protein 2 OS=Rattus norvegicus GN=Micall2 PE=1 SV=2,1.61456e-33,317.0
-GG11114|c0_g1_i1 len=244 path=[1:0-243],232446,gnl|BL_ORD_ID|232446 sp|Q8IY33|MILK2_HUMAN MICAL-like protein 2 OS=Homo sapiens GN=MICALL2 PE=1 SV=1,1.09888e-32,311.0
-GG11114|c0_g1_i1 len=244 path=[1:0-243],232442,gnl|BL_ORD_ID|232442 sp|E1BBG2|MILK1_BOVIN MICAL-like protein 1 OS=Bos taurus GN=MICALL1 PE=1 SV=2,1.0712e-15,184.0
-GG11114|c0_g1_i1 len=244 path=[1:0-243],232443,gnl|BL_ORD_ID|232443 sp|Q8N3F8|MILK1_HUMAN MICAL-like protein 1 OS=Homo sapiens GN=MICALL1 PE=1 SV=2,4.4199e-14,172.0
 GG11114|c0_g1_i1 len=244 path=[1:0-243],232445,gnl|BL_ORD_ID|232445 sp|D3ZQL6|MILK1_RAT MICAL-like protein 1 OS=Rattus norvegicus GN=Micall1 PE=1 SV=1,4.44016e-14,172.0
 GG11114|c0_g1_i1 len=244 path=[1:0-243],232444,gnl|BL_ORD_ID|232444 sp|Q8BGT6|MILK1_MOUSE MICAL-like protein 1 OS=Mus musculus GN=Micall1 PE=1 SV=3,6.76474e-14,171.0
-GG11114|c0_g1_i1 len=244 path=[1:0-243],8293,gnl|BL_ORD_ID|8293 sp|P05095|ACTNA_DICDI Alpha-actinin A OS=Dictyostelium discoideum GN=abpA PE=1 SV=2,5.63576e-08,126.0
-GG11114|c0_g1_i1 len=244 path=[1:0-243],8288,gnl|BL_ORD_ID|8288 sp|Q90734|ACTN4_CHICK Alpha-actinin-4 OS=Gallus gallus GN=ACTN4 PE=1 SV=1,4.04952e-07,119.0
 GG11114|c0_g1_i1 len=244 path=[1:0-243],8292,gnl|BL_ORD_ID|8292 sp|Q9QXQ0|ACTN4_RAT Alpha-actinin-4 OS=Rattus norvegicus GN=Actn4 PE=1 SV=2,4.05812e-07,119.0
-GG11114|c0_g1_i1 len=244 path=[1:0-243],8291,gnl|BL_ORD_ID|8291 sp|Q5RCS6|ACTN4_PONAB Alpha-actinin-4 OS=Pongo abelii GN=ACTN4 PE=2 SV=1,4.05812e-07,119.0
-GG11114|c0_g1_i1 len=244 path=[1:0-243],8289,gnl|BL_ORD_ID|8289 sp|O43707|ACTN4_HUMAN Alpha-actinin-4 OS=Homo sapiens GN=ACTN4 PE=1 SV=2,4.05812e-07,119.0
-GG11114|c0_g1_i1 len=244 path=[1:0-243],8287,gnl|BL_ORD_ID|8287 sp|A5D7D1|ACTN4_BOVIN Alpha-actinin-4 OS=Bos taurus GN=ACTN4 PE=2 SV=1,4.05812e-07,119.0
 GG11114|c0_g1_i1 len=244 path=[1:0-243],8290,gnl|BL_ORD_ID|8290 sp|P57780|ACTN4_MOUSE Alpha-actinin-4 OS=Mus musculus GN=Actn4 PE=1 SV=1,4.05933e-07,119.0
-GG11114|c0_g1_i1 len=244 path=[1:0-243],8277,gnl|BL_ORD_ID|8277 sp|Q2PFV7|ACTN1_MACFA Alpha-actinin-1 OS=Macaca fascicularis GN=ACTN1 PE=2 SV=1,5.95817e-07,118.0
-GG11114|c0_g1_i1 len=244 path=[1:0-243],8276,gnl|BL_ORD_ID|8276 sp|P12814|ACTN1_HUMAN Alpha-actinin-1 OS=Homo sapiens GN=ACTN1 PE=1 SV=2,5.95817e-07,118.0
-GG11114|c0_g1_i1 len=244 path=[1:0-243],8274,gnl|BL_ORD_ID|8274 sp|Q3B7N2|ACTN1_BOVIN Alpha-actinin-1 OS=Bos taurus GN=ACTN1 PE=2 SV=1,5.95817e-07,118.0
-GG11114|c0_g1_i1 len=244 path=[1:0-243],8275,gnl|BL_ORD_ID|8275 sp|P05094|ACTN1_CHICK Alpha-actinin-1 OS=Gallus gallus GN=ACTN1 PE=1 SV=3,5.96002e-07,118.0
 GG11114|c0_g1_i1 len=244 path=[1:0-243],8298,gnl|BL_ORD_ID|8298 sp|P18091|ACTN_DROME Alpha-actinin sarcomeric OS=Drosophila melanogaster GN=Actn PE=1 SV=2,7.58359e-07,117.0
 GG11114|c0_g1_i1 len=244 path=[1:0-243],8279,gnl|BL_ORD_ID|8279 sp|Q9Z1P2|ACTN1_RAT Alpha-actinin-1 OS=Rattus norvegicus GN=Actn1 PE=1 SV=1,7.94214e-07,117.0
 GG11114|c0_g1_i1 len=244 path=[1:0-243],8278,gnl|BL_ORD_ID|8278 sp|Q7TPR4|ACTN1_MOUSE Alpha-actinin-1 OS=Mus musculus GN=Actn1 PE=1 SV=1,1.19364e-06,116.0
-GG11114|c0_g1_i1 len=244 path=[1:0-243],232309,gnl|BL_ORD_ID|232309 sp|O94851|MICA2_HUMAN Protein-methionine sulfoxide oxidase MICAL2 OS=Homo sapiens GN=MICAL2 PE=1 SV=1,1.21376e-06,116.0
 GG11114|c0_g1_i1 len=244 path=[1:0-243],8286,gnl|BL_ORD_ID|8286 sp|O88990|ACTN3_MOUSE Alpha-actinin-3 OS=Mus musculus GN=Actn3 PE=2 SV=1,1.48003e-06,115.0
-GG11114|c0_g1_i1 len=244 path=[1:0-243],8285,gnl|BL_ORD_ID|8285 sp|Q08043|ACTN3_HUMAN Alpha-actinin-3 OS=Homo sapiens GN=ACTN3 PE=1 SV=2,1.48045e-06,115.0
-GG11114|c0_g1_i1 len=244 path=[1:0-243],8284,gnl|BL_ORD_ID|8284 sp|Q0III9|ACTN3_BOVIN Alpha-actinin-3 OS=Bos taurus GN=ACTN3 PE=2 SV=1,1.48045e-06,115.0
 GG11114|c0_g1_i1 len=244 path=[1:0-243],432160,gnl|BL_ORD_ID|432160 sp|Q00963|SPTCB_DROME Spectrin beta chain OS=Drosophila melanogaster GN=beta-Spec PE=1 SV=2,1.49407e-06,116.0
 GG11114|c0_g1_i1 len=244 path=[1:0-243],8283,gnl|BL_ORD_ID|8283 sp|Q9JI91|ACTN2_MOUSE Alpha-actinin-2 OS=Mus musculus GN=Actn2 PE=1 SV=2,2.36622e-06,114.0
-GG11114|c0_g1_i1 len=244 path=[1:0-243],8282,gnl|BL_ORD_ID|8282 sp|P35609|ACTN2_HUMAN Alpha-actinin-2 OS=Homo sapiens GN=ACTN2 PE=1 SV=1,2.36622e-06,114.0
-GG11114|c0_g1_i1 len=244 path=[1:0-243],8280,gnl|BL_ORD_ID|8280 sp|Q3ZC55|ACTN2_BOVIN Alpha-actinin-2 OS=Bos taurus GN=ACTN2 PE=2 SV=1,2.36622e-06,114.0
-GG11114|c0_g1_i1 len=244 path=[1:0-243],8281,gnl|BL_ORD_ID|8281 sp|P20111|ACTN2_CHICK Alpha-actinin-2 OS=Gallus gallus GN=ACTN2 PE=2 SV=1,2.36825e-06,114.0
-GG11114|c0_g1_i1 len=244 path=[1:0-243],232314,gnl|BL_ORD_ID|232314 sp|Q7RTP6|MICA3_HUMAN Protein-methionine sulfoxide oxidase MICAL3 OS=Homo sapiens GN=MICAL3 PE=1 SV=2,2.51192e-06,114.0
 GG11114|c0_g1_i1 len=244 path=[1:0-243],232315,gnl|BL_ORD_ID|232315 sp|Q8CJ19|MICA3_MOUSE Protein-methionine sulfoxide oxidase MICAL3 OS=Mus musculus GN=Mical3 PE=2 SV=2,2.53391e-06,114.0
-GG11114|c0_g1_i1 len=244 path=[1:0-243],232313,gnl|BL_ORD_ID|232313 sp|G3MWR8|MICA3_BOVIN Protein-methionine sulfoxide oxidase MICAL3 OS=Bos taurus GN=MICAL3 PE=3 SV=1,2.87604e-06,113.0
-GG11114|c0_g1_i1 len=244 path=[1:0-243],8297,gnl|BL_ORD_ID|8297 sp|Q7PKQ5|ACTN_ANOGA Alpha-actinin sarcomeric OS=Anopheles gambiae GN=Actn PE=3 SV=2,4.37966e-06,111.0
-GG11114|c0_g1_i1 len=244 path=[1:0-243],432171,gnl|BL_ORD_ID|432171 sp|Q9NRC6|SPTN5_HUMAN Spectrin beta chain non-erythrocytic 5 OS=Homo sapiens GN=SPTBN5 PE=1 SV=1,4.42401e-06,112.0
 GG11114|c0_g1_i1 len=244 path=[1:0-243],223547,gnl|BL_ORD_ID|223547 sp|F1QH17|MCA3A_DANRE Protein-methionine sulfoxide oxidase mical3a OS=Danio rerio GN=mical3a PE=2 SV=2,4.94452e-06,111.0
-GG11114|c0_g1_i1 len=244 path=[1:0-243],232308,gnl|BL_ORD_ID|232308 sp|F1MF74|MICA2_BOVIN Protein-methionine sulfoxide oxidase MICAL2 OS=Bos taurus GN=MICAL2 PE=3 SV=2,5.51756e-06,111.0
 GG11114|c0_g1_i1 len=244 path=[1:0-243],11875,gnl|BL_ORD_ID|11875 sp|O13728|AIN1_SCHPO Alpha-actinin-like protein 1 OS=Schizosaccharomyces pombe (strain 972 / ATCC 24843) GN=ain1 PE=3 SV=1,7.32649e-06,109.0
 GG11114|c0_g1_i1 len=244 path=[1:0-243],432169,gnl|BL_ORD_ID|432169 sp|Q9QWN8|SPTN2_RAT Spectrin beta chain non-erythrocytic 2 OS=Rattus norvegicus GN=Sptbn2 PE=1 SV=2,1.21678e-05,108.0
-GG11114|c0_g1_i1 len=244 path=[1:0-243],432168,gnl|BL_ORD_ID|432168 sp|O15020|SPTN2_HUMAN Spectrin beta chain non-erythrocytic 2 OS=Homo sapiens GN=SPTBN2 PE=1 SV=3,1.21686e-05,108.0
 GG11114|c0_g1_i1 len=244 path=[1:0-243],15474,gnl|BL_ORD_ID|15474 sp|Q9N4M4|ANC1_CAEEL Nuclear anchorage protein 1 OS=Caenorhabditis elegans GN=anc-1 PE=1 SV=3,2.07694e-05,107.0
 GG11114|c0_g1_i1 len=244 path=[1:0-243],232312,gnl|BL_ORD_ID|232312 sp|F6QZ15|MICA2_XENTR Protein-methionine sulfoxide oxidase mical2 OS=Xenopus tropicalis GN=mical2 PE=3 SV=1,3.50396e-05,104.0
 GG11115|c0_g1_i1 len=260 path=[1:0-259],224416,gnl|BL_ORD_ID|224416 sp|Q9WTX8|MD1L1_MOUSE Mitotic spindle assembly checkpoint protein MAD1 OS=Mus musculus GN=Mad1l1 PE=2 SV=1,2.82284e-14,174.0
-GG11115|c0_g1_i1 len=260 path=[1:0-259],224414,gnl|BL_ORD_ID|224414 sp|Q80YF0|MD1L1_CRIGR Mitotic spindle assembly checkpoint protein MAD1 OS=Cricetulus griseus GN=MAD1L1 PE=2 SV=1,2.63996e-13,167.0
-GG11115|c0_g1_i1 len=260 path=[1:0-259],224415,gnl|BL_ORD_ID|224415 sp|Q9Y6D9|MD1L1_HUMAN Mitotic spindle assembly checkpoint protein MAD1 OS=Homo sapiens GN=MAD1L1 PE=1 SV=2,3.84728e-12,158.0
 GG11116|c0_g1_i1 len=271 path=[1:0-208 210:209-230 232:231-270],484465,gnl|BL_ORD_ID|484465 sp|Q5FWH2|UNKL_MOUSE Putative E3 ubiquitin-protein ligase UNKL OS=Mus musculus GN=Unkl PE=2 SV=2,1.72088e-46,409.0
-GG11116|c0_g1_i1 len=271 path=[1:0-208 210:209-230 232:231-270],484464,gnl|BL_ORD_ID|484464 sp|Q9H9P5|UNKL_HUMAN Putative E3 ubiquitin-protein ligase UNKL OS=Homo sapiens GN=UNKL PE=1 SV=3,4.91601e-46,405.0
-GG11116|c0_g1_i1 len=271 path=[1:0-208 210:209-230 232:231-270],484469,gnl|BL_ORD_ID|484469 sp|Q8BL48|UNK_MOUSE RING finger protein unkempt homolog OS=Mus musculus GN=Unk PE=2 SV=1,1.22093e-44,398.0
-GG11116|c0_g1_i1 len=271 path=[1:0-208 210:209-230 232:231-270],484468,gnl|BL_ORD_ID|484468 sp|Q9C0B0|UNK_HUMAN RING finger protein unkempt homolog OS=Homo sapiens GN=UNK PE=1 SV=2,1.41992e-44,398.0
-GG11116|c0_g1_i1 len=271 path=[1:0-208 210:209-230 232:231-270],484466,gnl|BL_ORD_ID|484466 sp|Q6EE22|UNK_CANFA RING finger protein unkempt homolog OS=Canis familiaris GN=UNK PE=2 SV=1,1.90109e-44,397.0
 GG11116|c0_g1_i1 len=271 path=[1:0-208 210:209-230 232:231-270],484467,gnl|BL_ORD_ID|484467 sp|Q86B79|UNK_DROME RING finger protein unkempt OS=Drosophila melanogaster GN=unk PE=1 SV=1,5.48462e-40,360.0
-GG11117|c0_g1_i1 len=318 path=[1:0-216 218:217-317],189116,gnl|BL_ORD_ID|189116 sp|Q8N201|INT1_HUMAN Integrator complex subunit 1 OS=Homo sapiens GN=INTS1 PE=1 SV=2,3.56312e-39,364.0
 GG11117|c0_g1_i1 len=318 path=[1:0-216 218:217-317],189117,gnl|BL_ORD_ID|189117 sp|Q6P4S8|INT1_MOUSE Integrator complex subunit 1 OS=Mus musculus GN=Ints1 PE=2 SV=2,3.49511e-33,320.0
-GG11117|c0_g1_i2 len=243 path=[1:0-216 319:217-242],189116,gnl|BL_ORD_ID|189116 sp|Q8N201|INT1_HUMAN Integrator complex subunit 1 OS=Homo sapiens GN=INTS1 PE=1 SV=2,3.98824e-21,226.0
 GG11117|c0_g1_i2 len=243 path=[1:0-216 319:217-242],189117,gnl|BL_ORD_ID|189117 sp|Q6P4S8|INT1_MOUSE Integrator complex subunit 1 OS=Mus musculus GN=Ints1 PE=2 SV=2,2.09318e-17,198.0
 GG11117|c1_g1_i1 len=497 path=[1:0-496],189117,gnl|BL_ORD_ID|189117 sp|Q6P4S8|INT1_MOUSE Integrator complex subunit 1 OS=Mus musculus GN=Ints1 PE=2 SV=2,7.45329e-95,786.0
-GG11117|c1_g1_i1 len=497 path=[1:0-496],189116,gnl|BL_ORD_ID|189116 sp|Q8N201|INT1_HUMAN Integrator complex subunit 1 OS=Homo sapiens GN=INTS1 PE=1 SV=2,8.00877e-93,771.0
 GG11117|c2_g1_i1 len=1494 path=[53:0-1109 1135:1110-1289 1696:1290-1493],189117,gnl|BL_ORD_ID|189117 sp|Q6P4S8|INT1_MOUSE Integrator complex subunit 1 OS=Mus musculus GN=Ints1 PE=2 SV=2,0.0,1807.0
-GG11117|c2_g1_i1 len=1494 path=[53:0-1109 1135:1110-1289 1696:1290-1493],189116,gnl|BL_ORD_ID|189116 sp|Q8N201|INT1_HUMAN Integrator complex subunit 1 OS=Homo sapiens GN=INTS1 PE=1 SV=2,0.0,1672.0
-GG11117|c2_g1_i1 len=1494 path=[53:0-1109 1135:1110-1289 1696:1290-1493],189115,gnl|BL_ORD_ID|189115 sp|Q54NC8|INT1_DICDI Integrator complex subunit 1 homolog OS=Dictyostelium discoideum GN=ints1 PE=3 SV=1,7.0088e-09,150.0
-GG11117|c3_g1_i1 len=233 path=[1:0-232],189116,gnl|BL_ORD_ID|189116 sp|Q8N201|INT1_HUMAN Integrator complex subunit 1 OS=Homo sapiens GN=INTS1 PE=1 SV=2,3.0715e-19,212.0
 GG11117|c3_g1_i1 len=233 path=[1:0-232],189117,gnl|BL_ORD_ID|189117 sp|Q6P4S8|INT1_MOUSE Integrator complex subunit 1 OS=Mus musculus GN=Ints1 PE=2 SV=2,1.15142e-18,207.0
-GG11117|c4_g1_i1 len=235 path=[1:0-234],189116,gnl|BL_ORD_ID|189116 sp|Q8N201|INT1_HUMAN Integrator complex subunit 1 OS=Homo sapiens GN=INTS1 PE=1 SV=2,2.20599e-28,280.0
 GG11117|c4_g1_i1 len=235 path=[1:0-234],189117,gnl|BL_ORD_ID|189117 sp|Q6P4S8|INT1_MOUSE Integrator complex subunit 1 OS=Mus musculus GN=Ints1 PE=2 SV=2,3.05674e-24,249.0
 GG11118|c0_g1_i1 len=284 path=[101:0-149 47:150-200 274:201-283],453732,gnl|BL_ORD_ID|453732 sp|P70347|TANK_MOUSE TRAF family member-associated NF-kappa-B activator OS=Mus musculus GN=Tank PE=1 SV=1,1.68201e-14,175.0
-GG11118|c0_g1_i1 len=284 path=[101:0-149 47:150-200 274:201-283],453731,gnl|BL_ORD_ID|453731 sp|Q92844|TANK_HUMAN TRAF family member-associated NF-kappa-B activator OS=Homo sapiens GN=TANK PE=1 SV=2,8.48277e-12,155.0

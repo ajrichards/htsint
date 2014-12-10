@@ -35,19 +35,19 @@ class BlastMapper(object):
         self.session,self.engine = db_connect()
         self.conn = self.engine.connect()
 
-    def get_gene_id(self,hitId,uniprot2id,gene2id):
+    def get_gene_id(self,geneDbId,gene2id):
         """
         returns the gene and species from uniprot
         """
-        geneId,speciesId = '-','-'         
-        for _speciesId, uniprotDict in uniprot2id.iteritems():
-            if uniprotDict.has_key(hitId) and uniprotDict[hitId] != 'None':
-                if gene2id.has_key(uniprotDict[hitId]):
-                    geneId = gene2id[uniprotDict[hitId]]
-                speciesId = _speciesId
-        if speciesId == '-':
-            print hitId, [(sid,uniprotDict.__contains__(hitId)) for sid,uniprotDict in uniprot2id.iteritems()]
+        if str(geneDbId) == 'None':
+            return '-','-'
 
+        geneId,speciesId = '-','-'         
+        for _speciesId, geneDict in gene2id.iteritems():
+            if geneDict.has_key(geneDbId) and geneDict[geneDbId] != 'None':
+                geneId = geneDict[geneDbId]
+                speciesId = _speciesId
+        
         return geneId,speciesId
 
     def create_summarized(self,parsedFilePath,summaryFilePath=None):
@@ -70,24 +70,48 @@ class BlastMapper(object):
         ## prepare out file         
         fidout = open(summaryFilePath,'w')
         writer = csv.writer(fidout)
-        writer.writerow(["queryId","hitId","hitNcbi","hitSpecies","e-value"])
+        writer.writerow(["queryId","hitId","hitNcbiId","hitSpecies","hitSpeciesNcbiId","e-value"])
 
-        ## read through the blast file and extract the taxa
-        taxaList = set([])
+        ## read through the blast file and extract a unique list of ids 
+        uniprotEntries = set([])
         for linja in reader:
             hitIdLong = linja[2]
-            hitSpecies = re.findall("OS=.+GN=",hitIdLong)[0][3:-4]
-            taxaList.update([hitSpecies])
-
-        taxaList = list(taxaList)
-        print(taxaList)
+            _hitId  = hitIdLong.split(" ")[1].split("|")
+            if _hitId[-1] == '':
+                hitId = _hitId[-2]
+            else:
+                hitId = _hitId[-1]
+                
+            uniprotEntries.update([hitId])
+                 
+        uniprotEntries = list(uniprotEntries)
         fidin.close()
 
-        # query all the relevant taxa
+        print("batch querying %s UniProt entries in the database... this may take some time"%(len(uniprotEntries)))
+        #results = self.conn.execute(mytable.__table__.select(mytable.value.in_(values))
+        #vailable_values = set(row.value for row in results)
+        results = self.conn.execute(Uniprot.__table__.select(Uniprot.uniprot_entry.in_(uniprotEntries)))
+        upEntry2Gene = dict([(str(row.uniprot_entry),str(row.gene_id)) for row  in results])
+        upEntry2Taxa = dict([(str(row.uniprot_entry),str(row.taxa_id)) for row  in results])
+
+        #s = select([Uniprot.id,Uniprot.uniprot_entry,Uniprot.gene_id,Uniprot.taxa_id]).where(Uniprot.uniprot_entry.in_(uniprotEntries))
+        #_upQueries = self.conn.execute(s)
+        #upQueries = _upQueries.fetchall()
+        #upEntry2Gene = dict([(str(uquery['uniprot_entry']),str(uquery['gene_id'])) for uquery in upQueries])
+        #upEntry2Taxa = dict([(str(uquery['uniprot_entry']),str(uquery['taxa_id'])) for uquery in upQueries])
+
+        for key, item in upEntry2Gene.iteritems():
+              print key, item
+        
+        ## query the taxa just to double check
+        taxaList = list(set(upEntry2Taxa.values()))
         s = select([Taxon.id,Taxon.ncbi_id,Taxon.name]).where(Taxon.name.in_(taxaList))
         _taxaQueries = self.conn.execute(s)
         taxaQueries = _taxaQueries.fetchall()
-        taxa2name = dict([(str(tquery['id']),str(tquery['ncbi_id'])) for tquery in taxaQueries])
+        taxaId2Ncbi = dict([(str(tquery['id']),str(tquery['ncbi_id'])) for tquery in taxaQueries])
+        taxaName2Ncbi = dict([(str(tquery['name']),str(tquery['ncbi_id'])) for tquery in taxaQueries])
+        for key, item in taxaName2Ncbi.iteritems():
+            print key, item
 
         ## create a single dictionary of all gene information 
         gene2id = {}
@@ -96,18 +120,8 @@ class BlastMapper(object):
             _geneQueries = self.conn.execute(s)
             taxaDict = dict([(str(r['id']),str(r['ncbi_id'])) for r in _geneQueries.fetchall()])
             print("there are  %s genes from %s (%s)"%(len(taxaDict.keys()),tquery['name'],tquery['ncbi_id']))
-            gene2id.update(taxaDict)
+            gene2id[str(tquery['ncbi_id'])] = taxaDict
 
-        ## create a dictionary of uniprot names (per species)
-        uniprot2id = {}
-
-        for tquery in taxaQueries:
-            s = select([Uniprot.uniprot_entry,Uniprot.gene_id],Uniprot.taxa_id==tquery['id'])
-            _uniprotQueries = self.conn.execute(s)
-            taxaDict = dict([(str(r['uniprot_entry']),str(r['gene_id'])) for r in _uniprotQueries.fetchall()])
-            print("there are  %s uniprot from %s (%s)"%(len(taxaDict.keys()),tquery['name'],tquery['ncbi_id']))
-            uniprot2id[str(tquery['ncbi_id'])] = taxaDict
-                
         ## read through the file again
         fidin = open(parsedFilePath,'rU')
         reader = csv.reader(fidin)
@@ -119,23 +133,19 @@ class BlastMapper(object):
             hitIdLong = linja[2]
             eScore = linja[3]
             bitScore = linja[4]
-            hitNcbiId,queryNcbiId = '-','-'
-            _hitId  = hitIdLong.split(" ")[1].split("|")
+            queryId = query.split(" ")[0]            
 
-            ## id fetch fix
+            _hitId  = hitIdLong.split(" ")[1].split("|")
             if _hitId[-1] == '':
                 hitId = _hitId[-2]
             else:
                 hitId = _hitId[-1]
-
-            queryId = query.split(" ")[0]
             
-            geneId,speciesId = self.get_gene_id(hitId,uniprot2id,gene2id)
-
-            #if speciesId == '-':
-            #    taxa2name
-
-            writer.writerow([queryId,hitId,geneId,speciesId,eScore])
+            hitNcbiId,hitSpeciesNcbiId = '-','-'
+            hitSpecies = re.findall("OS=.+GN=",hitIdLong)[0][3:-4]
+            
+            geneId,hitSpeciesNcbiId = self.get_gene_id(hitId,gene2id)
+            writer.writerow([queryId,hitId,hitNcbiId,hitSpecies,hitSpeciesNcbiId,eScore])
 
         fidin.close()
         fidout.close()
