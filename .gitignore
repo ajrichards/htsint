@@ -48,6 +48,9 @@ plots/*
 htsint/sandbox/*
 htsint/configure.py
 
+## unittests
+unittests/blast-parsed_summary.csv
+
 ## docs
 docs/_sphinx/*
 

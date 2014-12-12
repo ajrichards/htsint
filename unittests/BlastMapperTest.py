@@ -36,10 +36,13 @@ class BlastTest(unittest.TestCase):
             os.remove(summaryFile)
                           
         self.bm.create_summarized(self.parsedFile)
-
         self.assertTrue(os.path.exists(summaryFile))
 
     def test02Something(self):
+        """
+        read in the results summary
+        """
+
         print os.path.exists(re.sub("\.csv","",self.parsedFile)+"_summary.csv")
         
 

@@ -35,22 +35,7 @@ class BlastMapper(object):
         self.session,self.engine = db_connect()
         self.conn = self.engine.connect()
 
-    def get_gene_id(self,geneDbId,gene2id):
-        """
-        returns the gene and species from uniprot
-        """
-        if str(geneDbId) == 'None':
-            return '-','-'
-
-        geneId,speciesId = '-','-'         
-        for _speciesId, geneDict in gene2id.iteritems():
-            if geneDict.has_key(geneDbId) and geneDict[geneDbId] != 'None':
-                geneId = geneDict[geneDbId]
-                speciesId = _speciesId
-        
-        return geneId,speciesId
-
-    def create_summarized(self,parsedFilePath,summaryFilePath=None):
+    def create_summarized(self,parsedFilePath,summaryFilePath=None,large=False):
         """
         htsint uses output 5 (XML) and then parses it into a simple csv file
         """
@@ -90,37 +75,35 @@ class BlastMapper(object):
         print("batch querying %s UniProt entries in the database... this may take some time"%(len(uniprotEntries)))
         #results = self.conn.execute(mytable.__table__.select(mytable.value.in_(values))
         #vailable_values = set(row.value for row in results)
-        results = self.conn.execute(Uniprot.__table__.select(Uniprot.uniprot_entry.in_(uniprotEntries)))
-        upEntry2Gene = dict([(str(row.uniprot_entry),str(row.gene_id)) for row  in results])
-        upEntry2Taxa = dict([(str(row.uniprot_entry),str(row.taxa_id)) for row  in results])
 
-        #s = select([Uniprot.id,Uniprot.uniprot_entry,Uniprot.gene_id,Uniprot.taxa_id]).where(Uniprot.uniprot_entry.in_(uniprotEntries))
-        #_upQueries = self.conn.execute(s)
-        #upQueries = _upQueries.fetchall()
-        #upEntry2Gene = dict([(str(uquery['uniprot_entry']),str(uquery['gene_id'])) for uquery in upQueries])
-        #upEntry2Taxa = dict([(str(uquery['uniprot_entry']),str(uquery['taxa_id'])) for uquery in upQueries])
-
-        for key, item in upEntry2Gene.iteritems():
-              print key, item
+        upEntry2Gene, upEntry2Taxa = {},{}
+        if large == False:
+            results = self.conn.execute(Uniprot.__table__.select(Uniprot.uniprot_entry.in_(uniprotEntries)))
+            for row in results:
+                upEntry2Gene[str(row.uniprot_entry)] = str(row.gene_id)
+                upEntry2Taxa[str(row.uniprot_entry)] = str(row.taxa_id)
+        else:
+            ## using htsint's mapper
+            uMapper = uniprot_mapper(self.session,uniprotIdList=uniprotEntries,gene=True,taxa=True)
+            for key,item in uMapper.iteritems():
+                upEntry2Gene[str(key)] = str(item['gene_id'])
+                upEntry2Taxa[str(key)] = str(item['taxa_id'])
         
         ## query the taxa just to double check
         taxaList = list(set(upEntry2Taxa.values()))
-        s = select([Taxon.id,Taxon.ncbi_id,Taxon.name]).where(Taxon.name.in_(taxaList))
+        s = select([Taxon.id,Taxon.ncbi_id,Taxon.name]).where(Taxon.id.in_([int(tid) for tid in taxaList]))
         _taxaQueries = self.conn.execute(s)
         taxaQueries = _taxaQueries.fetchall()
         taxaId2Ncbi = dict([(str(tquery['id']),str(tquery['ncbi_id'])) for tquery in taxaQueries])
-        taxaName2Ncbi = dict([(str(tquery['name']),str(tquery['ncbi_id'])) for tquery in taxaQueries])
-        for key, item in taxaName2Ncbi.iteritems():
-            print key, item
 
         ## create a single dictionary of all gene information 
         gene2id = {}
-        for tquery in taxaQueries:
-            s = select([Gene.id,Gene.ncbi_id],Gene.taxa_id==tquery['id'])
+        for taxaDbId in taxaList:
+            s = select([Gene.id,Gene.ncbi_id],Gene.taxa_id==taxaDbId)
             _geneQueries = self.conn.execute(s)
             taxaDict = dict([(str(r['id']),str(r['ncbi_id'])) for r in _geneQueries.fetchall()])
-            print("there are  %s genes from %s (%s)"%(len(taxaDict.keys()),tquery['name'],tquery['ncbi_id']))
-            gene2id[str(tquery['ncbi_id'])] = taxaDict
+            #print("there are  %s genes from %s (%s)"%(len(taxaDict.keys()),tquery['name'],tquery['ncbi_id']))
+            gene2id.update(taxaDict)
 
         ## read through the file again
         fidin = open(parsedFilePath,'rU')
@@ -144,7 +127,20 @@ class BlastMapper(object):
             hitNcbiId,hitSpeciesNcbiId = '-','-'
             hitSpecies = re.findall("OS=.+GN=",hitIdLong)[0][3:-4]
             
-            geneId,hitSpeciesNcbiId = self.get_gene_id(hitId,gene2id)
+            ## map the uniprot id to gene
+            if upEntry2Gene.has_key(hitId) and str(upEntry2Gene[hitId]) != 'None':
+                if gene2id.has_key(upEntry2Gene[hitId]) and str(gene2id[upEntry2Gene[hitId]]) != 'None':
+                    hitNcbiId = gene2id[upEntry2Gene[hitId]]
+       
+            ## get taxa id associated with uniprot id
+            hitSpeciesNcbiId = '-'
+            if upEntry2Taxa.has_key(hitId) and str(upEntry2Taxa[hitId]) != 'None':
+                if taxaId2Ncbi.has_key(upEntry2Taxa[hitId]) and str(taxaId2Ncbi.has_key(upEntry2Taxa[hitId])) != 'None':
+                    hitSpeciesNcbiId = taxaId2Ncbi[upEntry2Taxa[hitId]]
+                else:
+                    print 'Were in! but taxaId2Ncbi does not have', upEntry2Taxa[hitId]
+            else:
+                print 'upEntry2Taxa does not have', hitId
             writer.writerow([queryId,hitId,hitNcbiId,hitSpecies,hitSpeciesNcbiId,eScore])
 
         fidin.close()
