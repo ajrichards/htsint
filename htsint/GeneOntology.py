@@ -5,7 +5,6 @@ from sqlalchemy.sql import select
 from htsint.database import Base,Taxon,Gene,Uniprot,GoTerm,GoAnnotation,db_connect
 from htsint.database import read_ontology_file,fetch_taxa_annotations
 from htsint.stats import EmpiricalCdf
-from htsint.blast import create_blast_map
 
 """
 Classes used to interact with gene ontology data
@@ -105,8 +104,7 @@ class GeneOntology(object):
         if taxQuery == None:
             raise Exception("Taxon:%s not found in database"%taxID)
         
-    def get_dicts(self,refTaxon=None,blastPath=None,evalue=0.00001,\
-                  termsPath=None,log=None):
+    def get_dicts(self,termsPath=None,log=None):
         """
         get the go2gene and gene2go dictionaries
         log - csv.writer object
@@ -128,40 +126,6 @@ class GeneOntology(object):
         gene2go,prot2go = fetch_taxa_annotations(self.taxaList,self.engine,aspect=self.aspect,\
                                                  useIea=self.useIea)
 
-        ## use a blast map to infer annotations
-        if blastPath != None and refTaxon != None:
-            blastMap1,blastMap2 = create_blast_map(refTaxon,self.taxaList,blastPath,verbose=True,evalue=evalue)
-            _gene2go = gene2go.copy()
-            gene2go = {}
-
-            s = select([Taxon.id,Taxon.ncbi_id,Taxon.name]).where(Taxon.ncbi_id.in_(self.taxaList))
-            _taxaQueries = conn.execute(s)
-            taxaQueries = _taxaQueries.fetchall()
-            taxaMap = dict([(str(r['ncbi_id']),str(r['id'])) for r in taxaQueries])
-            refTaxonId = taxaMap[refTaxon]
-        
-            ## loop through all the genes
-            s = select([Gene.ncbi_id],Gene.taxa_id==refTaxonId)
-            _geneQueries = conn.execute(s)
-            refGenes = [str(r['ncbi_id']) for r in _geneQueries.fetchall()]
-
-            genesWithBlastHits = 0
-            for gene in refGenes:
-                annotations = []
-                if _gene2go.has_key(gene):
-                    annotations.extend(_gene2go[gene])
-                    if log != None:
-                        log.writerow([gene,str(_gene2go[gene]),'direct'])
-                if blastMap2.has_key(gene):
-                    for hit in blastMap2[gene]:
-                        if _gene2go.has_key(hit):
-                            annotations.extend(_gene2go[hit])
-                            if log != None:
-                                log.writerow([gene,str(_gene2go[hit]),'inferred from %s'%hit])
-                if len(annotations) > 0:
-                    gene2go[gene] = list(set(annotations))
-
-        ## go2gene
         print "...creating go2gene dictionary -- this may take several minutes"
         go2gene = {}
         for gene,terms in gene2go.iteritems():

@@ -27,17 +27,8 @@ class GeneOntologyTest(unittest.TestCase):
         simple setup
         """
 
-        self.taxId = 7227
+        self.taxId = 511145
         
-    def testGeneLists(self):
-        """
-        make sure gene lists are properly created via both methods
-        """
-        
-        ## via taxid method
-        go = GeneOntology(self.taxId,upass=UPASS)
-        self.assertEqual(go.taxId,self.taxId)
-
     def testCheckTaxon(self):
         """
         ensure taxon check works

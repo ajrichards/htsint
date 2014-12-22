@@ -91,6 +91,7 @@ class BlastMapper(object):
         
         ## query the taxa just to double check
         taxaList = list(set(upEntry2Taxa.values()))
+        while 'None' in taxaList: taxaList.remove('None')
         s = select([Taxon.id,Taxon.ncbi_id,Taxon.name]).where(Taxon.id.in_([int(tid) for tid in taxaList]))
         _taxaQueries = self.conn.execute(s)
         taxaQueries = _taxaQueries.fetchall()
@@ -146,7 +147,7 @@ class BlastMapper(object):
         fidin.close()
         fidout.close()
 
-    def load_summary(self,filePath,taxaList=None,trinityIsoform=False,evalue=0.00001,best=True):
+    def load_summary(self,filePath,taxaList=None,trinityGene=False,evalue=0.00001,best=True):
         """
         Because BLAST searches can result in large results lists there are several options
         
@@ -158,7 +159,7 @@ class BlastMapper(object):
         A summary results file has the following header:
         queryId,hitId,hitNcbiId,hitSpecies,hitSpeciesNcbiId,e-value
 
-        trinityIsoform (default = False) - function assumes that each queryId is associated with a unique identifier
+        trinityGene (default = False) - function assumes that each queryId is associated with a unique identifier
                                            if set to True using Trinity nameing scheme results become 'gene' centric
         
         best (default = True) - if specified as True then only the query results with the lowest e-value is returned
@@ -200,7 +201,7 @@ class BlastMapper(object):
             else:
                 raise Exception("Invalid number of columns in line in summary blast file \n%s"%linja)
 
-            if trinityIsoform == True:
+            if trinityGene == True:
                 queryId = re.sub("_i\d+","",queryId)
 
             # filtering      
@@ -218,19 +219,19 @@ class BlastMapper(object):
             ## use the best evalue 
             if not results.has_key(queryId):
                 if best:
-                    results[queryId] = (hitId,hitNcbiId,_evalue)
+                    results[queryId] = (hitId,hitNcbiId,hitSpeciesNcbiId,_evalue)
                 else:
-                    results[queryId] = [(hitId,hitNcbiId,_evalue)]
+                    results[queryId] = [(hitId,hitNcbiId,hitSpeciesNcbiId,_evalue)]
 
             ## if not in append mode and we have smaller evalue
-            if best and _evalue < results[queryId][2]:
-                results[queryId] = (hitId,hitNcbiId,_evalue)
+            if best and _evalue < results[queryId][3]:
+                results[queryId] = (hitId,hitNcbiId,hitSpeciesNcbiId,_evalue)
 
             ## if append mode and we have smaller evalue
-            elif not best and _evalue < results[queryId][0][2]:
-                results[queryId] = [(hitId,hitNcbiId,_evalue)] + results[queryId]
-            elif not best and _evalue >= results[queryId][0][2]:
-                results[queryId].append((hitId,hitNcbiId,_evalue))
+            elif not best and _evalue < results[queryId][0][3]:
+                results[queryId] = [(hitId,hitNcbiId,hitSpeciesNcbiId,_evalue)] + results[queryId]
+            elif not best and _evalue >= results[queryId][0][3]:
+                results[queryId].append((hitId,hitNcbiId,hitSpeciesNcbiId,_evalue))
 
         print("queries filtered due to evalue > %s: %s"%(evalue,evalueFilter))
         print("queries filtered due to taxa: %s"%(taxaFilter))
