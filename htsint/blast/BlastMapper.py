@@ -146,7 +146,7 @@ class BlastMapper(object):
         fidin.close()
         fidout.close()
 
-    def load_summary_file(self,filePath,taxaList=None):
+    def load_summary(self,filePath,taxaList=None,trinityIsoform=False,evalue=0.00001,best=True):
         """
         Because BLAST searches can result in large results lists there are several options
         
@@ -154,6 +154,15 @@ class BlastMapper(object):
         taxaList - if specified ignore any taxa not found in list otherwise take all taxa
         
         At this point the function returns only the best match for a each taxa
+
+        A summary results file has the following header:
+        queryId,hitId,hitNcbiId,hitSpecies,hitSpeciesNcbiId,e-value
+
+        trinityIsoform (default = False) - function assumes that each queryId is associated with a unique identifier
+                                           if set to True using Trinity nameing scheme results become 'gene' centric
+        
+        best (default = True) - if specified as True then only the query results with the lowest e-value is returned
+                                otherwise all results are returned
 
         """
 
@@ -171,33 +180,63 @@ class BlastMapper(object):
 
         ## read the results
         results = {}
-        fid = open(resultsFilePath,'rU')
+        fid = open(filePath,'rU')
         reader = csv.reader(fid)
         header = reader.next()
 
         uniqueQueries = set([])
         totalQueries = 0
-        unfilteredQueries = 0
-
+        evalueFilter = 0
+        taxaFilter = 0
+        total = 0
         for linja in reader:
-            print linja
-            if len(linja) == 4:
+            if len(linja) == 6:
                 queryId = linja[0]
                 hitId = linja[1]
                 hitNcbiId = linja[2]
-                _evalue = float(linja[3])
+                hitSpecies = linja[3]
+                hitSpeciesNcbiId = linja[4]
+                _evalue = float(linja[5])
             else:
-                queryId = linja[0]
-                queryNcbi = linja[1]
-                hitId = linja[2]
-                hitNcbiId = linja[3]
-                _evalue = linja[4]
+                raise Exception("Invalid number of columns in line in summary blast file \n%s"%linja)
 
-        if asGenes == True:
-            queryId = re.sub("_i\d+","",queryId)
+            if trinityIsoform == True:
+                queryId = re.sub("_i\d+","",queryId)
 
+            # filtering      
+            totalQueries += 1
+            if '-' in linja:
+                continue
+            if _evalue > evalue:
+                evalueFilter += 1
+                continue
 
+            if taxaList and hitSpeciesNcbiId not in taxaList:
+                taxaFilter += 1
+                continue
 
+            ## use the best evalue 
+            if not results.has_key(queryId):
+                if best:
+                    results[queryId] = (hitId,hitNcbiId,_evalue)
+                else:
+                    results[queryId] = [(hitId,hitNcbiId,_evalue)]
+
+            ## if not in append mode and we have smaller evalue
+            if best and _evalue < results[queryId][2]:
+                results[queryId] = (hitId,hitNcbiId,_evalue)
+
+            ## if append mode and we have smaller evalue
+            elif not best and _evalue < results[queryId][0][2]:
+                results[queryId] = [(hitId,hitNcbiId,_evalue)] + results[queryId]
+            elif not best and _evalue >= results[queryId][0][2]:
+                results[queryId].append((hitId,hitNcbiId,_evalue))
+
+        print("queries filtered due to evalue > %s: %s"%(evalue,evalueFilter))
+        print("queries filtered due to taxa: %s"%(taxaFilter))
+        print("total queries: %s"%totalQueries)
+
+        return results
 
 if __name__ == "__main__":
     print "Running..."
