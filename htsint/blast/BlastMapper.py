@@ -15,10 +15,9 @@ It can be created with ParseBlast.py or ParallelParseBlast.py
 
 import os,sys,csv,re,getopt,time
 import numpy as np
+import matplotlib.pyplot as plt
 from sqlalchemy.sql import select
 from htsint.database import db_connect,Taxon,Gene,Uniprot,Refseq
-from htsint.database import get_idmapping_file, gene_mapper,taxa_mapper,uniprot_mapper
-import gc
 
 __author__ = "Adam Richards"
 
@@ -34,6 +33,7 @@ class BlastMapper(object):
 
         self.session,self.engine = db_connect()
         self.conn = self.engine.connect()
+        self.hits = None
 
     def create_summarized(self,parsedFilePath,summaryFilePath=None,large=False):
         """
@@ -76,6 +76,7 @@ class BlastMapper(object):
         #results = self.conn.execute(mytable.__table__.select(mytable.value.in_(values))
         #vailable_values = set(row.value for row in results)
 
+        timeStart = time.time()
         upEntry2Gene, upEntry2Taxa = {},{}
         if large == False:
             results = self.conn.execute(Uniprot.__table__.select(Uniprot.uniprot_entry.in_(uniprotEntries)))
@@ -105,6 +106,7 @@ class BlastMapper(object):
             taxaDict = dict([(str(r['id']),str(r['ncbi_id'])) for r in _geneQueries.fetchall()])
             #print("there are  %s genes from %s (%s)"%(len(taxaDict.keys()),tquery['name'],tquery['ncbi_id']))
             gene2id.update(taxaDict)
+        print("uniprot batch query: %s"%time.strftime('%H:%M:%S',time.gmtime(time.time()-timeStart)))
 
         ## read through the file again
         fidin = open(parsedFilePath,'rU')
@@ -112,6 +114,7 @@ class BlastMapper(object):
         header = reader.next()
 
         for linja in reader:
+            print linja
             query = linja[0]
             hitIdShort = linja[1]
             hitIdLong = linja[2]
@@ -125,9 +128,12 @@ class BlastMapper(object):
             else:
                 hitId = _hitId[-1]
             
+            print hitIdLong
             hitNcbiId,hitSpeciesNcbiId = '-','-'
-            hitSpecies = re.findall("OS=.+GN=",hitIdLong)[0][3:-4]
-            
+            hitSpecies = re.findall("OS=.+[A-Z]=",hitIdLong)[0][3:-4]
+            if re.findall("[A-Z]=",hitSpecies):
+                hitSpecies = hitSpecies[:re.search("[A-Z]=",hitSpecies).start()-2]
+
             ## map the uniprot id to gene
             if upEntry2Gene.has_key(hitId) and str(upEntry2Gene[hitId]) != 'None':
                 if gene2id.has_key(upEntry2Gene[hitId]) and str(gene2id[upEntry2Gene[hitId]]) != 'None':
@@ -187,9 +193,9 @@ class BlastMapper(object):
 
         uniqueQueries = set([])
         totalQueries = 0
+        totalHits = 0
         evalueFilter = 0
         taxaFilter = 0
-        total = 0
         for linja in reader:
             if len(linja) == 6:
                 queryId = linja[0]
@@ -205,7 +211,7 @@ class BlastMapper(object):
                 queryId = re.sub("_i\d+","",queryId)
 
             # filtering      
-            totalQueries += 1
+            totalHits += 1
             if '-' in linja:
                 continue
             if _evalue > evalue:
@@ -219,25 +225,99 @@ class BlastMapper(object):
             ## use the best evalue 
             if not results.has_key(queryId):
                 if best:
-                    results[queryId] = (hitId,hitNcbiId,hitSpeciesNcbiId,_evalue)
+                    results[queryId] = (hitId,hitNcbiId,hitSpecies,hitSpeciesNcbiId,_evalue)
                 else:
-                    results[queryId] = [(hitId,hitNcbiId,hitSpeciesNcbiId,_evalue)]
+                    results[queryId] = [(hitId,hitNcbiId,hitSpecies,hitSpeciesNcbiId,_evalue)]
 
             ## if not in append mode and we have smaller evalue
-            if best and _evalue < results[queryId][3]:
-                results[queryId] = (hitId,hitNcbiId,hitSpeciesNcbiId,_evalue)
+            if best and _evalue < results[queryId][4]:
+                results[queryId] = (hitId,hitNcbiId,hitSpecies,hitSpeciesNcbiId,_evalue)
 
             ## if append mode and we have smaller evalue
-            elif not best and _evalue < results[queryId][0][3]:
-                results[queryId] = [(hitId,hitNcbiId,hitSpeciesNcbiId,_evalue)] + results[queryId]
-            elif not best and _evalue >= results[queryId][0][3]:
-                results[queryId].append((hitId,hitNcbiId,hitSpeciesNcbiId,_evalue))
+            elif not best and _evalue < results[queryId][0][4]:
+                results[queryId] = [(hitId,hitNcbiId,hitSpecies,hitSpeciesNcbiId,_evalue)] + results[queryId]
+            elif not best and _evalue >= results[queryId][0][4]:
+                results[queryId].append((hitId,hitNcbiId,hitSpecies,hitSpeciesNcbiId,_evalue))
 
         print("queries filtered due to evalue > %s: %s"%(evalue,evalueFilter))
         print("queries filtered due to taxa: %s"%(taxaFilter))
-        print("total queries: %s"%totalQueries)
-
+        print("total hits: %s"%totalHits)
+        self.hits = totalHits
+        
         return results
+
+
+    def make_taxa_pie_chart_and_table(self,bmap,removeStrain=False,threshold=2,figName=None,csvName=None):
+        """
+        summarize the taxa using a pie chart and reStructuredText table
+        
+        all species that make up less than threshold percent will be grouped as 'other'
+
+        """
+
+        taxaHits = {}
+        for transcriptId, items in bmap.iteritems():
+            hitId,hitNcbiId,hitSpecies,hitSpeciesNcbiId,evalue = items
+    
+            if removeStrain:
+                hitSpecies = re.sub("\s+$","",re.sub("\(.+\)","",hitSpecies))
+
+            if not taxaHits.has_key(hitSpecies):
+                taxaHits[hitSpecies] = 0
+            taxaHits[hitSpecies] += 1
+
+        taxaNames = np.array(taxaHits.keys())
+        taxaCounts = np.array(taxaHits.values()).astype(float)
+        percents = (taxaCounts / taxaCounts.sum()) * 100.0
+
+        ## reorder as ranked
+        rankedInds = np.argsort(taxaCounts)[::-1]
+        taxaNames = taxaNames[rankedInds]
+        taxaCounts = taxaCounts[rankedInds]
+        percents = percents[rankedInds]
+
+        ## create pie plot
+        includedInds = np.where(percents >= threshold)[0]
+        otherPercent = percents[np.where(percents < threshold)[0]].sum()
+        labels = taxaNames[includedInds].tolist() + ['other']
+        sizes = percents[includedInds].tolist() + [otherPercent]
+
+        ## explode the biggest chunk
+        explodeInd = sizes.index(max(sizes))
+        explode = np.zeros(len(sizes))
+        explode[explodeInd] = 0.1
+ 
+
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        colors = ['yellowgreen', 'gold', 'lightskyblue', 'lightcoral','lightgray',
+                  'khaki','honeydew','tomato','cornflowerblue','darkseagreen','darkorchid'] * 100
+
+
+        ax.pie(sizes, labels=labels,explode=explode,colors=colors,
+                autopct='%1.1f%%', shadow=True, startangle=90)
+        
+        ax.axis('equal')
+        
+        if figName:
+            plt.savefig(figName)
+        else:
+            plt.show()
+       
+        print 'total species', len(taxaHits.keys())
+        print 'check', np.array(sizes).sum()
+
+        ## save results as csv file
+        if not csvName:
+            return
+
+        fid = open(csvName,'w')
+        writer = csv.writer(fid)
+        writer.writerow(["SpeciesName","TotalHits","Percentage"])
+        for i in range(taxaNames.size):
+            writer.writerow([taxaNames[i],taxaCounts[i],percents[i]])
+
+        fid.close()
 
 if __name__ == "__main__":
     print "Running..."

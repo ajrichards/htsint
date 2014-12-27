@@ -52,7 +52,7 @@ class BlastTest(unittest.TestCase):
 
         bmap = self.bm.load_summary(summaryFile,taxaList=["10090"],trinityGene=True,best=False)
         self.assertEqual(bmap['GG11117|c2_g1'][0][0],'INT1_MOUSE')
-        self.assertEqual(bmap['GG11117|c2_g1'][0][3],0.0)
+        self.assertEqual(bmap['GG11117|c2_g1'][0][4],0.0)
        
 ### Run the tests
 if __name__ == '__main__':
