@@ -114,7 +114,6 @@ class BlastMapper(object):
         header = reader.next()
 
         for linja in reader:
-            print linja
             query = linja[0]
             hitIdShort = linja[1]
             hitIdLong = linja[2]
@@ -128,7 +127,6 @@ class BlastMapper(object):
             else:
                 hitId = _hitId[-1]
             
-            print hitIdLong
             hitNcbiId,hitSpeciesNcbiId = '-','-'
             hitSpecies = re.findall("OS=.+[A-Z]=",hitIdLong)[0][3:-4]
             if re.findall("[A-Z]=",hitSpecies):
@@ -279,16 +277,21 @@ class BlastMapper(object):
         ## create pie plot
         includedInds = np.where(percents >= threshold)[0]
         otherPercent = percents[np.where(percents < threshold)[0]].sum()
-        labels = taxaNames[includedInds].tolist() + ['other']
-        sizes = percents[includedInds].tolist() + [otherPercent]
-
+        
+        if otherPercent > 0.0:
+            labels = taxaNames[includedInds].tolist() + ['other']
+            sizes = percents[includedInds].tolist() + [otherPercent]
+        else:
+            labels = taxaNames[includedInds].tolist()
+            sizes = percents[includedInds].tolist()
+       
         ## explode the biggest chunk
         explodeInd = sizes.index(max(sizes))
         explode = np.zeros(len(sizes))
         explode[explodeInd] = 0.1
  
 
-        fig = plt.figure()
+        fig = plt.figure(figsize=(9,4))
         ax = fig.add_subplot(111)
         colors = ['yellowgreen', 'gold', 'lightskyblue', 'lightcoral','lightgray',
                   'khaki','honeydew','tomato','cornflowerblue','darkseagreen','darkorchid'] * 100
@@ -304,7 +307,7 @@ class BlastMapper(object):
         else:
             plt.show()
        
-        print 'total species', len(taxaHits.keys())
+        print 'total species:', len(taxaHits.keys())
         print 'check', np.array(sizes).sum()
 
         ## save results as csv file
