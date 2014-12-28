@@ -17,7 +17,7 @@ import os,sys,csv,re,getopt,time
 import numpy as np
 import matplotlib.pyplot as plt
 from sqlalchemy.sql import select
-from htsint.database import db_connect,Taxon,Gene,Uniprot,Refseq
+from htsint.database import db_connect,Taxon,Gene,Uniprot,Refseq,uniprot_mapper
 
 __author__ = "Adam Richards"
 
@@ -89,7 +89,7 @@ class BlastMapper(object):
             for key,item in uMapper.iteritems():
                 upEntry2Gene[str(key)] = str(item['gene_id'])
                 upEntry2Taxa[str(key)] = str(item['taxa_id'])
-        
+       
         ## query the taxa just to double check
         taxaList = list(set(upEntry2Taxa.values()))
         while 'None' in taxaList: taxaList.remove('None')

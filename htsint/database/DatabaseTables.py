@@ -206,10 +206,10 @@ def uniprot_mapper(session,uniprotIdList=None,myDict={},gene=False,taxa=False):
     """
 
     if uniprotIdList:
-        uniprotIdList = dict([(i,None)for i in list(set(uniprotIdList))])
+        uniprotIdList = dict([(i,None) for i in list(set(uniprotIdList))])
 
     for u in session.query(Uniprot).yield_per(5):
-        if uniprotIdList and not uniprotIdList.has_key(u):
+        if uniprotIdList and not uniprotIdList.has_key(u.uniprot_entry):
             continue
 
         if gene == False and taxa == False:

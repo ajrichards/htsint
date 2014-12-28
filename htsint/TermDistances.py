@@ -121,14 +121,16 @@ class TermDistances(object):
         """
 
         ## create a results file 
-        outFile = os.path.join(self.resultsDir,"out-%s-%s.csv"%(first,last))
-        outFid = open(outFile,'w')
-        writer = csv.writer(outFid)
-        writer.writerow(["i","j","distance"])
-        outFid.close()
-        outFid = open(outFile,'a')
-        writer = csv.writer(outFid)
+        outFile = os.path.join(self.resultsDir,"out-%s-%s.npy"%(first,last))
+        #outFid = open(outFile,'w')
+        #writer = csv.writer(outFid)
+        #writer.writerow(["i","j","distance"])
+        #outFid.close()
+        #outFid = open(outFile,'a')
+        #writer = csv.writer(outFid)
 
+        mat = np.zeros((last-first,3),).astype(str)
+        
         if first == None or last == None:
             first = 0
             last = int(self.totalDistances)
@@ -136,7 +138,7 @@ class TermDistances(object):
         toRun = range(first,last)
 
         count = -1
-
+        lineCount = -1
         for i,termI in enumerate(self.terms):
             
             if i % 20 == 0:
@@ -153,9 +155,12 @@ class TermDistances(object):
                 distance = self.get_distance(termI,termJ)
 
                 if distance != None:
-                    writer.writerow([termI,termJ,distance])
+                    lineCount+=1
+                    mat[lineCount,:] = [termI,termJ,distance]
+                #    writer.writerow([termI,termJ,distance])
 
-        outFid.close()
+        np.save(outFile,mat)
+        #outFid.close()
 
     def get_distance(self,source,sink):
         """
