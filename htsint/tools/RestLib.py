@@ -5,6 +5,16 @@ Library of functions to help output data in reStructuredText format
 
 ## functions 
 def print_rest_table_contents(columns,items,withTrailing=True):
+    """
+    function needs to be turned into a class
+    """
+
+    row = "+"
+    head = "+"
+    for col in columns:
+        row += "-"*col+"-+"
+        head += "="*col+"=+"
+
     if len(columns) != len(items):
         raise Exception("Dimension mismatch %s %s"%(len(columns),len(items)))
 
