@@ -16,8 +16,10 @@ It can be created with ParseBlast.py or ParallelParseBlast.py
 import os,sys,csv,re,getopt,time
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import font_manager as fm
 from sqlalchemy.sql import select
 from htsint.database import db_connect,Taxon,Gene,Uniprot,Refseq,uniprot_mapper
+
 
 __author__ = "Adam Richards"
 
@@ -245,7 +247,8 @@ class BlastMapper(object):
         return results
 
 
-    def make_taxa_pie_chart_and_table(self,bmap,removeStrain=False,threshold=2,figName=None,csvName=None):
+    def make_taxa_pie_chart_and_table(self,bmap,removeStrain=False,threshold=2,figName=None,csvName=None,
+                                      ax=None,shadow=True,startangle=90,explode=True,fontSize=11):
         """
         summarize the taxa using a pie chart and reStructuredText table
         
@@ -286,27 +289,45 @@ class BlastMapper(object):
             sizes = percents[includedInds].tolist()
        
         ## explode the biggest chunk
-        explodeInd = sizes.index(max(sizes))
-        explode = np.zeros(len(sizes))
-        explode[explodeInd] = 0.1
- 
+        if explode:
+            explodeInd = sizes.index(max(sizes))
+            explode = np.zeros(len(sizes))
+            explode[explodeInd] = 0.1
+        else:
+            explode = None
 
-        fig = plt.figure(figsize=(9,4))
-        ax = fig.add_subplot(111)
+        if ax == None:
+            fig = plt.figure(figsize=(9,7))
+            ax = fig.add_subplot(111)
+            show = True
+        else:
+            show = False
+
         colors = ['yellowgreen', 'gold', 'lightskyblue', 'lightcoral','lightgray',
                   'khaki','honeydew','tomato','cornflowerblue','darkseagreen','darkorchid'] * 100
 
-
-        ax.pie(sizes, labels=labels,explode=explode,colors=colors,
-                autopct='%1.1f%%', shadow=True, startangle=90)
-        
+        ## shorten long names
+        longNames = {"Schizosaccharomyces pombe":"S. pombe"}
+        for ln1,ln2 in longNames.iteritems():
+            if ln1 in labels:
+                lnind = labels.index(ln1)
+                labels[lnind] = ln2
+            
+        patches, texts, autotexts =ax.pie(sizes, labels=labels,explode=explode,colors=colors,
+                                          autopct='%1.1f%%', shadow=shadow, startangle=startangle)        
         ax.axis('equal')
         
+        ## adjust font sizes
+        proptease = fm.FontProperties()
+        proptease.set_size(fontSize)
+        plt.setp(autotexts, fontproperties=proptease)
+        plt.setp(texts, fontproperties=proptease)
+
         if figName:
             plt.savefig(figName)
-        else:
+        elif show:
             plt.show()
-       
+
         print 'total species:', len(taxaHits.keys())
         print 'check', np.array(sizes).sum()
 
