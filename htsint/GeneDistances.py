@@ -18,9 +18,6 @@ class GeneDistances(object):
     def __init__(self,termsPath,termGraphPath,termDistancesPath,outFile=None):
         """
         Constructor
-        
-        if cpus > 1 then the script assumes we are in a cluster envrionment
-        Note that the results dir will be cleaned before each run
         """
 
         ## error checking
@@ -47,13 +44,11 @@ class GeneDistances(object):
 
         ## read in the term distances
         termDist = {}
-        fid = open(termDistancesPath,'rU')
-        reader = csv.reader(fid)
-        header = reader.next()
+        mat = np.load(termDistancesPath)
 
-        for linja in reader:
-            if len(linja) != 3:
-                continue
+        for i in range(mat.shape[0]):
+            linja = mat[i,:]
+
             if not termDist.has_key(linja[0]):
                 termDist[linja[0]] = {}
             if not termDist[linja[0]].has_key(linja[1]):

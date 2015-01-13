@@ -122,13 +122,6 @@ class TermDistances(object):
 
         ## create a results file 
         outFile = os.path.join(self.resultsDir,"out-%s-%s.npy"%(first,last))
-        #outFid = open(outFile,'w')
-        #writer = csv.writer(outFid)
-        #writer.writerow(["i","j","distance"])
-        #outFid.close()
-        #outFid = open(outFile,'a')
-        #writer = csv.writer(outFid)
-
         mat = np.zeros((last-first,3),).astype(str)
         
         if first == None or last == None:
@@ -157,10 +150,8 @@ class TermDistances(object):
                 if distance != None:
                     lineCount+=1
                     mat[lineCount,:] = [termI,termJ,distance]
-                #    writer.writerow([termI,termJ,distance])
 
         np.save(outFile,mat)
-        #outFid.close()
 
     def get_distance(self,source,sink):
         """
@@ -174,6 +165,9 @@ class TermDistances(object):
         return None
 
     def run_with_multiprocessing(self,resultsFilePath,chunkSize=1000,cpus=7):
+        """
+        experimental
+        """
 
         ## create a results file )
         outFid = open(resultsFilePath,'w')

@@ -6,7 +6,7 @@ that are produced with 'GeneDistances.py'
 
 __author__ = "Adam Richards"
 
-import os,sys,csv,shutil,cPickle,getopt
+import os,sys,csv,shutil,re,cPickle,getopt
 import numpy as np
 import networkx as nx
 from basedir import __basedir__
@@ -38,10 +38,13 @@ class AssembleDistances(object):
         ## results dir must contain results
         self.resultsDir = os.path.realpath(resultsDir)
 
-        ## create a files to assemple the results in
-        self.writer = csv.writer(open(resultsPath,'w'))
-        self.writer.writerow(["i","j","distance"])
-        
+        if re.search("\.csv",resultsPath):
+            ## create a files to assemple the results in
+            self.writer = csv.writer(open(resultsPath,'w'))
+            self.writer.writerow(["i","j","distance"])
+        else:
+            self.resultsPath = resultsPath
+
         ## load the term graph and the terms
         self.G = nx.read_gpickle(self.termGraphPath)
         tmp = open(self.termsPath,'r')
@@ -73,19 +76,32 @@ class AssembleDistances(object):
         print '...assembling results - %s jobs with %s distances'%(len(stopPoints),self.totalDistances)
 
         ## create scripts
+        mat = np.zeros((self.totalDistances,3),).astype(str)
         begin = 0
         for i,chunk in enumerate(range(stopPoints.size)):
             stop = stopPoints[chunk] 
             submitFile = os.path.join(self.resultsDir,"%s-%s.sh"%(name,i))
             submitLog =  os.path.join(self.resultsDir,"%s-%s.log"%(name,i))       
-            outFile = os.path.join(self.resultsDir,"out-%s-%s.csv"%(int(begin),int(stop)))
-        
-            if os.path.exists(outFile) == False:
+            
+            ## determine if we are using csv or npy
+            outFile1 = os.path.join(self.resultsDir,"out-%s-%s.csv"%(int(begin),int(stop)))
+            outFile2 = os.path.join(self.resultsDir,"out-%s-%s.npy"%(int(begin),int(stop)))
+
+            if os.path.exists(outFile1):
+                self.append_file(outFile1)
+            elif os.path.exists(outFile2):
+                rows = np.load(outFile2)
+                print('adding %s rows...'%(int(stop)-int(begin)))
+                self.appendedDistances += (int(stop)-int(begin))
+                mat[int(begin):int(stop),:] = rows
+            else:
                 raise Exception("Results file does not exist -- is the number of cpus correct?\n...%s"%outFile)
-            self.append_file(outFile)
+
             begin = stop
 
         ## print total
+        print("saving...")
+        np.save(self.resultsPath,mat)
         print "%s/%s distances appended"%(self.appendedDistances,self.totalDistances)
 
     def append_file(self,outFile):
