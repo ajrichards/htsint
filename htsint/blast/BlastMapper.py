@@ -153,7 +153,7 @@ class BlastMapper(object):
         fidin.close()
         fidout.close()
 
-    def load_summary(self,filePath,taxaList=None,trinityGene=False,evalue=0.00001,best=True):
+    def load_summary(self,filePath,taxaList=None,trinityGene=False,evalue=0.0001,best=True):
         """
         Because BLAST searches can result in large results lists there are several options
         
@@ -229,15 +229,17 @@ class BlastMapper(object):
                 else:
                     results[queryId] = [(hitId,hitNcbiId,hitSpecies,hitSpeciesNcbiId,_evalue)]
 
-            ## if not in append mode and we have smaller evalue
-            if best and _evalue < results[queryId][4]:
-                results[queryId] = (hitId,hitNcbiId,hitSpecies,hitSpeciesNcbiId,_evalue)
-
-            ## if append mode and we have smaller evalue
-            elif not best and _evalue < results[queryId][0][4]:
-                results[queryId] = [(hitId,hitNcbiId,hitSpecies,hitSpeciesNcbiId,_evalue)] + results[queryId]
-            elif not best and _evalue >= results[queryId][0][4]:
-                results[queryId].append((hitId,hitNcbiId,hitSpecies,hitSpeciesNcbiId,_evalue))
+            else:
+                ## if not in append mode and we have smaller evalue
+                if best and _evalue < results[queryId][4]:
+                    results[queryId] = (hitId,hitNcbiId,hitSpecies,hitSpeciesNcbiId,_evalue)
+                ## if append mode and we have smaller evalue
+                elif (hitId,hitNcbiId,hitSpecies,hitSpeciesNcbiId,_evalue) in results[queryId]:
+                    continue
+                elif not best and _evalue < results[queryId][0][4]:
+                    results[queryId] = [(hitId,hitNcbiId,hitSpecies,hitSpeciesNcbiId,_evalue)] + results[queryId]
+                elif not best and _evalue >= results[queryId][0][4]:
+                    results[queryId].append((hitId,hitNcbiId,hitSpecies,hitSpeciesNcbiId,_evalue))
 
         print("queries filtered due to evalue > %s: %s"%(evalue,evalueFilter))
         print("queries filtered due to taxa: %s"%(taxaFilter))
