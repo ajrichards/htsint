@@ -12,26 +12,32 @@ ______________________________________________________________________
 
 First, we need to connect to the database.
 
-   > from htsint.database import fetch_annotations,db_connect
-   > session, engine = db_connect()
-   > conn = engine.connect()
+> from htsint.database import fetch_annotations,db_connect
+> session, engine = db_connect()
+> conn = engine.connect()
 
 The ``conn`` or connection is for usage with the `SQLAlchemy core API <http://docs.sqlalchemy.org/en/rel_0_9/core/>`_ and is not necessary for basic annotation fetching.  If you have a list of NCBI gene identifiers or UniProt identifiers (UniprotAc) then the easiest way to get the annotations is to
 
-   .. code-block:: python
+<<code-1>>=  
+from htsint.database import fetch_annotations,db_connect
+session, engine = db_connect()
+conn = engine.connect()
 
-      from htsint.database import fetch_annotations
-
-      annotations = fetch_annotations(['31251'],engine,idType='ncbi',useIea=False,aspect='biological_process')
-      print(annotations)
+annotations = fetch_annotations(['31251'],engine,idType='ncbi',useIea=False,aspect='biological_process')
+print(annotations)
+@
 
 Simply use `idType='uniprot'` if the ids are from that namespace.  As you can see the results are contained in a dictionary with a key for each NCBI identifier.  The results associated with each identifier are a unique list of tuples each containing the GO identifier and GO name. So if you wanted only the GO names simply use a list comprehension.
 
-   > print([a[1] for a in annotations['31251']])
+   .. code-block:: python
 
-A results list can be quickly sorted say by name using:
+      print([a[1] for a in annotations['31251']])
 
-   > sortby_inplace(annotations['P56645'], 1)
+A results list can be quickly sorted with:
+
+   .. code-block:: python
+
+      sortby_inplace(annotations['P56645'], 1)
 
 
 Fetching directly with SQLAlchemy

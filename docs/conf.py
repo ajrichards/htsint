@@ -116,6 +116,7 @@ html_theme = htmlTheme  # default,nature,haiku,agogo
 ##3333CC
 html_theme_options = {
     "headerbg": "#001A57",
+    "bodyfont": 'sans-serif' 
 }
 
 # Theme options are theme-specific and customize the look and feel of a theme

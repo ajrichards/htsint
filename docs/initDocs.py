@@ -16,12 +16,8 @@ from lpedit import NoGuiAnalysis
 
 ## 
 files = [('index.rst',None),
-         ('database.rst','python'),
-         ('install.rst','python'),
-         ('blast.rst','python'),
-         ('name-mapping.rst','python'),
-         ('gene-ontology.rst','python')
-         ]
+         ('annotation-fetching.rst','python')
+]
 
 ## clean first
 if os.path.isdir("_sphinx"):
