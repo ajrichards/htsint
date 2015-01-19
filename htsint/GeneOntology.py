@@ -46,7 +46,7 @@ class GeneOntology(object):
             raise Exception("refTaxon not present in taxaList")
 
         conn = self.engine.connect()
-        gene2go,go2gene = self.get_dicts(termsPath=termsPath)
+        gene2go,go2gene = self.load_dicts(termsPath=termsPath)
 
         s = select([Taxon.id,Taxon.ncbi_id,Taxon.name]).where(Taxon.ncbi_id.in_(self.taxaList))
         _taxaQueries = conn.execute(s)
@@ -104,13 +104,49 @@ class GeneOntology(object):
         if taxQuery == None:
             raise Exception("Taxon:%s not found in database"%taxID)
         
-    def get_dicts(self,termsPath=None,log=None):
+
+    def create_dicts(self,termsPath,accepted=None):
         """
         get the go2gene and gene2go dictionaries
-        log - csv.writer object
+        'accepted' - list of genes that restrict included terms to a particular list
         """
 
         conn = self.engine.connect()
+
+        ## error checking
+        if self.aspect not in ['biological_process','molecular_function','cellular_component']:
+            raise Exception("Invalid aspect specified%s"%self.aspect)
+
+        ## gene2go
+        print("...creating gene2go dictionary -- this may take several minutes or longer on the number of genes")
+        _gene2go,prot2go = fetch_taxa_annotations(self.taxaList,self.engine,aspect=self.aspect,\
+                                                 useIea=self.useIea)
+
+        print("...creating go2gene dictionary -- this may take several minutes")
+        go2gene = {}
+        gene2go = {}
+        for gene,terms in _gene2go.iteritems():
+            if accepted and gene not in accepted:
+                continue
+
+            gene2go[gene] = terms
+            for term in terms:
+                if go2gene.has_key(term) == False:
+                    go2gene[term] = set([])
+                go2gene[term].update([gene])
+
+        for term,genes in go2gene.iteritems():
+            go2gene[term] = list(genes)
+        
+        ## pickle the dictionaries    
+        tmp = open(termsPath,'w')
+        cPickle.dump([gene2go,go2gene],tmp)
+        tmp.close()
+
+    def load_dicts(self,termsPath=None,log=None):
+        """
+        get the go2gene and gene2go dictionaries
+        """
 
         if self.aspect not in ['biological_process','molecular_function','cellular_component']:
             raise Exception("Invalid aspect specified%s"%self.aspect)
@@ -121,30 +157,7 @@ class GeneOntology(object):
             tmp.close()
             return gene2go,go2gene
 
-        ## gene2go
-        print "...creating gene2go dictionary -- this may take several minutes or longer on the number of genes"
-        gene2go,prot2go = fetch_taxa_annotations(self.taxaList,self.engine,aspect=self.aspect,\
-                                                 useIea=self.useIea)
-
-        print "...creating go2gene dictionary -- this may take several minutes"
-        go2gene = {}
-        for gene,terms in gene2go.iteritems():
-            for term in terms:
-                if go2gene.has_key(term) == False:
-                    go2gene[term] = set([])
-                go2gene[term].update([gene])
-
-        for term,genes in go2gene.iteritems():
-            go2gene[term] = list(genes)
-        
-        if termsPath == None:
-            print "INFO: For large gene list it is useful to specify a file path for the pickle file"
-        else:
-            tmp = open(termsPath,'w')
-            cPickle.dump([gene2go,go2gene],tmp)
-            tmp.close()
-
-        return gene2go,go2gene
+        return None,None
 
     def create_gograph(self,termsPath=None,graphPath=None):
         """
@@ -166,13 +179,16 @@ class GeneOntology(object):
             return G
 
         ## load all the ontology related information as a set of dictionaries
+        gene2go,go2gene = self.load_dicts(termsPath=termsPath)
+        if gene2go == None or go2gene == None:
+            raise Exception("Could not load gene2go or go2Gene-- do they exist?")
+
+        if len(go2gene.keys()) < 5:
+            raise Exception("There are insufficient terms present to create a graph %s"%(len(go2gene.keys())))
+
         _goDict = read_ontology_file()
         goDict = _goDict[self.aspect]
-        gene2go,go2gene = self.get_dicts(termsPath=termsPath)
-
-        #for a,b in gene2go.iteritems():
-        #    print a,b
-
+        
         print "...creating go term graph -- this may take several minutes or hours depending on the number of genes"
         ## calculate the term-term edges using term IC (-ln(p(term)))
         edgeDict = self.get_weights_by_ic(goDict,go2gene)
@@ -215,6 +231,35 @@ class GeneOntology(object):
             parent,child = nodes.split("#")
             G.add_edge(parent,child,weight=weight)
         
+        ## trim unecessary nodes
+        def trim_nodes(G):
+            """
+            trim nodes with degree = 1 that are not present in go2gene
+            """
+
+            degreeDict = nx.degree(G)
+            removed = 0
+            for node,degree in degreeDict.iteritems():
+
+                if degree > 1:
+                    continue
+
+                if go2gene.has_key(node):
+                    continue
+
+                removed += 1
+                G.remove_node(node)
+
+            return G,removed
+
+        print("trimming nodes...")
+        removed = 1
+        print("nodes, edges")
+        print("%s, %s"%(G.number_of_nodes(), G.number_of_edges()))
+        while removed > 0:
+            G,removed = trim_nodes(G)
+            print("%s, %s"%(G.number_of_nodes(), G.number_of_edges()))
+
         ## save mst to pickle format
         if graphPath != None:
             nx.write_gpickle(G, graphPath)

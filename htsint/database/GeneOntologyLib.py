@@ -427,19 +427,26 @@ def fetch_taxa_annotations(identifiers,engine,aspect='biological_process',
         _geneQueries = conn.execute(s)
         gene2Id = dict([tuple(map(str,r)) for r in _geneQueries.fetchall()])
         
-        s = select([Uniprot.id,Uniprot.uniprot_ac,Uniprot.gene_id]).where(Uniprot.id.in_(uniprotIds))
-        _uniprotQueries = conn.execute(s)
-        uniprotQueries = _uniprotQueries.fetchall()
         uniprot2id = {}
-        for uquery in uniprotQueries:
-            uniprotAc = str(uquery['uniprot_ac'])
-            uniprot2id[str(uquery['id'])] = uniprotAc
-            if uquery['gene_id']:
-                if not gene2uniprot.has_key(str(uquery['gene_id'])):
-                    geneNcbi = gene2Id[str(uquery['gene_id'])] 
-                    gene2uniprot[geneNcbi] = []
-                gene2uniprot[geneNcbi].append(str(uquery['uniprot_ac']))
-                uniprot2gene[uniprotAc] = geneNcbi
+        if len(uniprotIds) > 0:
+            s = select([Uniprot.id,Uniprot.uniprot_ac,Uniprot.gene_id]).where(Uniprot.id.in_(uniprotIds))
+            _uniprotQueries = conn.execute(s)
+            uniprotQueries = _uniprotQueries.fetchall()
+            for uquery in uniprotQueries:
+                uniprotAc = str(uquery['uniprot_ac'])
+                uniprot2id[str(uquery['id'])] = uniprotAc
+                if uquery['gene_id']:
+                    if not gene2uniprot.has_key(str(uquery['gene_id'])):
+                        if gene2Id.has_key(str(uquery['gene_id'])):
+                            geneNcbi = gene2Id[str(uquery['gene_id'])] 
+                            gene2uniprot[geneNcbi] = []
+                        else:
+                            geneNcbi = None
+                    if geneNcbi:
+                        gene2uniprot[geneNcbi].append(str(uquery['uniprot_ac']))
+                        uniprot2gene[uniprotAc] = geneNcbi
+                    else:
+                        print "could not find", uquery['gene_id'], 'but we have', uniprotAc
 
         ## gene centric results
         for aq in annotQueries:

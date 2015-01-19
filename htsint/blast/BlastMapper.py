@@ -20,7 +20,6 @@ from matplotlib import font_manager as fm
 from sqlalchemy.sql import select
 from htsint.database import db_connect,Taxon,Gene,Uniprot,Refseq,uniprot_mapper
 
-
 __author__ = "Adam Richards"
 
 class BlastMapper(object):
@@ -210,8 +209,9 @@ class BlastMapper(object):
             if trinityGene == True:
                 queryId = re.sub("_i\d+","",queryId)
 
-            # filtering      
             totalHits += 1
+
+            # filtering
             if '-' in linja:
                 continue
             if _evalue > evalue:

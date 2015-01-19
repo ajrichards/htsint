@@ -27,7 +27,7 @@ class GeneOntologyTest(unittest.TestCase):
         simple setup
         """
 
-        self.taxId = 511145
+        self.taxId = 5476
         
     def testCheckTaxon(self):
         """
@@ -37,44 +37,38 @@ class GeneOntologyTest(unittest.TestCase):
         go = GeneOntology([self.taxId],upass=UPASS)
         go.check_taxon(self.taxId)
     
-    def testGetDicts(self):
+    def test01GetDicts(self):
         """
         ensure we can create, save and retrieve gene2go and go2gene dictionaries
         """
 
-        dictsPickle = 'foo.pickle'
-        if os.path.exists(dictsPickle) == True:
-            os.remove(dictsPickle)
+        termsPath = 'terms.pickle'
+        if os.path.exists(termsPath) == True:
+            os.remove(termsPath)
 
-        go = GeneOntology([self.taxId],upass=UPASS,idType='ncbi',useIea=False,\
+        go = GeneOntology([self.taxId],upass=UPASS,idType='ncbi',useIea=True,\
                           aspect='biological_process')
-        gene2go,go2gene = go.get_dicts(termsPath=dictsPickle)
+        go.create_dicts(termsPath)
+        gene2go, go2gene = go.load_dicts(termsPath)
+        print("there are %s genes"%(len(gene2go.keys())))
+        print("there are %s terms"%(len(go2gene.keys())))
 
-        #self.assertEqual(len(gene2go1.keys()),len(gene2go2.keys()))
-        #self.assertEqual(len(go2gene1.keys()),len(go2gene2.keys()))
-
-        if os.path.exists(dictsPickle) == True:
-            os.remove(dictsPickle)
-
-    def testCreateGoGraph(self):
+    
+    def test02CreateGoGraph(self):
         """
         ensure we can create, save and retrieve the gograph
         """
 
-        termsPickle = 'foo1.pickle'
-        graphPickle = 'foo2.pickle'
-        for picklePath in [termsPickle,graphPickle]:
-            if os.path.exists(picklePath) == True:
-                os.remove(picklePath)
-
-        go = GeneOntology(self.taxId,upass=UPASS,idType='ncbi')
+        termsPickle = 'terms.pickle'
+        graphPickle = 'graph.pickle'
+        
+        go = GeneOntology(self.taxId,upass=UPASS,idType='ncbi',useIea=True)
         G = go.create_gograph(termsPath=termsPickle,graphPath=graphPickle)
-        #print 'nodes', len(G.nodes())
 
         for picklePath in [termsPickle,graphPickle]:
             if os.path.exists(picklePath):
                 os.remove(picklePath)
-
+    
 ### Run the tests
 if __name__ == '__main__':
     unittest.main()
