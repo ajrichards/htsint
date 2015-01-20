@@ -159,7 +159,7 @@ class GeneOntology(object):
 
         return None,None
 
-    def create_gograph(self,termsPath=None,graphPath=None):
+    def create_gograph(self,termsPath=None,graphPath=None,addShared=False):
         """
         creates the go graph for a given species
         aspect = 'biological_process','molecular_function' or 'cellular_component'
@@ -197,7 +197,7 @@ class GeneOntology(object):
             raise Exception("No edges were found -- annotation information may be two sparse")
 
         ## terms without distances set to max
-        print "...finding term-term distances"
+        print("...finding term-term distances")
         allDistances = np.array(edgeDict.values())
         maxDistance = allDistances.max()
         for parent,children in goDict.iteritems():
@@ -207,23 +207,24 @@ class GeneOntology(object):
                 edgeDict[parent+"#"+child] = maxDistance
 
         ## add the edges through shared genes
-        print '...adding term-term edges through shared genes'
-        eCDF = EmpiricalCdf(allDistances)
-        p5 = eCDF.get_percentile(0.05) 
-        newEdges = 0
-        for termI,genesI in go2gene.iteritems():
-            for termJ,genesJ in go2gene.iteritems():
+        if addShared == True:
+            print('...adding term-term edges through shared genes')
+            eCDF = EmpiricalCdf(allDistances)
+            p5 = eCDF.get_percentile(0.05) 
+            newEdges = 0
+            for termI,genesI in go2gene.iteritems():
+                for termJ,genesJ in go2gene.iteritems():
 
-                if edgeDict.has_key(termI+"#"+termJ) or edgeDict.has_key(termJ+"#"+termI):
-                    continue
+                    if edgeDict.has_key(termI+"#"+termJ) or edgeDict.has_key(termJ+"#"+termI):
+                        continue
 
-                sharedGenes = len(list(set(genesI).intersection(set(genesJ))))
-                if sharedGenes == 0:
-                    continue
+                    sharedGenes = len(list(set(genesI).intersection(set(genesJ))))
+                    if sharedGenes == 0:
+                        continue
 
-                ## add new edge in both directions
-                edgeDict[termI+"#"+termJ] = float(p5) / float(sharedGenes)
-                newEdges += 1
+                    ## add new edge in both directions
+                    edgeDict[termI+"#"+termJ] = float(p5) / float(sharedGenes)
+                    newEdges += 1
 
         ## initialize the graph
         G = nx.Graph()

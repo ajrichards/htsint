@@ -371,8 +371,6 @@ def fetch_taxa_annotations(identifiers,engine,aspect='biological_process',
     If the identifier is 'geneid' the find all uniprot entries and combine all 
     uniprot and geneId results.
 
-    The arg 'asTerms' return
-
     aspect is 'biological_process', 'cellular_component' or 'molecular_function'
 
     """
