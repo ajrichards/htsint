@@ -232,8 +232,7 @@ class GeneOntology(object):
             parent,child = nodes.split("#")
             G.add_edge(parent,child,weight=weight)
         
-        ## trim unecessary nodes
-        def trim_nodes(G):
+        def trim_leaf_nodes(G):
             """
             trim nodes with degree = 1 that are not present in go2gene
             """
@@ -253,12 +252,51 @@ class GeneOntology(object):
 
             return G,removed
 
-        print("trimming nodes...")
+        ## trim unecessary leaf nodes
+        print("trimming leaf nodes...")
         removed = 1
         print("nodes, edges")
         print("%s, %s"%(G.number_of_nodes(), G.number_of_edges()))
         while removed > 0:
-            G,removed = trim_nodes(G)
+            G,removed = trim_leaf_nodes(G)
+            print("%s, %s"%(G.number_of_nodes(), G.number_of_edges()))
+
+        ## trim nodes with degree 2
+        print("trimming degree=2 nodes...")
+        toRemove = []
+        toAdd    = []
+        degreeDict = nx.degree(G)
+        for node,degree in degreeDict.iteritems():
+
+            if degree != 2:
+                continue
+
+            if go2gene.has_key(node):
+                continue
+
+            neighbors = [x for x in nx.all_neighbors(G,node)]
+
+            if neighbors[0] in toRemove or neighbors[1] in toRemove:
+                continue
+
+            edge1 = G.get_edge_data(neighbors[0],node)['weight']
+            edge2 = G.get_edge_data(neighbors[1],node)['weight']
+
+            toRemove.append(node)
+            toAdd.append((neighbors[0],neighbors[1],np.array([edge1,edge2]).mean()))
+
+        for node in toRemove:
+            G.remove_node(node)
+        for edge in toAdd:
+            G.add_edge(edge[0],edge[1],weight=edge[2])
+
+        ## trim unecessary leaf nodes
+        print("trimming leaf nodes...")
+        removed = 1
+        print("nodes, edges")
+        print("%s, %s"%(G.number_of_nodes(), G.number_of_edges()))
+        while removed > 0:
+            G,removed = trim_leaf_nodes(G)
             print("%s, %s"%(G.number_of_nodes(), G.number_of_edges()))
 
         ## save mst to pickle format
