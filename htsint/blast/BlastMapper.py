@@ -345,5 +345,20 @@ class BlastMapper(object):
 
         fid.close()
 
+    def get_dicts(self,bmap):                                                                                                                   
+        transcript2gene = {}
+        gene2transcript = {}
+        for key,_item in bmap.iteritems():
+            for item in _item:
+                if item[1] != '-':
+                    transcript2gene[key] = item[1]
+                    if not gene2transcript.has_key(item[1]):
+                        gene2transcript[item[1]] = {}
+                    if not gene2transcript[item[1]].has_key(item[3]):
+                        gene2transcript[item[1]][item[3]] = set([])
+                        gene2transcript[item[1]][item[3]].update([key])
+        return transcript2gene,gene2transcript  
+
+
 if __name__ == "__main__":
     print "Running..."

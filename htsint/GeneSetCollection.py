@@ -9,18 +9,6 @@ import os,sys,csv
 import numpy as np
 from htsint.blast import BlastMapper
 
-#import sys,os,getopt,csv,cPickle,shutil
-#import matplotlib.pyplot as plt
-#import numpy as np
-#from htsint.database import Uniprot,db_connect
-
-
-## database 
-#from htsint.database import db_connect,Gene,Taxon,Uniprot
-#session, engine = db_connect()
-#conn = engine.connect()
-
-
 class GeneSetCollection(object):
     """
     gene set class
@@ -65,7 +53,6 @@ class GeneSetCollection(object):
         for _k in np.arange(self.k):
             clusters.append(len(np.where(self.labels==_k)[0]))
         self.clusters = np.array(clusters)
-
     
     def write(self,blastMap=None, sizeMin=4, sizeMax=100,outFile="genesets.gmt"):
         """
@@ -85,14 +72,6 @@ class GeneSetCollection(object):
         if blastMap:
             bm = BlastMapper()
             transcript2gene,gene2transcript = bm.get_dicts(blastMap)
-
-        ## get percentage
-        #tooSmall = np.where(self.clusters < sizeMin)[0]
-        #tooLarge = np.where(self.clusters > sizeMax)[0]
-        #tooSmallGenes = float(self.clusters[tooSmall].sum())
-        #tooLargeGenes = float(self.clusters[tooLarge].sum())
-        #numer = self.clusters.sum() - tooSmallGenes - tooLargeGenes
-        #percentAccepted = ( numer / self.clusters.sum()) * 100.0 
 
         ## save gene sets to file
         failedThreshold = 0
@@ -120,7 +99,7 @@ class GeneSetCollection(object):
             mappedGenes = list(mappedGenes)
             realizedGenes += len(mappedGenes)
 
-            if numGenes >= sizeMin and numGenes <= sizeMax: 
+            if len(mappedGenes) >= sizeMin and len(mappedGenes) <= sizeMax: 
                 writer.writerow([gsName,description] + mappedGenes)
             else:
                 failedThreshold+=len(mappedGenes)

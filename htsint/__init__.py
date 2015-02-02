@@ -11,3 +11,5 @@ from TermDistances import TermDistances
 from GeneDistances import GeneDistances
 from AssembleDistances import AssembleDistances
 from TaxaSummary import TaxaSummary
+from GeneSetCollection import GeneSetCollection
+from GeneSet import GeneSet
