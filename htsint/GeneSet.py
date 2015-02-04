@@ -5,7 +5,7 @@ A class to represent and draw gene sets
 
 __author__ = "Adam Richards"
 
-from htsint.database import db_connect,Gene,Taxon
+from htsint.database import db_connect,Gene,Taxon,GoTerm
 from htsint.blast import BlastMapper
 
 class GeneSet(object):
@@ -13,12 +13,12 @@ class GeneSet(object):
     gene set class
     """
 
-
-    def __init__(self,geneList):
+    def __init__(self,geneList,gene2go):
         """
         Constructor
 
-        geneList
+        geneList - list
+        gene2go - dictionary
 
         """
 
@@ -29,9 +29,7 @@ class GeneSet(object):
         ## declare variables
         self.geneList = list(set(geneList))
         self.geneInfo = self.get_gene_info()
-
-        for gene in self.geneList:
-            print gene, self.geneInfo[gene]
+        self.gene2go = gene2go
 
     def get_gene_info(self):
         print("...getting gene info")
@@ -40,14 +38,19 @@ class GeneSet(object):
         for row in results:
             geneInfo[str(row.ncbi_id)] = {'symbol': str(row.symbol),
                                           'description': str(row.description),
-                                          'taxa_id': self.session.query(Taxon).filter_by(id=row.taxa_id).first().ncbi_id}
-        
+                                          'taxa': self.session.query(Taxon).filter_by(id=row.taxa_id).first().ncbi_id}        
         return geneInfo
 
-        #geneIds = [g.id for g in self.session.query(Gene).filter_by(taxa_id=taxaQuery.id).all()]     
-        #uniprotIds = [u.id for u in self.session.query(Uniprot).filter_by(taxa_id=taxaQuery.id).all()]
-        #geneAnnotations = self.session.query(GoAnnotation).filter(GoAnnotation.gene_id.in_(geneIds)).all() 
-        
+    def get_go_terms(self,gene):
+        """
+        return a human friendly summary of the go terms
+        """
+
+        if self.gene2go.has_key(gene):
+            terms = [self.session.query(GoTerm).filter(GoTerm.go_id == key).first().name + " (%s)"%key for key in self.gene2go[gene]]
+            return ";".join(terms)
+        else:
+            return 'None'
 
 
 if __name__ == "__main__":
