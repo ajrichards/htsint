@@ -48,11 +48,14 @@ class GeneSetCollection(object):
             raise Exception("invalid gene2go dictionary")
         self.gene2go = gene2go
 
+        self.allClusters = np.sort(np.unique(self.labels))
+
         ## get cluster sizes
-        clusters = []
-        for _k in np.arange(self.k):
-            clusters.append(len(np.where(self.labels==_k)[0]))
-        self.clusters = np.array(clusters)
+        #clusters = []
+        
+        #for _k in self.allClusters:
+        #    clusters.append(len(np.where(self.labels==_k)[0]))
+        #self.clusters = np.array(clusters)
     
     def write(self,blastMap=None, sizeMin=4, sizeMax=100,outFile="genesets.gmt"):
         """
@@ -76,11 +79,11 @@ class GeneSetCollection(object):
         ## save gene sets to file
         failedThreshold = 0
         realizedGenes = 0
-        for _k in np.arange(self.k):
+        for _k in self.allClusters:
 
-            numGenes = self.clusters[_k]
+            numGenes = np.where(self.labels==_k)[0].size
             mappedGenes = set([])
-            gsName = "gs-"+str(int(_k))
+            gsName = "gs-"+str(_k)
             clusterInds = np.where(self.labels==_k)[0]
             clusterGenes = self.genes[clusterInds]
             description = self.get_description(clusterGenes)
@@ -102,14 +105,14 @@ class GeneSetCollection(object):
             if len(mappedGenes) >= sizeMin and len(mappedGenes) <= sizeMax: 
                 writer.writerow([gsName,description] + mappedGenes)
             else:
-                failedThreshold+=len(mappedGenes)
+                failedThreshold+=clusterGenes.size
 
         print("-----------------")
         print("sigma: %s"%self.sigma)
         print("k: %s"%self.k)
-        print('Total clusters: %s '%self.clusters.size)
-        percentAccepted = float(realizedGenes-failedThreshold) / float(realizedGenes)
-        print("Genes in clusters %s/%s (%s"%(realizedGenes-failedThreshold,realizedGenes,round(percentAccepted,2)) + "%)")
+        print('Total clusters: %s '%self.allClusters.size)
+        percentAccepted = float(self.genes.size-failedThreshold) / float(self.genes.size)
+        print("Genes in clusters %s/%s (%s)"%(self.genes.size-failedThreshold,self.genes.size,round(percentAccepted,2)) + "%)")
     
     def get_description(self,geneList):
         """
@@ -141,13 +144,13 @@ class GeneSetCollection(object):
         reader = csv.reader(fid)
         header1 = reader.next()
         header2 = reader.next()
-        self.k = int(header1[0].split("=")[1])
+        self.k = header1[0].split("=")[1]
         self.sigma = float(header1[1].split("=")[1])
         
         genes,labels = [],[]
         for linja in reader:
             genes.append(linja[0])
-            labels.append(int(linja[1]))
+            labels.append(linja[1])
 
         return np.array(genes),np.array(labels)
         
