@@ -149,6 +149,8 @@ class GeneSetCollection(object):
         
         genes,labels = [],[]
         for linja in reader:
+            if len(linja) < 2:
+                continue
             genes.append(linja[0])
             labels.append(linja[1])
 
