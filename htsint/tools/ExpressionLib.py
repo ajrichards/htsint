@@ -54,7 +54,7 @@ def read_RSEM_counts_files(geneFilePath,isoformFilePath):
 
     return results1, results2
 
-def read_matrix(matFilePath,delimiter=",",mtype='int'):
+def read_matrix(matFilePath,delimiter=",",mtype='float'):
     """
     assumes that row one are the samples and col one are the transcripts
     matrix can only be of mtype 'int' or 'float'

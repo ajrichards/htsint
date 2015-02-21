@@ -5,7 +5,7 @@ Container class for gene sets generated from a labels file
 
 __author__ = "Adam Richards"
 
-import os,sys,csv
+import os,re,sys,csv
 import numpy as np
 from htsint.blast import BlastMapper
 
@@ -60,6 +60,7 @@ class GeneSetCollection(object):
     def write(self,blastMap=None, sizeMin=4, sizeMax=100,outFile="genesets.gmt"):
         """
         outFile: specifies the output file path (*.gmt)
+        also a *.csv file with gene transcript mapping will be created if a bmap is provided
 
         blastMap: BlastMap returned after loading summary file in BlastMapper 
         sizeMin: minimum size for a gene set
@@ -68,8 +69,13 @@ class GeneSetCollection(object):
 
         """
 
-        ## prepare outfile
+        ## prepare outfiles
         writer = csv.writer(open(outFile,'w'),delimiter="\t")
+
+        if blastMap:
+            outFileMap = re.sub("\.gmt",".csv",outFile)
+            writerMap = csv.writer(open(outFileMap,'w'))
+            writerMap.writerow(["gene_set","gene_id","mapped_transcripts"])
 
         ## prepare a blastmap
         if blastMap:
@@ -91,11 +97,17 @@ class GeneSetCollection(object):
             ## map the genes
             if blastMap:
                 for gene in clusterGenes:
+                    geneTranscripts = set([])
                     if not gene2transcript.has_key(gene):
                         continue
             
                     for taxa,matchedTranscripts in gene2transcript[gene].iteritems():
                         mappedGenes.update(matchedTranscripts)
+                        geneTranscripts.update(matchedTranscripts)
+                    if blastMap:
+                        writerMap.writerow([gsName,gene,"mapped_transcripts",";".join(list(geneTranscripts))])
+
+
             else:
                 mappedGenes = clusterGenes
 
