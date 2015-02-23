@@ -6,6 +6,7 @@ A class to represent and draw gene sets
 __author__ = "Adam Richards"
 
 import os,cPickle,csv
+import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
 from htsint.database import db_connect,Gene,Taxon,GoTerm
@@ -123,18 +124,25 @@ class GeneSet(object):
         else:
             return 'None'
 
-
-    def draw_graph(self,geneSetId,layout='spring_layout'):
+    def draw_graph(self,geneSetId,layout='spring_layout',name=None):
         """
         create a NetworkX graph 
-        """
-        
+
         allLayouts = ['circular_layout',
                       'random_layout',
                       'shell_layout',
                       'spring_layout',
                       'spectral_layout',
                       'fruchterman_reingold_layout']
+        """
+        
+        nodeSizeGene = 500
+        nodeSizeTranscript = 100
+        nodeSizeTerm = 200
+        colors = ['#FFCC33','#3333DD','#000000']
+
+        if not name:
+            name = "%s_network.png"%(geneSetId)
 
         if not self.geneset2gene.has_key(geneSetId):
             print("Cannot draw graph for '%s' because ID was not found"%(geneSetId))
@@ -142,29 +150,71 @@ class GeneSet(object):
         
         print('...fetching information about gene set')
         geneList = self.geneset2gene[geneSetId]
+
+        ## get terms
+        geneEdges = []
+        termCounts = {}
+        for gene in geneList:
+            if not self.gene2go.has_key(gene):
+                continue
+            for term in self.gene2go[gene]:
+                geneEdges.append((gene,term))
+                if not termCounts.has_key(term):
+                    termCounts[term] = 0
+                termCounts[term] += 1
+
+        ## rank the terms by the number of connections
+        termList = np.array(termCounts.keys())
+        edgeCounts = np.array(termCounts.values())
+        rankedInds = np.argsort(edgeCounts)[::-1]
+        termIds = np.array(["GO:%s"%str(i+1) for i in range(termList.size)])
+        print termIds
+
+        term2id = {}
+        for r,rank in enumerate(rankedInds):
+            print termIds[r],termList[rank],edgeCounts[rank]
+            term2id[termList[rank]] = termIds[r]
+            
         geneInfo = self.get_gene_info(geneList)
         geneSymbols = []
+        gene2symbol = {}
         for gene in geneList:
+            gene2symbol[gene] = geneInfo[gene]['symbol']
             geneSymbols.append(geneInfo[gene]['symbol'])
+   
+        edgeList = [(gene2symbol[edge[0]],term2id[edge[1]]) for edge in geneEdges]
 
-        ## initialize         
+        ## initialize
         self.G = nx.Graph()
         for node in geneSymbols:
             self.G.add_node(node)
-
+        for term in termIds:
+            self.G.add_node(term)
+        for edge in edgeList:
+            self.G.add_edge(edge[0],edge[1],weight=1)
+    
         ## draw
         print('...drawing and saving')
         fig = plt.figure()
         ax = fig.add_subplot(111)
 
-        pos=nx.spring_layout(self.G)
-        nx.draw_networkx_labels(self.G,pos,label_pos=0.3) 
-        nx.draw(self.G,ax=ax)
-        plt.savefig('foo.png',bbox_inches='tight')
+        if layout == 'spring':
+            pos1 = nx.spring_layout(self.G)
+        else:
+            print("layout not supported %s... using spring"%(layout))
+            pos1 = nx.spring_layout(self.G)
+        
+        print termList
 
-        #nx.draw(Gnode_size=nodeSize1,node_color=colors[0],edge_color=colorList,width=2,edge_cmap=plt.cm.binary,
-        #edge_vmin=0.0,edge_vmax=1.0,with_labels=False,alpha=alpha,ax=ax3)
+        nx.draw_networkx_nodes(self.G,pos1,node_size=nodeSizeGene,nodelist=geneSymbols,node_shape='',
+                               node_color=colors[0],ax=ax)
+        nx.draw_networkx_nodes(self.G,pos1,node_size=nodeSizeTerm,nodelist=termIds.tolist(),node_shape='s',
+                               node_color=colors[1],font_color='white',ax=ax)
+        nx.draw_networkx_labels(self.G,pos1,nodelist=geneSymbols,label_pos=5.0,ax=ax,font_color='black')
+        nx.draw_networkx_labels(self.G,pos1,nodelist=termIds.tolist(),label_pos=5.0,ax=ax,font_color='white')
+        nx.draw_networkx_edges(self.G,pos1,edgelist=edgeList,width=1,edge_color='k',style='solid',ax=ax)
 
+        plt.savefig(name,bbox_inches='tight',dpi=400)
 
 
 if __name__ == "__main__":
