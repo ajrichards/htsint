@@ -49,13 +49,6 @@ class GeneSetCollection(object):
         self.gene2go = gene2go
 
         self.allClusters = np.sort(np.unique(self.labels))
-
-        ## get cluster sizes
-        #clusters = []
-        
-        #for _k in self.allClusters:
-        #    clusters.append(len(np.where(self.labels==_k)[0]))
-        #self.clusters = np.array(clusters)
     
     def write(self,blastMap=None, sizeMin=4, sizeMax=100,outFile="genesets.gmt"):
         """
@@ -105,7 +98,7 @@ class GeneSetCollection(object):
                         mappedGenes.update(matchedTranscripts)
                         geneTranscripts.update(matchedTranscripts)
                     if blastMap:
-                        writerMap.writerow([gsName,gene,"mapped_transcripts",";".join(list(geneTranscripts))])
+                        writerMap.writerow([gsName,gene,";".join(list(geneTranscripts))])
 
 
             else:
