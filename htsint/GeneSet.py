@@ -5,9 +5,10 @@ A class to represent and draw gene sets
 
 __author__ = "Adam Richards"
 
-import os,cPickle,csv
+import os,cPickle,csv,re
 import numpy as np
 import networkx as nx
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 from htsint.database import db_connect,Gene,Taxon,GoTerm
 from htsint.blast import BlastMapper
@@ -17,7 +18,7 @@ class GeneSet(object):
     gene set class
     """
 
-    def __init__(self,genesetFile,gene2go):
+    def __init__(self,genesetFile,gene2go,distMat):
         """
         Constructor
         geneList - list
@@ -44,6 +45,11 @@ class GeneSet(object):
             raise Exception("Argument 'genesetFile' must be a valid file path")
 
         self.read_geneset_file(genesetFile)
+
+        ## distance matrix
+        if type(distMat) != type(np.array([])):
+            raise Exception("Argument 'distMat' must be a NumPy array")
+        self.distMat = distMat
 
     def read_geneset_file(self,genesetFile):
         """
@@ -108,23 +114,59 @@ class GeneSet(object):
         geneInfo = {}
         results = self.conn.execute(Gene.__table__.select(Gene.ncbi_id.in_(geneList)))
         for row in results:
+            taxaQuery = self.session.query(Taxon).filter_by(id=row.taxa_id).first()
             geneInfo[str(row.ncbi_id)] = {'symbol': str(row.symbol),
                                           'description': str(row.description),
-                                          'taxa': self.session.query(Taxon).filter_by(id=row.taxa_id).first().ncbi_id}        
+                                          'taxa': taxaQuery.ncbi_id,
+                                          'species': taxaQuery.name
+                                      }
         return geneInfo
 
-    def get_go_terms(self,gene):
+    def get_term_distances(self,termList,percentile=50):
+        """
+        return a dictionary of term distances
+        ignores any distances greater than percentile threshold
+        """
+
+        def scale(val, src, dst):
+            """ 
+            Scale the given value from the scale of src to the scale of dst. 
+            """
+            return ((val - src[0]) / (src[1]-src[0])) * (dst[1]-dst[0]) + dst[0]
+
+        print 'getting distances'
+        mat = self.distMat[:,2].astype(float)
+
+        ## get the percentile threshold
+        threshold = np.percentile(mat,percentile)
+        print "percentile threshold: %s (%s)"%(threshold,percentile)
+
+        termDist = {}
+        for i in range(self.distMat.shape[0]):
+            linja = self.distMat[i,:]
+            if linja[0] not in termList or linja[1] not in termList:
+                continue
+            if float(linja[2]) > threshold:
+                continue
+            if not termDist.has_key(linja[0]):
+                termDist[linja[0]] = {}
+            if not termDist[linja[0]].has_key(linja[1]):
+                termDist[linja[0]][linja[1]] = 1.0 - scale(float(linja[2]),(mat.min(),mat.max()),(0,1))
+
+        return termDist
+
+    def get_go_term(self,term):
         """
         return a human friendly summary of the go terms
         """
 
-        if self.gene2go.has_key(gene):
-            terms = [self.session.query(GoTerm).filter(GoTerm.go_id == key).first().name + " (%s)"%key for key in self.gene2go[gene]]
-            return ";".join(terms)
+        description =self.session.query(GoTerm).filter(GoTerm.go_id == term).first().name
+        if description:
+            return description
         else:
             return 'None'
 
-    def draw_graph(self,geneSetId,layout='spring_layout',name=None):
+    def draw_graph(self,geneSetId,layout='spring',name=None,percentile=50):
         """
         create a NetworkX graph 
 
@@ -136,10 +178,13 @@ class GeneSet(object):
                       'fruchterman_reingold_layout']
         """
         
-        nodeSizeGene = 500
+        nodeSizeGene = 400
         nodeSizeTranscript = 100
         nodeSizeTerm = 200
-        colors = ['#FFCC33','#3333DD','#000000']
+        fontSize = 10
+        fontName = 'sans'
+        colors = ['#FFCC33','#000000','#3333DD']
+        cmap = plt.cm.Blues
 
         if not name:
             name = "%s_network.png"%(geneSetId)
@@ -154,9 +199,11 @@ class GeneSet(object):
         ## get terms
         geneEdges = []
         termCounts = {}
+
         for gene in geneList:
             if not self.gene2go.has_key(gene):
                 continue
+            print "...",gene,self.gene2go[gene]
             for term in self.gene2go[gene]:
                 geneEdges.append((gene,term))
                 if not termCounts.has_key(term):
@@ -167,22 +214,37 @@ class GeneSet(object):
         termList = np.array(termCounts.keys())
         edgeCounts = np.array(termCounts.values())
         rankedInds = np.argsort(edgeCounts)[::-1]
-        termIds = np.array(["GO:%s"%str(i+1) for i in range(termList.size)])
-        print termIds
+        termIds = np.array(["%s"%str(i+1) for i in range(termList.size)])
 
         term2id = {}
         for r,rank in enumerate(rankedInds):
-            print termIds[r],termList[rank],edgeCounts[rank]
             term2id[termList[rank]] = termIds[r]
-            
+
+        termIds = termIds.tolist()    
         geneInfo = self.get_gene_info(geneList)
+        taxonNames = list(set([geneInfo[gene]['taxa'] for gene in geneList]))
+        taxonNames.sort()
+        taxonIds = {}
+        for t,taxon in enumerate(taxonNames):
+            taxonIds[taxon] = str(t)
+
         geneSymbols = []
         gene2symbol = {}
         for gene in geneList:
-            gene2symbol[gene] = geneInfo[gene]['symbol']
-            geneSymbols.append(geneInfo[gene]['symbol'])
-   
-        edgeList = [(gene2symbol[edge[0]],term2id[edge[1]]) for edge in geneEdges]
+            gene2symbol[gene] = geneInfo[gene]['symbol'] + "-" + taxonIds[geneInfo[gene]['taxa']]
+            geneSymbols.append(geneInfo[gene]['symbol'] + "-" + taxonIds[geneInfo[gene]['taxa']])
+
+        ## annotation edges
+        edgeList1 = [(gene2symbol[edge[0]],term2id[edge[1]]) for edge in geneEdges]
+        
+        ## term term edges
+        termDistances = self.get_term_distances(termList,percentile=percentile)
+
+        print 'term distances...'
+        edgeList2 = []
+        for term1,items in termDistances.iteritems():
+            for term2,dist in items.iteritems():
+                edgeList2.append((term2id[term1],term2id[term2],dist))
 
         ## initialize
         self.G = nx.Graph()
@@ -190,30 +252,127 @@ class GeneSet(object):
             self.G.add_node(node)
         for term in termIds:
             self.G.add_node(term)
-        for edge in edgeList:
-            self.G.add_edge(edge[0],edge[1],weight=1)
-    
-        ## draw
-        print('...drawing and saving')
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
+        for edge in edgeList1:
+            self.G.add_edge(edge[0],edge[1],weight=3.0)
+        edge2colors = []
+        for edge in edgeList2:
+            self.G.add_edge(edge[0],edge[1],weight=edge[2])
+            edge2colors.append(edge[2])
+        print("...there are %s annotation edges"%(len(edgeList1)))
+        print("...there are %s term-term edges"%(len(edgeList2)))
 
+        ## prepare matplotlib axis
+        print('...drawing and saving')
+
+        ## specify axes l,b,w,h 
+        fig = plt.figure(figsize=(10.5,6))
+        ax1  = fig.add_axes([0.3, 0.0, 0.7, 1.0])
+        ax2  = fig.add_axes([0.0, 0.15, 0.3, 0.85],axisbg='#EEEEEE')
+        ax3  = fig.add_axes([0.0, 0.0, 0.3, 0.15],axisbg='#EEEEEE')      # empty
+        ax4  = fig.add_axes([0.015, 0.04, 0.27, 0.09])
+
+        #fig = plt.figure()
+        #ax = fig.add_subplot(111)
+        ax1.set_yticks([])
+        ax1.set_xticks([])
+        ax2.set_yticks([])
+        ax2.set_xticks([])
+        ax3.set_yticks([])
+        ax3.set_xticks([])
+        ax4.set_yticks([])
+        ax4.set_xticks([])
+        #ax1.set_frame_on(False)
+
+        ## layout
         if layout == 'spring':
-            pos1 = nx.spring_layout(self.G)
+            pos = nx.spring_layout(self.G,scale=1)
+        elif layout == 'spectral':
+            pos = nx.spectral_layout(self.G)
         else:
             print("layout not supported %s... using spring"%(layout))
-            pos1 = nx.spring_layout(self.G)
+            pos = nx.spring_layout(self.G)
+
+        ## draw
+        nx.draw_networkx_nodes(self.G,pos,node_size=nodeSizeGene,nodelist=geneSymbols,node_shape='o',
+                               node_color=colors[0],ax=ax1)
+        nx.draw_networkx_nodes(self.G,pos,node_size=nodeSizeTerm,nodelist=termIds,node_shape='s',
+                               node_color=colors[1],ax=ax1)
+        nx.draw_networkx_edges(self.G,pos,edgelist=edgeList1,width=0.5,edge_color='k',style='dashed',ax=ax1)
+        nx.draw_networkx_edges(self.G,pos,edgelist=edgeList2,edge_color=edge2colors,width=2.0,style='solid',edge_cmap=cmap,ax=ax1)
         
-        print termList
+        ## offset labels
+        offset = 0.05
+        for p in pos:
+            if p in termIds:
+                pass
+            elif p in geneSymbols:
+                pos[p][1] += offset
+        nx.draw_networkx_labels(self.G,pos,font_color='black',ax=ax1)
 
-        nx.draw_networkx_nodes(self.G,pos1,node_size=nodeSizeGene,nodelist=geneSymbols,node_shape='',
-                               node_color=colors[0],ax=ax)
-        nx.draw_networkx_nodes(self.G,pos1,node_size=nodeSizeTerm,nodelist=termIds.tolist(),node_shape='s',
-                               node_color=colors[1],font_color='white',ax=ax)
-        nx.draw_networkx_labels(self.G,pos1,nodelist=geneSymbols,label_pos=5.0,ax=ax,font_color='black')
-        nx.draw_networkx_labels(self.G,pos1,nodelist=termIds.tolist(),label_pos=5.0,ax=ax,font_color='white')
-        nx.draw_networkx_edges(self.G,pos1,edgelist=edgeList,width=1,edge_color='k',style='solid',ax=ax)
+        ## term labels
+        G1 = self.G.subgraph(termIds)
+        pos1 = {}
+        for p in pos:
+            if p in termIds:
+                pos1[p] = pos[p]
+        nx.draw_networkx_labels(G1,pos1,font_color='white',ax=ax1)
 
+        ## axis 2 (legend)
+        lineEnd = 50
+        linesMax = 20
+        lineCount = 0
+        current = 0.98
+        increment = 0.03
+
+        def add_line(toPrint,lineCount,lineEnd,linesMax,current):
+            toPrint = toPrint[:lineEnd]
+            if lineCount == linesMax:
+                ax2.text(0.01,current,"...",color='k',fontsize=fontSize,fontname=fontName,ha="left", va="center")
+            elif lineCount > linesMax:
+                return
+
+            ax2.text(0.01,current,toPrint,color='k',fontsize=fontSize,fontname=fontName,ha="left", va="center")
+
+        ## add the taxa
+        
+
+
+        ## add all of the go lines
+        add_line("-"*lineEnd,lineCount,lineEnd,linesMax,current)
+        current = current - increment
+        lineCount += 1
+
+        for r,rank in enumerate(rankedInds):
+            desc = self.get_go_term(termList[rank])
+            toPrint = "%s - %s"%(termIds[r].zfill(3),desc)
+            print toPrint, termList[rank],edgeCounts[rank]
+            
+            ## check to see if we need to use multiple lines
+            if len(toPrint) > lineEnd:
+                wordBreaks = np.array([m.start(0) for m in re.finditer("\s+",toPrint)])
+                lineBreak = wordBreaks[np.where(wordBreaks < lineEnd)[0]][-1]
+                remaining = toPrint[lineBreak:]
+                toPrint = toPrint[:lineBreak]
+            else:
+                remaining = None
+            toPrint = toPrint[:lineEnd]
+            add_line(toPrint,lineCount,lineEnd,linesMax,current)
+            current = current - increment
+            lineCount += 1
+
+            if remaining:
+                add_line("        "+remaining,lineCount,lineEnd,linesMax,current)
+                current = current - increment
+                lineCount += 1
+
+        ## axis 4 (colorbar)
+        norm = mpl.colors.Normalize(vmin=0.0, vmax=1.0)
+        cb = mpl.colorbar.ColorbarBase(ax4,cmap=cmap,
+                                       ticks=[0.0,0.25,0.5,0.75,1.0],
+                                       norm=norm,
+                                       orientation='horizontal')
+
+        ## save
         plt.savefig(name,bbox_inches='tight',dpi=400)
 
 
