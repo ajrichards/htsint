@@ -30,6 +30,16 @@ class GeneSet(object):
         self.session, self.engine = db_connect()
         self.conn = self.engine.connect()
 
+        ## global variables
+        self.dpi = 400
+        self.labelOffset =0.05
+        self.fontSize = 10 
+        self.fontName = 'sans'
+        self.nodeSizeGene = 400
+        self.nodeSizeTerm = 200
+        self.colors = ['#FFCC33','#000000','#3333DD']
+        self.cmap = plt.cm.Blues
+
         ## gene2go input
         if type(gene2go) == type({}):
             self.gene2go = gene2go
@@ -166,7 +176,7 @@ class GeneSet(object):
         else:
             return 'None'
 
-    def draw_graph(self,geneSetId,layout='spring',name=None,percentile=50):
+    def draw_network(self,geneSetId,layout='spring',name='None',percentile=50,ax=None):
         """
         create a NetworkX graph 
 
@@ -177,16 +187,10 @@ class GeneSet(object):
                       'spectral_layout',
                       'fruchterman_reingold_layout']
         """
-        
-        nodeSizeGene = 400
-        nodeSizeTranscript = 100
-        nodeSizeTerm = 200
-        fontSize = 10
-        fontName = 'sans'
-        colors = ['#FFCC33','#000000','#3333DD']
-        cmap = plt.cm.Blues
-
+                
         if not name:
+            pass
+        if name == 'None':
             name = "%s_network.png"%(geneSetId)
 
         if not self.geneset2gene.has_key(geneSetId):
@@ -264,24 +268,12 @@ class GeneSet(object):
         ## prepare matplotlib axis
         print('...drawing and saving')
 
-        ## specify axes l,b,w,h 
-        fig = plt.figure(figsize=(10.5,6))
-        ax1  = fig.add_axes([0.3, 0.0, 0.7, 1.0])
-        ax2  = fig.add_axes([0.0, 0.15, 0.3, 0.85],axisbg='#EEEEEE')
-        ax3  = fig.add_axes([0.0, 0.0, 0.3, 0.15],axisbg='#EEEEEE')      # empty
-        ax4  = fig.add_axes([0.015, 0.04, 0.27, 0.09])
-
-        #fig = plt.figure()
-        #ax = fig.add_subplot(111)
-        ax1.set_yticks([])
-        ax1.set_xticks([])
-        ax2.set_yticks([])
-        ax2.set_xticks([])
-        ax3.set_yticks([])
-        ax3.set_xticks([])
-        ax4.set_yticks([])
-        ax4.set_xticks([])
-        #ax1.set_frame_on(False)
+        ## use provided axis or create a new one
+        if not ax:
+            fig = plt.figure()
+            ax = fig.add_subplot(111)
+            ax.set_yticks([])
+            ax.set_xticks([])
 
         ## layout
         if layout == 'spring':
@@ -293,21 +285,20 @@ class GeneSet(object):
             pos = nx.spring_layout(self.G)
 
         ## draw
-        nx.draw_networkx_nodes(self.G,pos,node_size=nodeSizeGene,nodelist=geneSymbols,node_shape='o',
-                               node_color=colors[0],ax=ax1)
-        nx.draw_networkx_nodes(self.G,pos,node_size=nodeSizeTerm,nodelist=termIds,node_shape='s',
-                               node_color=colors[1],ax=ax1)
-        nx.draw_networkx_edges(self.G,pos,edgelist=edgeList1,width=0.5,edge_color='k',style='dashed',ax=ax1)
-        nx.draw_networkx_edges(self.G,pos,edgelist=edgeList2,edge_color=edge2colors,width=2.0,style='solid',edge_cmap=cmap,ax=ax1)
+        nx.draw_networkx_nodes(self.G,pos,node_size=self.nodeSizeGene,nodelist=geneSymbols,node_shape='o',
+                               node_color=self.colors[0],ax=ax)
+        nx.draw_networkx_nodes(self.G,pos,node_size=self.nodeSizeTerm,nodelist=termIds,node_shape='s',
+                               node_color=self.colors[1],ax=ax)
+        nx.draw_networkx_edges(self.G,pos,edgelist=edgeList1,width=0.5,edge_color='k',style='dashed',ax=ax)
+        nx.draw_networkx_edges(self.G,pos,edgelist=edgeList2,edge_color=edge2colors,width=2.0,style='solid',edge_cmap=self.cmap,ax=ax)
         
         ## offset labels
-        offset = 0.05
         for p in pos:
             if p in termIds:
                 pass
             elif p in geneSymbols:
-                pos[p][1] += offset
-        nx.draw_networkx_labels(self.G,pos,font_color='black',ax=ax1)
+                pos[p][1] += self.labelOffset
+        nx.draw_networkx_labels(self.G,pos,font_color='black',ax=ax)
 
         ## term labels
         G1 = self.G.subgraph(termIds)
@@ -315,7 +306,34 @@ class GeneSet(object):
         for p in pos:
             if p in termIds:
                 pos1[p] = pos[p]
-        nx.draw_networkx_labels(G1,pos1,font_color='white',ax=ax1)
+        nx.draw_networkx_labels(G1,pos1,font_color='white',ax=ax)
+
+        if name:
+            plt.savefig(name,bbox_inches='tight',dpi=self.dpi)
+
+        return term2id,termList
+
+    def draw_figure(self,geneSetId,layout='spring',name=None,percentile=50):
+
+        ## specify axes l,b,w,h 
+        fig = plt.figure(figsize=(10.5,6))
+        ax1  = fig.add_axes([0.3, 0.0, 0.7, 1.0])
+        ax2  = fig.add_axes([0.0, 0.15, 0.3, 0.85],axisbg='#EEEEEE')
+        ax3  = fig.add_axes([0.0, 0.0, 0.3, 0.15],axisbg='#EEEEEE')      # empty
+        ax4  = fig.add_axes([0.015, 0.04, 0.27, 0.09])
+
+        ax1.set_yticks([])
+        ax1.set_xticks([])
+        ax2.set_yticks([])
+        ax2.set_xticks([])
+        ax3.set_yticks([])
+        ax3.set_xticks([])
+        ax4.set_yticks([])
+        ax4.set_xticks([])
+        #ax1.set_frame_on(False)
+
+        ## draw the network
+        term2id,termList= self.draw_network(geneSetId,layout=layout,name=None,percentile=percentile,ax=ax1)
 
         ## axis 2 (legend)
         lineEnd = 50
@@ -327,25 +345,35 @@ class GeneSet(object):
         def add_line(toPrint,lineCount,lineEnd,linesMax,current):
             toPrint = toPrint[:lineEnd]
             if lineCount == linesMax:
-                ax2.text(0.01,current,"...",color='k',fontsize=fontSize,fontname=fontName,ha="left", va="center")
+                ax2.text(0.01,current,"...",color='k',fontsize=self.fontSize,fontname=self.fontName,ha="left", va="center")
             elif lineCount > linesMax:
                 return
 
-            ax2.text(0.01,current,toPrint,color='k',fontsize=fontSize,fontname=fontName,ha="left", va="center")
+            ax2.text(0.01,current,toPrint,color='k',fontsize=self.fontSize,fontname=self.fontName,ha="left", va="center")
+            current = current - increment
+            lineCount += 1
+        
+            return current, lineCount
 
         ## add the taxa
-        
-
+        current,lineCount = add_line("taxa 1 goes here",lineCount,lineEnd,linesMax,current)
+        current,lineCount = add_line("taxa 2 goes here",lineCount,lineEnd,linesMax,current)        
 
         ## add all of the go lines
-        add_line("-"*lineEnd,lineCount,lineEnd,linesMax,current)
-        current = current - increment
-        lineCount += 1
+        current,lineCount = add_line("-"*lineEnd,lineCount,lineEnd,linesMax,current)
 
-        for r,rank in enumerate(rankedInds):
-            desc = self.get_go_term(termList[rank])
-            toPrint = "%s - %s"%(termIds[r].zfill(3),desc)
-            print toPrint, termList[rank],edgeCounts[rank]
+        termIds = [int(i) for i in list(set(term2id.values()))]
+        termIds.sort()
+        termIds = [str(i) for i in termIds]
+        id2term = {}
+        for key,item in term2id.iteritems():
+            id2term[item] = key
+        
+        for termId in termIds:
+            term = id2term[termId]
+            desc = self.get_go_term(term)
+            toPrint = "%s - %s"%(termId.zfill(3),desc)
+            print toPrint, term
             
             ## check to see if we need to use multiple lines
             if len(toPrint) > lineEnd:
@@ -356,24 +384,21 @@ class GeneSet(object):
             else:
                 remaining = None
             toPrint = toPrint[:lineEnd]
-            add_line(toPrint,lineCount,lineEnd,linesMax,current)
-            current = current - increment
-            lineCount += 1
+            current,lineCount = add_line(toPrint,lineCount,lineEnd,linesMax,current)
 
             if remaining:
-                add_line("        "+remaining,lineCount,lineEnd,linesMax,current)
-                current = current - increment
-                lineCount += 1
+                current,lineCount = add_line("        "+remaining,lineCount,lineEnd,linesMax,current)
 
         ## axis 4 (colorbar)
         norm = mpl.colors.Normalize(vmin=0.0, vmax=1.0)
-        cb = mpl.colorbar.ColorbarBase(ax4,cmap=cmap,
-                                       ticks=[0.0,0.25,0.5,0.75,1.0],
-                                       norm=norm,
-                                       orientation='horizontal')
+        cbar = mpl.colorbar.ColorbarBase(ax4,cmap=self.cmap,
+                                         ticks=[0.0,0.25,0.5,0.75,1.0],
+                                         norm=norm,
+                                         orientation='horizontal')
+        cbar.ax.tick_params(labelsize=self.fontSize) 
 
         ## save
-        plt.savefig(name,bbox_inches='tight',dpi=400)
+        plt.savefig(name,bbox_inches='tight',dpi=self.dpi)
 
 
 if __name__ == "__main__":
