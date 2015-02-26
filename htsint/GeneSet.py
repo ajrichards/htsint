@@ -34,10 +34,11 @@ class GeneSet(object):
         self.dpi = 400
         self.labelOffset =0.05
         self.fontSize = 10 
-        self.fontName = 'sans'
+        self.fontName = 'serif'
+        self.alpha = 0.95
         self.nodeSizeGene = 400
         self.nodeSizeTerm = 200
-        self.colors = ['#FFCC33','#000000','#3333DD']
+        self.colors = ['#000000','#FFCC33','#3333DD']
         self.cmap = plt.cm.Blues
 
         ## gene2go input
@@ -230,13 +231,21 @@ class GeneSet(object):
         taxonNames.sort()
         taxonIds = {}
         for t,taxon in enumerate(taxonNames):
+            print t,taxon
             taxonIds[taxon] = str(t)
 
-        geneSymbols = []
+        geneSymbols = {}
         gene2symbol = {}
+        geneLabels = {}
         for gene in geneList:
-            gene2symbol[gene] = geneInfo[gene]['symbol'] + "-" + taxonIds[geneInfo[gene]['taxa']]
-            geneSymbols.append(geneInfo[gene]['symbol'] + "-" + taxonIds[geneInfo[gene]['taxa']])
+            nodeId = geneInfo[gene]['symbol'] + "-" + taxonIds[geneInfo[gene]['taxa']]
+            taxonId = geneInfo[gene]['taxa']
+            gene2symbol[gene] = nodeId
+            if not geneLabels.has_key(taxonId):
+                geneSymbols[taxonId] = []
+                geneLabels[taxonId] = {}
+            geneLabels[taxonId][nodeId] = geneInfo[gene]['symbol']
+            geneSymbols[taxonId].append(nodeId)
 
         ## annotation edges
         edgeList1 = [(gene2symbol[edge[0]],term2id[edge[1]]) for edge in geneEdges]
@@ -252,8 +261,9 @@ class GeneSet(object):
 
         ## initialize
         self.G = nx.Graph()
-        for node in geneSymbols:
-            self.G.add_node(node)
+        for taxon in taxonNames:
+            for node in geneSymbols[taxon]:
+                self.G.add_node(node)
         for term in termIds:
             self.G.add_node(term)
         for edge in edgeList1:
@@ -284,22 +294,28 @@ class GeneSet(object):
             print("layout not supported %s... using spring"%(layout))
             pos = nx.spring_layout(self.G)
 
-        ## draw
-        nx.draw_networkx_nodes(self.G,pos,node_size=self.nodeSizeGene,nodelist=geneSymbols,node_shape='o',
-                               node_color=self.colors[0],ax=ax)
-        nx.draw_networkx_nodes(self.G,pos,node_size=self.nodeSizeTerm,nodelist=termIds,node_shape='s',
-                               node_color=self.colors[1],ax=ax)
-        nx.draw_networkx_edges(self.G,pos,edgelist=edgeList1,width=0.5,edge_color='k',style='dashed',ax=ax)
-        nx.draw_networkx_edges(self.G,pos,edgelist=edgeList2,edge_color=edge2colors,width=2.0,style='solid',edge_cmap=self.cmap,ax=ax)
-        
-        ## offset labels
-        for p in pos:
-            if p in termIds:
-                pass
-            elif p in geneSymbols:
-                pos[p][1] += self.labelOffset
-        nx.draw_networkx_labels(self.G,pos,font_color='black',ax=ax)
+        ## draw gene nodes for each species
+        colorItr = 1
+        for taxon in taxonNames:
+            symbols = geneSymbols[taxon]
+            _G = self.G.subgraph(symbols)
+            _pos = {}
+            for p in pos:
+                if p in symbols:
+                    _pos[p] = pos[p]
 
+            nx.draw_networkx_nodes(_G,_pos,node_size=self.nodeSizeGene,nodelist=symbols,node_shape='o',
+                                   node_color=self.colors[colorItr],alpha=self.alpha,ax=ax)
+            colorItr += 1
+
+            ## offset labels
+            for p in _pos:
+                _pos[p][1] += self.labelOffset
+            nx.draw_networkx_labels(_G,_pos,font_color='black',labels=geneLabels[taxon],ax=ax)
+
+        ## draw term nodes
+        nx.draw_networkx_nodes(self.G,pos,node_size=self.nodeSizeTerm,nodelist=termIds,node_shape='s',
+                               node_color=self.colors[0],alpha=self.alpha,ax=ax)
         ## term labels
         G1 = self.G.subgraph(termIds)
         pos1 = {}
@@ -307,6 +323,10 @@ class GeneSet(object):
             if p in termIds:
                 pos1[p] = pos[p]
         nx.draw_networkx_labels(G1,pos1,font_color='white',ax=ax)
+
+        ## draw edges
+        nx.draw_networkx_edges(self.G,pos,edgelist=edgeList1,width=0.5,edge_color='k',style='dashed',ax=ax)
+        nx.draw_networkx_edges(self.G,pos,edgelist=edgeList2,edge_color=edge2colors,width=2.0,style='solid',edge_cmap=self.cmap,ax=ax)
 
         if name:
             plt.savefig(name,bbox_inches='tight',dpi=self.dpi)
