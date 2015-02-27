@@ -32,14 +32,17 @@ class GeneSet(object):
 
         ## global variables
         self.dpi = 400
-        self.labelOffset =0.05
+        self.labelOffset = 0.05
         self.fontSize = 10 
-        self.fontName = 'serif'
+        self.legendFontSize = 8
+        self.fontName = 'sans serif'
         self.alpha = 0.95
-        self.nodeSizeGene = 400
+        self.nodeSizeGene = 200
         self.nodeSizeTerm = 200
         self.colors = ['#000000','#FFCC33','#3333DD']
         self.cmap = plt.cm.Blues
+        self.lineEnd = 60
+        self.linesMax = 32
 
         ## gene2go input
         if type(gene2go) == type({}):
@@ -322,7 +325,7 @@ class GeneSet(object):
         for p in pos:
             if p in termIds:
                 pos1[p] = pos[p]
-        nx.draw_networkx_labels(G1,pos1,font_color='white',ax=ax)
+        nx.draw_networkx_labels(G1,pos1,font_color='white',font_size=self.fontSize,font_family=self.fontName,ax=ax)
 
         ## draw edges
         nx.draw_networkx_edges(self.G,pos,edgelist=edgeList1,width=0.5,edge_color='k',style='dashed',ax=ax)
@@ -336,11 +339,11 @@ class GeneSet(object):
     def draw_figure(self,geneSetId,layout='spring',name=None,percentile=50):
 
         ## specify axes l,b,w,h 
-        fig = plt.figure(figsize=(10.5,6))
+        fig = plt.figure(figsize=(10,6))
         ax1  = fig.add_axes([0.3, 0.0, 0.7, 1.0])
-        ax2  = fig.add_axes([0.0, 0.15, 0.3, 0.85],axisbg='#EEEEEE')
-        ax3  = fig.add_axes([0.0, 0.0, 0.3, 0.15],axisbg='#EEEEEE')      # empty
-        ax4  = fig.add_axes([0.015, 0.04, 0.27, 0.09])
+        ax2  = fig.add_axes([0.0, 0.07, 0.3, 0.93],axisbg='#EEEEEE')
+        ax3  = fig.add_axes([0.0, 0.0, 0.3, 0.07],axisbg='#EEEEEE')      # empty
+        ax4  = fig.add_axes([0.015, 0.03, 0.27, 0.03])
 
         ax1.set_yticks([])
         ax1.set_xticks([])
@@ -352,35 +355,36 @@ class GeneSet(object):
         ax4.set_xticks([])
         #ax1.set_frame_on(False)
 
-        ## draw the network
-        term2id,termList= self.draw_network(geneSetId,layout=layout,name=None,percentile=percentile,ax=ax1)
+        def add_line(toPrint,lineCount,current):
+            toPrint = toPrint[:self.lineEnd]
+            if lineCount == self.linesMax:
+                ax2.text(0.01,current," ...",color='k',fontsize=self.legendFontSize,fontname=self.fontName,ha="left", va="center")
+                current = current - increment
+                lineCount += 1
+                return current, lineCount
+            elif lineCount > self.linesMax:
+                return current, lineCount
 
-        ## axis 2 (legend)
-        lineEnd = 50
-        linesMax = 20
-        lineCount = 0
-        current = 0.98
-        increment = 0.03
-
-        def add_line(toPrint,lineCount,lineEnd,linesMax,current):
-            toPrint = toPrint[:lineEnd]
-            if lineCount == linesMax:
-                ax2.text(0.01,current,"...",color='k',fontsize=self.fontSize,fontname=self.fontName,ha="left", va="center")
-            elif lineCount > linesMax:
-                return
-
-            ax2.text(0.01,current,toPrint,color='k',fontsize=self.fontSize,fontname=self.fontName,ha="left", va="center")
+            ax2.text(0.01,current,toPrint,color='k',fontsize=self.legendFontSize,fontname=self.fontName,ha="left", va="center")
             current = current - increment
             lineCount += 1
         
             return current, lineCount
 
+        ## draw the network
+        term2id,termList= self.draw_network(geneSetId,layout=layout,name=None,percentile=percentile,ax=ax1)
+
+        ## axis 2 (legend)
+        lineCount = 0
+        current = 0.98
+        increment = 0.03
+
         ## add the taxa
-        current,lineCount = add_line("taxa 1 goes here",lineCount,lineEnd,linesMax,current)
-        current,lineCount = add_line("taxa 2 goes here",lineCount,lineEnd,linesMax,current)        
+        current,lineCount = add_line("taxa 1 goes here",lineCount,current)
+        current,lineCount = add_line("taxa 2 goes here",lineCount,current)        
 
         ## add all of the go lines
-        current,lineCount = add_line("-"*lineEnd,lineCount,lineEnd,linesMax,current)
+        current,lineCount = add_line("-"*self.lineEnd,lineCount,current)
 
         termIds = [int(i) for i in list(set(term2id.values()))]
         termIds.sort()
@@ -396,18 +400,18 @@ class GeneSet(object):
             print toPrint, term
             
             ## check to see if we need to use multiple lines
-            if len(toPrint) > lineEnd:
+            if len(toPrint) > self.lineEnd:
                 wordBreaks = np.array([m.start(0) for m in re.finditer("\s+",toPrint)])
-                lineBreak = wordBreaks[np.where(wordBreaks < lineEnd)[0]][-1]
+                lineBreak = wordBreaks[np.where(wordBreaks < self.lineEnd)[0]][-1]
                 remaining = toPrint[lineBreak:]
                 toPrint = toPrint[:lineBreak]
             else:
                 remaining = None
-            toPrint = toPrint[:lineEnd]
-            current,lineCount = add_line(toPrint,lineCount,lineEnd,linesMax,current)
+            toPrint = toPrint[:self.lineEnd]
+            current,lineCount = add_line(toPrint,lineCount,current)
 
             if remaining:
-                current,lineCount = add_line("        "+remaining,lineCount,lineEnd,linesMax,current)
+                current,lineCount = add_line("        "+remaining,lineCount,current)
 
         ## axis 4 (colorbar)
         norm = mpl.colors.Normalize(vmin=0.0, vmax=1.0)
