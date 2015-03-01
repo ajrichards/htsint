@@ -334,7 +334,7 @@ class GeneSet(object):
         if name:
             plt.savefig(name,bbox_inches='tight',dpi=self.dpi)
 
-        return term2id,termList
+        return term2id,termList,taxonNames
 
     def draw_figure(self,geneSetId,layout='spring',name=None,percentile=50):
 
@@ -345,14 +345,12 @@ class GeneSet(object):
         ax3  = fig.add_axes([0.0, 0.0, 0.3, 0.07],axisbg='#EEEEEE')      # empty
         ax4  = fig.add_axes([0.015, 0.03, 0.27, 0.03])
 
-        ax1.set_yticks([])
-        ax1.set_xticks([])
-        ax2.set_yticks([])
-        ax2.set_xticks([])
-        ax3.set_yticks([])
-        ax3.set_xticks([])
-        ax4.set_yticks([])
-        ax4.set_xticks([])
+        for ax in [ax1,ax2,ax3,ax4]:
+            ax.set_yticks([])
+            ax.set_xticks([])
+        
+        ax2.set_ylim((0,1))
+        ax2.set_xlim((0,1))
         #ax1.set_frame_on(False)
 
         def add_line(toPrint,lineCount,current):
@@ -372,7 +370,7 @@ class GeneSet(object):
             return current, lineCount
 
         ## draw the network
-        term2id,termList= self.draw_network(geneSetId,layout=layout,name=None,percentile=percentile,ax=ax1)
+        term2id,termList,taxonNames = self.draw_network(geneSetId,layout=layout,name=None,percentile=percentile,ax=ax1)
 
         ## axis 2 (legend)
         lineCount = 0
@@ -380,12 +378,50 @@ class GeneSet(object):
         increment = 0.03
 
         ## add the taxa
-        current,lineCount = add_line("taxa 1 goes here",lineCount,current)
-        current,lineCount = add_line("taxa 2 goes here",lineCount,current)        
+        #current,lineCount = add_line("taxa 1 goes here",lineCount,current)
+        #current,lineCount  add_line("taxa 2 goes here",lineCount,current)        
+        
+        G1 = nx.Graph()
+        colorIter = 1
+        pos1 = {}
+        for node in taxonNames:
+            G1.add_node(node)
+            pos1[node] = (0.05,current)
+            nx.draw_networkx_nodes(G1,pos1,node_size=100,nodelist=[node],
+                                   node_color=self.colors[colorIter],alpha=self.alpha,ax=ax2)
+            query = self.session.query(Taxon).filter_by(ncbi_id=node).first()
+            toAdd = "        %s (%s)"%(query.name,node)[:self.lineEnd]
+            current,lineCount = add_line(toAdd,lineCount,current)
+            colorIter += 1
+        
+        ## intitalize
+        """
+        G1 = nx.Graph()
+        for node in ["A","B","C","1","2","3","4"]:
+            G4.add_node(node)
+
+        ## explicitly set edges 
+        edgeTerms4 = [("A","B"),("B","C"),("1","2"),("3","4"),("5","6")]
+        edges4 = []
+        edges4.extend(edgeTerms4)
+
+        for edge in edges4:
+            G4.add_edge(edge[0],edge[1],weight=1)
+
+        ## explicitly set positions
+        pos4={"A":(0.15,0.9),
+              "B":(0.15,0.74),
+              "C":(0.15,0.58),
+              "1":(0.05,0.42),
+              "2":(0.25,0.42),
+              "3":(0.05,0.26),
+              "4":(0.25,0.26),
+              "5":(0.05,0.1),
+              "6":(0.25,0.1)}
+        """
 
         ## add all of the go lines
         current,lineCount = add_line("-"*self.lineEnd,lineCount,current)
-
         termIds = [int(i) for i in list(set(term2id.values()))]
         termIds.sort()
         termIds = [str(i) for i in termIds]
