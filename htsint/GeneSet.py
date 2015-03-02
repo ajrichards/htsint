@@ -33,12 +33,13 @@ class GeneSet(object):
         ## global variables
         self.dpi = 400
         self.labelOffset = 0.05
-        self.fontSize = 10 
+        self.fontSize = 8 
         self.legendFontSize = 8
         self.fontName = 'sans serif'
-        self.alpha = 0.95
-        self.nodeSizeGene = 200
-        self.nodeSizeTerm = 200
+        self.termAlpha = 0.95
+        self.geneAlpha = 0.4
+        self.nodeSizeGene = 300
+        self.nodeSizeTerm = 300
         self.colors = ['#000000','#FFCC33','#3333DD']
         self.cmap = plt.cm.Blues
         self.lineEnd = 60
@@ -299,26 +300,28 @@ class GeneSet(object):
 
         ## draw gene nodes for each species
         colorItr = 1
+
         for taxon in taxonNames:
             symbols = geneSymbols[taxon]
+            nodeSizes = [self.nodeSizeGene + (15 * float(len(s))) for s in symbols]
             _G = self.G.subgraph(symbols)
             _pos = {}
             for p in pos:
                 if p in symbols:
                     _pos[p] = pos[p]
 
-            nx.draw_networkx_nodes(_G,_pos,node_size=self.nodeSizeGene,nodelist=symbols,node_shape='o',
-                                   node_color=self.colors[colorItr],alpha=self.alpha,ax=ax)
+            nx.draw_networkx_nodes(_G,_pos,node_size=nodeSizes,nodelist=symbols,node_shape=r'o',
+                                   node_color=self.colors[colorItr],alpha=self.geneAlpha,ax=ax)
             colorItr += 1
 
             ## offset labels
-            for p in _pos:
-                _pos[p][1] += self.labelOffset
+            #for p in _pos:
+            #    _pos[p][1] += self.labelOffset
             nx.draw_networkx_labels(_G,_pos,font_color='black',labels=geneLabels[taxon],ax=ax)
 
         ## draw term nodes
         nx.draw_networkx_nodes(self.G,pos,node_size=self.nodeSizeTerm,nodelist=termIds,node_shape='s',
-                               node_color=self.colors[0],alpha=self.alpha,ax=ax)
+                               node_color=self.colors[0],alpha=self.termAlpha,ax=ax)
         ## term labels
         G1 = self.G.subgraph(termIds)
         pos1 = {}
@@ -328,7 +331,7 @@ class GeneSet(object):
         nx.draw_networkx_labels(G1,pos1,font_color='white',font_size=self.fontSize,font_family=self.fontName,ax=ax)
 
         ## draw edges
-        nx.draw_networkx_edges(self.G,pos,edgelist=edgeList1,width=0.5,edge_color='k',style='dashed',ax=ax)
+        nx.draw_networkx_edges(self.G,pos,edgelist=edgeList1,width=1.0,edge_color='k',style='dashed',ax=ax,alpha=0.3)
         nx.draw_networkx_edges(self.G,pos,edgelist=edgeList2,edge_color=edge2colors,width=2.0,style='solid',edge_cmap=self.cmap,ax=ax)
 
         if name:
@@ -388,7 +391,7 @@ class GeneSet(object):
             G1.add_node(node)
             pos1[node] = (0.05,current)
             nx.draw_networkx_nodes(G1,pos1,node_size=100,nodelist=[node],
-                                   node_color=self.colors[colorIter],alpha=self.alpha,ax=ax2)
+                                   node_color=self.colors[colorIter],alpha=self.geneAlpha,ax=ax2)
             query = self.session.query(Taxon).filter_by(ncbi_id=node).first()
             toAdd = "        %s (%s)"%(query.name,node)[:self.lineEnd]
             current,lineCount = add_line(toAdd,lineCount,current)
