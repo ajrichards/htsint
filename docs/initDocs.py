@@ -20,8 +20,8 @@ files = [('index.rst',None),
 ]
 
 ## clean first
-if os.path.isdir("_sphinx"):
-    shutil.rmtree("_sphinx")
+#if os.path.isdir("_sphinx"):
+#    shutil.rmtree("_sphinx")
 
 ## load files into project
 nga = NoGuiAnalysis()

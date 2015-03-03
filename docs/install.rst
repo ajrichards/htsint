@@ -17,7 +17,6 @@ ______________________
 
 ``htsint`` is at its core a Python package so it may be installed (or upgraded) like most other packages in the `Python package index <Python Package Index>`_.
 
-
    .. code-block:: bash
 
       ~$ pip install htsint
