@@ -14,14 +14,15 @@ When building reST documentation from a script a couple of things are important 
 import os,shutil
 from lpedit import NoGuiAnalysis
 
+## clean first
+if os.path.isdir("_sphinx"):
+    shutil.rmtree("_sphinx")
+
 ## 
 files = [('index.rst',None),
-         ('annotation-fetching.rst','python')
+         ('annotation-fetching.rst','python'),
+         ('pipeline-example.rst',None),
 ]
-
-## clean first
-#if os.path.isdir("_sphinx"):
-#    shutil.rmtree("_sphinx")
 
 ## load files into project
 nga = NoGuiAnalysis()

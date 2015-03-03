@@ -5,7 +5,7 @@ Introduction
 :Version: 0.4
 :Authors: Adam Richards
 :Web site: https://github.com/ajrichards/hts-integrate
-:Documentation: http://ajrichards.github.io/hts-integrate/
+:Documentation: http://ajrichards.github.io/hts-integrate
 :Copyright: This document has been placed in the public domain.
 :License: HTS-Integrate is released under the MIT License
 
@@ -28,7 +28,7 @@ Installation
 
 For more details visit the documentation:
 
-  *  http://ajrichards.github.io/hts-integrate/
+  *  http://ajrichards.github.io/hts-integrate
 
 The easiest way to install and maintain ``hts-integrate`` is to use `pip <https://pypi.python.org/pypi/pip>`_
 
@@ -40,8 +40,7 @@ The easiest way to install and maintain ``hts-integrate`` is to use `pip <https:
 
       ~$ pip install htsint --upgrade
 
-The next step will be to install 
-
+Next you need to `setup your database <http://ajrichards.github.io/hts-integrate/database.html>`_ to get a working version of ``hts-integrate``.
 
 Prerequsites 
 -----------------------------------

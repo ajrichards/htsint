@@ -1,14 +1,10 @@
 Viewing the docs
 ------------------
 
-Open index.rst in lpEdit
-build, compile and view the HTML
+Install lpEdit
 
-Note that to run the code embedded within each script must built 
-individually or via "Tools" >> "Build All"
-
-
-
+>>> cd docs
+>>> python initDocs.py
 
 Using github pages
 ------------------
