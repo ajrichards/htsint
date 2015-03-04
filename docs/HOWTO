@@ -11,10 +11,11 @@ Using github pages
 
 (1) clone a new repo to start fresh
     
-    ~$ git clone git@github.com:lpedit-devs/lpedit.git lpedit-docs
+    ~$ git clone git@github.com:ajrichards/hts-integrate.git htsint-docs
 
 (2) create a new branch
 
+    ~$ cd htsint-docs
     ~$ git checkout --orphan gh-pages
     ~$ git pull origin gh-pages
 
@@ -24,7 +25,7 @@ Using github pages
 
 (4) copy the website into the repo for example
 
-    ~$ cp -r ~/projects/lpedit/docs/_sphinx/_build/* .
+    ~$ cp -r ~/projects/hts-integrate/docs/_sphinx/_build/* .
 
 (5) github does not like folders with leading underscores so
 

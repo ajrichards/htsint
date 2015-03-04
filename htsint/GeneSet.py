@@ -35,7 +35,7 @@ class GeneSet(object):
         self.labelOffset = 0.05
         self.fontSize = 8 
         self.legendFontSize = 8
-        self.fontName = 'sans serif'
+        self.fontName = 'serif'
         self.termAlpha = 0.95
         self.geneAlpha = 0.4
         self.nodeSizeGene = 300
@@ -317,7 +317,7 @@ class GeneSet(object):
             ## offset labels
             #for p in _pos:
             #    _pos[p][1] += self.labelOffset
-            nx.draw_networkx_labels(_G,_pos,font_color='black',labels=geneLabels[taxon],ax=ax)
+            nx.draw_networkx_labels(_G,_pos,font_color='black',font_family=self.fontName,labels=geneLabels[taxon],ax=ax)
 
         ## draw term nodes
         nx.draw_networkx_nodes(self.G,pos,node_size=self.nodeSizeTerm,nodelist=termIds,node_shape='s',
@@ -328,7 +328,7 @@ class GeneSet(object):
         for p in pos:
             if p in termIds:
                 pos1[p] = pos[p]
-        nx.draw_networkx_labels(G1,pos1,font_color='white',font_size=self.fontSize,font_family=self.fontName,ax=ax)
+        nx.draw_networkx_labels(G1,pos1,font_color='white',font_family=self.fontName,font_size=self.fontSize,ax=ax)
 
         ## draw edges
         nx.draw_networkx_edges(self.G,pos,edgelist=edgeList1,width=1.0,edge_color='k',style='dashed',ax=ax,alpha=0.3)
