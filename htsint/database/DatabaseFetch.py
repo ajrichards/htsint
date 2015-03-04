@@ -7,14 +7,8 @@ At least 20GB of free space is recommended
 import os,sys,subprocess,re,time,csv
 from sys import platform as _platform
 from htsint import __basedir__
+from htsint import Configure
 sys.path.append(__basedir__)
-
-try:
-    from configure import CONFIG
-except:
-    CONFIG = None
-
-dataDir = CONFIG['data']
 
 class DatabaseFetch(object):
     """
@@ -25,7 +19,9 @@ class DatabaseFetch(object):
         """  
         Constructor
         """
-        
+ 
+        config = Configure()
+       
         ## check that we are in linux or osx
         if _platform == "linux" or _platform == "linux2":
             pass
@@ -35,9 +31,12 @@ class DatabaseFetch(object):
             raise Exception("DatabaseFetch currently does not work on windows platforms\n"+\
                             "you may still download the files one by one and populated the db")
 
-        ## check for CONFIG and valid datadir
-        if CONFIG == None:
-            raise Exception("You must create a configure.py before running DatabaseFetch.py")
+        ## ensure they have set up config
+        for key in ['data','dbuser','dbpass','dbname']:
+            if config.log[key] == '':
+                raise Exception("You must modify the config file before running DatabaseFetch.py")
+
+        dataDir = config.log['data']
 
         if not os.path.isdir(dataDir):
             raise Exception("Specified htsint data directory does not exist %s"%dataDir)
@@ -72,25 +71,25 @@ class DatabaseFetch(object):
             try:
                 next_line = proc.stdout.readline()
                 proc.wait()
-            if next_line == '' and proc.poll() != None:
-                break
+                if next_line == '' and proc.poll() != None:
+                    break
             except:
                 proc.wait()
                 break
 
     def fetch_file(self,fetchURL):
         cmd = "%s -N %s"%(self.wgetPath,fetchURL)
-        _run_subprocess(cmd)
+        self._run_subprocess(cmd)
         
     def unzip_file(self,fileName):
         print('unzipping...%s'%fileName)
         cmd = "%s -c %s > %s.db"%(self.gunzipPath,fileName,fileName[:-3])
-        _run_subprocess(cmd)
+        self._run_subprocess(cmd)
 
     def untar_file(self,fileName):
         print('untarring...%s'%fileName)
         cmd = "tar xzf %s"%fileName
-        _run_subprocess(cmd)
+        self._run_subprocess(cmd)
 
     def run(self):
         ## prepare a log file
@@ -111,18 +110,12 @@ class DatabaseFetch(object):
                         "ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz",
                         "ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene_info.gz",
                         "ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene2go.gz",
-                        "ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene2refseq.gz",
                         "ftp://ftp.ebi.ac.uk/pub/databases/GO/goa/UNIPROT/gene_association.goa_uniprot.gz",
                         uniprotUrl + "idmapping/idmapping.dat.gz",
-                        uniprotUrl + "idmapping/LICENSE"]
-
-        ## if blast is enabled then fetch the blast files as well
-        if CONFIG['blast'] == True:
-            filesToFetch.extend([uniprotUrl + "complete/uniprot_sprot.fasta.gz",
-                                 uniprotUrl + "complete/uniprot_trembl.fasta.gz"])
-
-        push_out("fetching blast files = %s"%str(CONFIG['blast']))
-
+                        uniprotUrl + "idmapping/LICENSE",
+                        uniprotUrl + "complete/uniprot_sprot.fasta.gz"
+                    ]
+                                 
         for fetchURL in filesToFetch:
             fileName = os.path.split(fetchURL)[-1]
             push_out("fetching %s..."%fileName)
@@ -147,3 +140,8 @@ class DatabaseFetch(object):
         ## move back to original directory
         os.chdir(self.cwd)
 
+
+if __name__ == "__main__":
+    print "Running..."
+    dbf = DatabaseFetch()
+    dbf.run()
