@@ -8,7 +8,6 @@ import os,sys,subprocess,re,time,csv
 from sys import platform as _platform
 from htsint import __basedir__
 from htsint import Configure
-sys.path.append(__basedir__)
 
 class DatabaseFetch(object):
     """
@@ -32,7 +31,7 @@ class DatabaseFetch(object):
                             "you may still download the files one by one and populated the db")
 
         ## ensure they have set up config
-        for key in ['data','dbuser','dbpass','dbname']:
+        for key in ['data','dbname']:
             if config.log[key] == '':
                 raise Exception("You must modify the config file before running DatabaseFetch.py")
 

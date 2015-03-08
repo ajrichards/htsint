@@ -5,14 +5,8 @@ library of functions for use with the GeneOntology class
 
 import os,sys,re,time
 from sqlalchemy.sql import select
-from htsint import __basedir__
+from htsint import Configure
 from DatabaseTables import Taxon,Uniprot,Gene,GoTerm,GoAnnotation
-
-sys.path.append(__basedir__)
-try:
-    from configure import CONFIG
-except:
-    CONFIG = None
 
 def remove_empty(lst):
     if None in lst:
@@ -25,14 +19,11 @@ def get_ontology_file():
     return the file path
     """
 
-    if CONFIG == None:
-        raise Exception("You must create a configure.py before GeneOntology")
-
-    dataDir = CONFIG['data']
-
+    config = Configure()
+    dataDir = config.log['data']
     ontologyFile = os.path.join(dataDir,'go.obo')
     if os.path.exists(ontologyFile) == False:
-        raise Exception("Could not find 'go.obo' -- did you run FetchDbData.py?")
+        raise Exception("Could not find 'go.obo' -- did you run DatabaseFetch?")
 
     return ontologyFile
 
@@ -107,11 +98,8 @@ def get_annotation_file():
     """
 
     fileName = 'gene_association.goa_uniprot.db'
-
-    if CONFIG == None:
-        raise Exception("You must create a configure.py before GeneOntology")
-
-    dataDir = CONFIG['data']
+    config = Configure()
+    dataDir = config.log['data']
     annotationFile = os.path.join(dataDir,fileName)
     if os.path.exists(annotationFile) == False:
         raise Exception("Could not find '%s' -- did you run FetchDbData.py?"%(fileName))
@@ -123,6 +111,9 @@ def get_total_annotations():
     get the number of annotations in the uniprot file
     this does not include the gene2go file
     """
+
+    config = Configure()
+    taxaList = config.log['taxa']
 
     annotationFile = get_annotation_file()
     annotationFid = open(annotationFile,'rU')
@@ -139,6 +130,8 @@ def get_total_annotations():
 
         taxon = re.sub("taxon:","",record[12])
         if taxon == "" or re.search("\|",taxon):
+            continue
+        if taxon not in taxaList:
             continue
 
         totalAnnotations += 1
@@ -159,10 +152,8 @@ def get_gene2go_file():
     return the file path
     """
 
-    if CONFIG == None:
-        raise Exception("You must create a configure.py before GeneOntology")
-
-    dataDir = CONFIG['data']
+    config = Configure()
+    dataDir = config.log['data']
     annotationFile = os.path.join(dataDir,'gene2go.db')
     if os.path.exists(annotationFile) == False:
         raise Exception("Could not find 'gene2go' -- did you run FetchDbData.py?")

@@ -27,7 +27,7 @@ class GeneOntologyTest(unittest.TestCase):
         simple setup
         """
 
-        self.taxId = 5476
+        self.taxId = '5476'
         
     def testCheckTaxon(self):
         """

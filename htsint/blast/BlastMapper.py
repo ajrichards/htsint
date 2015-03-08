@@ -18,7 +18,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import font_manager as fm
 from sqlalchemy.sql import select
-from htsint.database import db_connect,Taxon,Gene,Uniprot,Refseq,uniprot_mapper
+from htsint.database import db_connect,Taxon,Gene,Uniprot,uniprot_mapper
 
 __author__ = "Adam Richards"
 
@@ -301,10 +301,7 @@ class BlastMapper(object):
         if ax == None:
             fig = plt.figure(figsize=(9,7))
             ax = fig.add_subplot(111)
-            show = True
-        else:
-            show = False
-
+     
         colors = ['yellowgreen', 'gold', 'lightskyblue', 'lightcoral','lightgray',
                   'khaki','honeydew','tomato','cornflowerblue','darkseagreen','darkorchid'] * 100
 
@@ -327,8 +324,6 @@ class BlastMapper(object):
 
         if figName:
             plt.savefig(figName)
-        elif show:
-            plt.show()
 
         print 'total species:', len(taxaHits.keys())
         print 'check', np.array(sizes).sum()

@@ -8,7 +8,7 @@ See /src/database/HOWTO
 import sys,os,unittest,time,re,time
 from sqlalchemy.sql import select
 from htsint.database import db_connect,ask_upass,fetch_annotations,fetch_taxa_annotations
-from htsint.database import Taxon,Gene,Refseq,Uniprot,GoTerm,GoAnnotation
+from htsint.database import Taxon,Gene,Uniprot,GoTerm,GoAnnotation
 
 ## global variables
 UPASS = ask_upass()
@@ -16,7 +16,7 @@ UPASS = ask_upass()
 ## test class for the main window function
 class DatabaseTest(unittest.TestCase):
     """
-    Run a number of tests using taxa id 7227
+    Run a number of tests using taxa id 5476
     """
 
     def setUp(self):
@@ -26,7 +26,7 @@ class DatabaseTest(unittest.TestCase):
 
         self.session, self.engine = db_connect(upass=UPASS)
         self.conn = self.engine.connect()
-        self.testID = '7227'
+        self.testID = '5476'
     
     def testTaxa(self):
         """
@@ -38,8 +38,7 @@ class DatabaseTest(unittest.TestCase):
         query = query[0]
         self.assertTrue(query not in [None])
         self.assertEqual(int(query.ncbi_id),int(self.testID))
-        self.assertEqual(query.name,"Drosophila melanogaster")
-        self.assertTrue("fruit fly" in [query.common_name_1,query.common_name_2,query.common_name_3])
+        self.assertEqual(query.name,"Candida albicans")
         
     def testGene(self):
         """
@@ -47,35 +46,30 @@ class DatabaseTest(unittest.TestCase):
         """
 
         ## orm
-        self.assertTrue(self.session.query(Gene).count() > 4)       
-        query1 = self.session.query(Gene).filter_by(ncbi_id='3771877').first()
-        self.assertEqual(query1.symbol,'Adh')
-        self.assertEqual(self.session.query(Taxon).filter_by(id=query1.taxa_id).first().ncbi_id,7227)
-
-        query2 = self.session.query(Gene).filter_by(ncbi_id='31251').first()
-        self.assertEqual(query2.symbol,'per')
-        self.assertEqual(self.session.query(Taxon).filter_by(id=query2.taxa_id).first().ncbi_id,7227)
+        query1 = self.session.query(Gene).filter_by(ncbi_id='359').first()
+        self.assertEqual(query1.symbol,'AQP2')
+        self.assertEqual(self.session.query(Taxon).filter_by(id=query1.taxa_id).first().ncbi_id,9606)
         
         ## core
         myDict = {}
-        s = select([Gene.symbol]).where(Gene.ncbi_id=='3771877')
+        s = select([Gene.symbol]).where(Gene.ncbi_id=='359')
         _result = self.conn.execute(s)
         result = _result.fetchall()
-        self.assertEqual(result[0]['symbol'],'Adh')
+        self.assertEqual(result[0]['symbol'],'AQP2')
 
     def testUniprot(self):
         """
         test the uniprot table
         """
 
-        uniprotQuery = self.session.query(Uniprot).filter_by(uniprot_ac='P07663').first()
+        uniprotQuery = self.session.query(Uniprot).filter_by(uniprot_ac='P41181').first()
         uniprotGeneQuery = self.session.query(Gene).filter_by(id=uniprotQuery.gene_id).first()
-
-        self.assertEqual(uniprotQuery.uniprot_ac,"P07663")
-        self.assertEqual(uniprotQuery.uniprot_entry,"PER_DROME")
-        self.assertEqual(uniprotGeneQuery.ncbi_id,"31251")
-        self.assertEqual(self.session.query(Taxon).filter_by(id=uniprotQuery.taxa_id).first().ncbi_id,7227)
-        self.assertEqual(self.session.query(Taxon).filter_by(id=uniprotGeneQuery.taxa_id).first().ncbi_id,7227)
+        
+        self.assertEqual(uniprotQuery.uniprot_ac,"P41181")
+        self.assertEqual(uniprotQuery.uniprot_entry,"AQP2_HUMAN")
+        self.assertEqual(uniprotGeneQuery.ncbi_id,"359")
+        self.assertEqual(self.session.query(Taxon).filter_by(id=uniprotQuery.taxa_id).first().ncbi_id,9606)
+        self.assertEqual(self.session.query(Taxon).filter_by(id=uniprotGeneQuery.taxa_id).first().ncbi_id,9606)
 
     def testGoTerm(self):
         """
@@ -87,21 +81,21 @@ class DatabaseTest(unittest.TestCase):
         self.assertEqual(termQuery.name,"circadian rhythm")
         descLook = re.search("that recurs with a regularity of approximately 24 hours.",termQuery.description)
         self.assertTrue(termQuery.description,descLook)
-       
+
     def testFetchAnnotations(self):
         """
         test the GoTerm and GoAnnotation tables
         """
     
         print("fetching annotations for uniprot id...")
-        annotations1 = fetch_annotations(['P56645'],self.engine,idType='uniprot',useIea=False,verbose=True)
-        termNames1 = [a[1] for a in annotations1['P56645']]
-        self.assertTrue("regulation of circadian sleep/wake cycle, sleep" in termNames1)
+        annotations1 = fetch_annotations(['P41181'],self.engine,idType='uniprot',useIea=False,verbose=True)
+        termNames1 = [a[1] for a in annotations1['P41181']]
+        self.assertTrue("water transport" in termNames1)
 
         print("fetching annotations for ncbi gene id...")
-        annotations2 = fetch_annotations(['31251'],self.engine,idType='ncbi',useIea=False)
-        termNames2 = [a[1] for a in annotations2['31251']]
-        self.assertTrue("circadian rhythm" in termNames2)
+        annotations2 = fetch_annotations(['359'],self.engine,idType='ncbi',useIea=False)
+        termNames2 = [a[1] for a in annotations2['359']]
+        self.assertTrue("water transport" in termNames1)
    
     def testFetchTaxaAnnotations(self):
         """
@@ -109,9 +103,9 @@ class DatabaseTest(unittest.TestCase):
         """
     
         print("fetching annotations for taxa")
-        geneAnnots,uniprotAnnots = fetch_taxa_annotations(['7091'],self.engine,useIea=False,verbose=True)
-        self.assertTrue("GO:0045088" in uniprotAnnots['Q9NL89'])
-
+        geneAnnots,uniprotAnnots = fetch_taxa_annotations([self.testID],self.engine,useIea=False,verbose=True)
+        self.assertTrue('GO:0018343' in uniprotAnnots['Q9Y765'])
+        
     '''
     def testIdUniqueness(self):
         """

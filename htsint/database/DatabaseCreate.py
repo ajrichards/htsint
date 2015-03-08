@@ -16,14 +16,7 @@ it is best to re-run FetchDbdata.py and then this script.
 
 ### make imports
 import sys,os,re,time,csv
-from htsint import __basedir__
-
-sys.path.append(__basedir__)
-try:
-    from configure import CONFIG
-except:
-    CONFIG = None
-
+from htsint import Configure
 from DatabaseTables import Base,Taxon,Gene,Uniprot,GoTerm,GoAnnotation
 from DatabaseTools import db_connect, get_file_sizes,print_db_summary
 from DatabaseTools import populate_taxon_table,populate_gene_table,populate_uniprot_table
@@ -40,15 +33,23 @@ class DatabaseCreate(object):
         Constructor
         """
 
-        ## check for CONFIG and valid datadir
-        if CONFIG == None:
-            raise Exception("You must create a configure.py before running DatabaseFetch.py")
+        self.config = Configure()
+
+        ## ensure config is setup 
+        for key in ['data','dbname']:
+            if self.config.log[key] == '':
+                raise Exception("You must modify the config file before running DatabaseFetch.py")
+
+        dataDir = self.config.log['data']
+
         if not os.path.isdir(dataDir):
             raise Exception("Specified htsint data directory does not exist %s"%dataDir)
 
+        self.taxaList = self.config.log['taxa']
+
     def run(self):
         ## prepare a log file
-        fid = open(os.path.join(CONFIG['data'],'createdb.log'),'wa')
+        fid = open(os.path.join(self.config.log['data'],'createdb.log'),'wa')
         writer = csv.writer(fid)
 
         def push_out(line):
@@ -111,3 +112,8 @@ class DatabaseCreate(object):
 
         print_db_summary()
         fid.close()
+
+if __name__ == "__main__":
+    print "Running..."
+    dbc = DatabaseCreate()
+    dbc.run()

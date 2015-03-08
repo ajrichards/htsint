@@ -10,16 +10,10 @@ import getpass
 import numpy as np
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from DatabaseTables import Base,Taxon,Gene,Refseq,Uniprot,GoTerm,GoAnnotation
+from htsint import Configure
+from DatabaseTables import Base,Taxon,Gene,Uniprot,GoTerm,GoAnnotation
 from DatabaseTables import taxa_mapper,gene_mapper,uniprot_mapper,goterm_mapper
 from htsint.database import get_annotation_file, get_ontology_file, get_gene2go_file
-
-from htsint import __basedir__
-sys.path.append(__basedir__)
-try:
-    from configure import CONFIG
-except:
-    CONFIG = None
 
 def check_version():
     """
@@ -34,11 +28,15 @@ def ask_upass():
     returns the pass word for the database
     """
 
-    if CONFIG == None:
-        raise Exception("You must create a configure.py file and database before using database functions")
+
+    config = Configure()
+
+    for key in ['data','dbname']:
+        if config.log[key] == '':
+            raise Exception("You must modify the config file before running DatabaseFetch.py")
     
     check_version()
-    upass = CONFIG['dbpass']
+    upass = config.log['dbpass']
     if upass == '':
         upass = getpass.getpass()
 
@@ -50,23 +48,26 @@ def db_connect(verbose=False,upass=''):
 
     """
 
-    if CONFIG == None:
-        raise Exception("You must create a configure.py file and database before using database functions")
+    config = Configure()
+
+    for key in ['data','dbname']:
+        if config.log[key] == '':
+            raise Exception("You must modify the config file before running DatabaseFetch.py")
     
     check_version()
 
     ## declare variables
-    uname = CONFIG['dbuser']
-    dbhost = CONFIG['dbhost']
-    dbname = CONFIG['dbname']
-    port = CONFIG['dbport']
+    uname = config.log['dbuser']
+    dbhost = config.log['dbhost']
+    dbname = config.log['dbname']
+    port = config.log['dbport']
 
     ## get data base parameters
     if upass == '':
         upass = ask_upass()
 
     if dbname == '' or port == '' or dbhost == '' or uname=='':
-        raise Exception("Invalid database parameters")
+        raise Exception("Invalid database parameters -- parameters not specified in config file")
             
     ## create connection to db and create necessary tables 
     print "connecting to database: %s"%dbname
@@ -83,7 +84,9 @@ def read_gene_info_file(lineCount=False,short=False):
     read the essential info from NCBI's gene info file
     """
 
-    geneInfoFile = os.path.join(CONFIG['data'],"gene_info.db")
+    config = Configure()
+    taxaList = config.log['taxa']
+    geneInfoFile = os.path.join(config.log['data'],"gene_info.db")
     geneInfoFid = open(geneInfoFile,'rU')
     header = geneInfoFid.next()
     geneInfo ={}
@@ -96,12 +99,16 @@ def read_gene_info_file(lineCount=False,short=False):
         if re.search("^\#",record[0]):
             continue
 
+        taxId = record[0]
+        ncbiId = record[1]
+
+        if taxId not in taxaList:
+            continue
+
         if lineCount == True:
             totalLines += 1
             continue
 
-        ncbiId = record[1]
-        taxId = record[0]
         symbol = record[2]
         synonyms = record[4]
         chromosome = record[6]
@@ -122,27 +129,36 @@ def read_gene_info_file(lineCount=False,short=False):
 def get_file_sizes():
     """
     return a unique dict of geneids with refseq values from the idmapping file
+
     """
 
+    config = Configure()
+    taxaList = config.log['taxa']
     geneInfoCount = read_gene_info_file(lineCount=True)
     idmappingFile = get_idmapping_file()
     idmappingFid = open(idmappingFile,'rU')
     reader = csv.reader(idmappingFid,delimiter="\t")
-
     records = set([])
+    totalRecords = 0
 
     for record in reader:
+        totalRecords += 1
+        if record[1] == 'ncbi-taxa-id' and record[2] not in taxaList:
+            continue
         records.update([record[0]])
-        
+
     idmappingFid.close()
+    print 'debug. totalRecords %s, records %s, geneInfoCount %s'%(totalRecords, len(list(records)), geneInfoCount)
     return len(list(records)),geneInfoCount
 
 def populate_taxon_table(engine):
     """
     given a list of taxon ids populate the taxon table    
+    populates all taxa
     """
     
-    namesFile = os.path.join(CONFIG['data'],"names.dmp")
+    config = Configure()
+    namesFile = os.path.join(config.log['data'],"names.dmp")
     if os.path.exists(namesFile) == False:
         raise Exception("Cannot find names.dmp... exiting")
 
@@ -212,12 +228,14 @@ def populate_gene_table(geneInfoCount,session,engine):
     use the geneids derived from the idmapping file along with gene_info data to populate the gene table 
     """
 
+    config = Configure()
+    taxaList = config.log['taxa']
     timeStart = time.time()
     toAdd = []
     totalRecords = 0
     total = geneInfoCount
     wayPoints = [round(int(w)) for w in np.linspace(0,total,20)]
-    geneInfoFile = os.path.join(CONFIG['data'],"gene_info.db")
+    geneInfoFile = os.path.join(config.log['data'],"gene_info.db")
     geneInfoFid = open(geneInfoFile,'rU')
     header = geneInfoFid.next()
     taxaIdMap = taxa_mapper(session)
@@ -230,6 +248,10 @@ def populate_gene_table(geneInfoCount,session,engine):
             continue
 
         taxId = record[0]
+
+        if taxId not in taxaList:
+            continue
+
         ncbiId = record[1]
         symbol = record[2]
         synonyms = record[4]
@@ -252,10 +274,11 @@ def populate_gene_table(geneInfoCount,session,engine):
 
             for ta in toRemove:
                 toAdd.remove(ta)
-
-            with engine.begin() as connection:
-                connection.execute(Gene.__table__.insert().
-                                   values(toAdd))
+                
+            if len(toAdd) > 0:
+                with engine.begin() as connection:
+                    connection.execute(Gene.__table__.insert().
+                                       values(toAdd))
             toAdd = []
 
         ## show progress
@@ -273,9 +296,10 @@ def populate_gene_table(geneInfoCount,session,engine):
     for ta in toRemove:
         toAdd.remove(ta)
 
-    with engine.begin() as connection:
-        connection.execute(Gene.__table__.insert().
-                           values(toAdd))
+    if len(toAdd) > 0:
+        with engine.begin() as connection:
+            connection.execute(Gene.__table__.insert().
+                               values(toAdd))
 
     ## clean up
     geneInfoFid.close()
@@ -283,156 +307,13 @@ def populate_gene_table(geneInfoCount,session,engine):
     addedStr = "...%s unique genes were added."%totalRecords
     return timeStr,addedStr
 
-def populate_refseq_table(session,engine):
-    """
-    populate the refseq table with entries from gene2refseq
-
-    http://www.ncbi.nlm.nih.gov/books/NBK21091/table/ch18.T.refseq_accession_numbers_and_mole/?report=objectonly
-
-    """
-
-    timeStart = time.time()
-    totalLines,totalRecords = 0,0
-    idmappingFile = get_idmapping_file()
-    idmappingFid = open(idmappingFile,'rb')
-    reader = csv.reader(idmappingFid,delimiter="\t")
-    toAdd = []
-
-    ## get line count
-    gene2refseqFile = os.path.join(CONFIG['data'],"gene2refseq.db")
-    gene2refseqFid = open(gene2refseqFile,'rU')
-    reader = csv.reader(gene2refseqFid,delimiter="\t")
-    header = reader.next()
-    lineCount = 0
-    for linja in reader:
-        lineCount += 1
-    gene2refseqFid.close()
-
-    wayPoints = [round(int(w)) for w in np.linspace(0,lineCount,20)]
-
-    print("getting mappers...")
-    geneIdMap = gene_mapper(session)
-    taxonIdMap = taxa_mapper(session)
-    print("mappers loaded... %s"%time.strftime('%H:%M:%S',time.gmtime(time.time()-timeStart)))
-
-    def queue_entries(toAdd,geneIdMap,taxonIdMap,engine):
-
-        toCommit = []
-        for entry in toAdd:
-            db_gene_id = None
-            db_taxa_id = None
-
-            ## convert the gene id to a database key (check old names if we cannot find it)
-            if entry['gene_id'] == None:
-                pass
-            elif geneIdMap.has_key(entry['gene_id']):
-                db_gene_id = geneIdMap[entry['gene_id']]
-            elif not geneIdMap.has_key(entry['gene_id']):
-                _geneIds = [re.sub("\s+","",_ncid) for _ncid in entry['gene_id'].split(";")]
-                db_gene_id = None
-        
-                for _gid in _geneIds:
-                    if geneIdMap.has_key(_gid):
-                        db_gene_id= _gid
-
-            ## convert the taxa id to a database key
-            if entry['taxa_id'] and taxonIdMap.has_key(entry['taxa_id']):
-                db_taxa_id = taxonIdMap[entry['taxa_id']]
-            else:
-                continue
-
-            for key in entry.iterkeys():
-                if len(entry[key]) == 0 or entry[key] == "-":
-                    entry[key] = None
-
-            ## commit to db
-            toCommit.append({'status':entry['status'],
-                             'RNA_nucleotide_accession':entry['RNA_nucleotide_accession'],
-                             'RNA_nucleotide_gi':entry['RNA_nucleotide_gi'],
-                             'protein_accession':entry['protein_accession'],
-                             'protein_gi':entry['protein_gi'],
-                             'genomic_nucleotide_accession':entry['genomic_nucleotide_accession'],
-                             'genomic_nucleotide_gi':entry['genomic_nucleotide_gi'],
-                             'start_position_on_the_genomic_accession':entry['start_position_on_the_genomic_accession'],
-                             'end_position_on_the_genomic_accession':entry['end_position_on_the_genomic_accession'],
-                             'orientation':entry['orientation'],
-                             'assembly':entry['assembly'],
-                             'mature_peptide_accession':entry['mature_peptide_accession'],
-                             'mature_peptide_gi':entry['mature_peptide_gi'],
-                             'taxa_id':db_taxa_id,
-                             'gene_id':db_gene_id
-                         })
-            
-        with engine.begin() as connection:
-            connection.execute(Refseq.__table__.insert().
-                               values(toCommit))
-
-
-    ## go through file and populate
-    gene2refseqFid = open(gene2refseqFile,'rU')
-    reader = csv.reader(gene2refseqFid,delimiter="\t")
-    header = reader.next()
-    totalRecords = 0
-
-    for linja in reader:
-        totalRecords += 1
-        taxaId = linja[0]
-        geneId = linja[1]
-        status = linja[2]
-        RNA_nucleotide_accession = linja[3]
-        RNA_nucleotide_gi = linja[4]
-        protein_accession = linja[5]
-        protein_gi = linja[6]
-        genomic_nucleotide_accession = linja[7]
-        genomic_nucleotide_gi = linja[8]
-        start_position_on_the_genomic_accession = linja[9]
-        end_position_on_the_genomic_accession = linja[10]
-        orientation = linja[11]
-        assembly = linja[12]
-        mature_peptide_accession = linja[13]
-        mature_peptide_gi = linja[14]
-        symbol = linja[15]
-
-        ## define the table entry
-        toAdd.append({'status':status,
-                      'RNA_nucleotide_accession': RNA_nucleotide_accession,
-                      'RNA_nucleotide_gi':RNA_nucleotide_gi,
-                      'protein_accession':protein_accession,
-                      'protein_gi':protein_gi,
-                      'genomic_nucleotide_accession':genomic_nucleotide_accession,
-                      'genomic_nucleotide_gi':genomic_nucleotide_gi,
-                      'start_position_on_the_genomic_accession': start_position_on_the_genomic_accession,
-                      'end_position_on_the_genomic_accession': end_position_on_the_genomic_accession,
-                      'orientation':orientation,
-                      'assembly':assembly,
-                      'mature_peptide_accession':mature_peptide_accession,
-                      'mature_peptide_gi':mature_peptide_gi,
-                      'taxa_id':taxaId,
-                      'gene_id':geneId
-                  })
-
-        if len(toAdd) >= 300000:
-            queue_entries(toAdd,geneIdMap,taxonIdMap,engine)
-            toAdd = []
-
-        ## show progress
-        if totalRecords in wayPoints:
-            print("\t%s / %s"%(totalRecords,lineCount))
-
-    if len(toAdd) > 0:
-        queue_entries(toAdd,geneIdMap,taxonIdMap,engine)
-
-    ## clean up
-    gene2refseqFid.close()
-    timeStr = "...total time taken: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
-    addedStr = "...%s unique refseq entries were added."%totalRecords
-    return timeStr,addedStr
-
 def populate_uniprot_table(lineCount,session,engine):
     """
     populate the uniprot table with entries from idmappings
     """
 
+    config = Configure()
+    taxaList = config.log['taxa']
     timeStart = time.time()
     totalLines,totalRecords = 0,0
     idmappingFile = get_idmapping_file()
@@ -485,7 +366,11 @@ def populate_uniprot_table(lineCount,session,engine):
             #    dgeneQuery = session.query(Gene).filter_by(id=db_gene_id).first()
             #    if dgeneQuery:
             #        db_taxa_id = dgeneQuery.taxa_id 
-            
+
+            ## ensure we are in appropriate taxa
+            if entry['ncbi-taxa-id'] not in taxaList:
+                continue
+
             ## ready the uniprot-ac and refseq rows
             entry['uniprot-ac'] = list(entry['uniprot-ac'])
             if len(entry['uniprot-ac']) == 0:
@@ -506,10 +391,10 @@ def populate_uniprot_table(lineCount,session,engine):
             ## commit to db
             toCommit.append({'uniprot_ac':entry['uniprot-ac'],'uniprot_entry':uniprotKbEntry,
                              'refseq':entry['refseq'],'taxa_id':db_taxa_id,'gene_id':db_gene_id})
-            
-        with engine.begin() as connection:
-            connection.execute(Uniprot.__table__.insert().
-                               values(toCommit))
+        if len(toCommit) > 0:
+            with engine.begin() as connection:
+                connection.execute(Uniprot.__table__.insert().
+                                   values(toCommit))
 
     ## parse the idmapping file into the db
     for record in reader:
@@ -522,7 +407,7 @@ def populate_uniprot_table(lineCount,session,engine):
         totalLines += 1
         if totalLines in wayPoints:
             print("\t%s / %s"%(totalLines,lineCount))
-
+        
         if record[1] == 'NCBI_TaxID':
             ncbiTaxaId = record[2]
         elif record[1] == 'GeneID':
@@ -548,7 +433,7 @@ def populate_uniprot_table(lineCount,session,engine):
 
             ## queue entries in blocks
             totalRecords += 1 
-            
+        
             if totalRecords % 100000 == 0:
                 queue_entries(toAdd,geneIdMap,taxonIdMap,engine)
                 toAdd,ac2kbMap = {},{}
@@ -650,6 +535,8 @@ def populate_go_annotations(totalAnnotations,session,engine):
     """
 
     timeStart = time.time()
+    config = Configure()
+    taxaList = config.log['taxa']
     toAdd = []
     annotationFile = get_annotation_file()
     annotationFid = open(annotationFile,'rU')
@@ -725,6 +612,9 @@ def populate_go_annotations(totalAnnotations,session,engine):
         date = record[13]
         assignedBy = record[14]
 
+        if taxon not in taxaList:
+            continue
+
         ## parse the uniprot Entry
         if re.search("\|",uniprotEntry):
             uniprotEntry = re.split("\|",uniprotEntry)[0]
@@ -782,6 +672,9 @@ def populate_go_annotations(totalAnnotations,session,engine):
         go_aspect = record[7]
         annotationCount += 1
 
+        if taxon not in taxaList:
+            continue
+
         if annotationCount in wayPoints:
             print("\t%s / %s"%(annotationCount,totalAnnotations))
 
@@ -811,11 +704,12 @@ def print_db_summary():
     """
     
     print('querying database...')
+    config = Configure()
     printstr = ""
     session,engine = db_connect(verbose=False)
-    printstr += "\nDATABASE - %s - SUMMARY"%CONFIG['dbname'] + "\n"
-    print("\nDATABASE - %s - SUMMARY"%CONFIG['dbname'])
-    for table in [Taxon,Gene,Refseq,Uniprot,GoTerm,GoAnnotation]:
+    printstr += "\nDATABASE - %s - SUMMARY"%config.log['dbname'] + "\n"
+    print("\nDATABASE - %s - SUMMARY"%config.log['dbname'])
+    for table in [Taxon,Gene,Uniprot,GoTerm,GoAnnotation]:
         print("There are %s entries in the %s table"%(session.query(table).count(),table.__tablename__))
         printstr += "There are %s entries in the %s table"%(session.query(table).count(),table.__tablename__) + "\n"
 
@@ -828,10 +722,8 @@ def get_idmapping_file():
     return the file path 
     """
 
-    if CONFIG == None:
-        raise Exception("You must create a configure.py before GeneOntology")
-
-    dataDir = CONFIG['data']
+    config = Configure()
+    dataDir = config.log['data']
     idmappingFile = os.path.join(dataDir,'idmapping.dat.db')
     if os.path.exists(idmappingFile) == False:
         raise Exception("Could not find 'idmapping.dat.db' -- did you run FetchDbData.py?")

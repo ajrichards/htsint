@@ -1,7 +1,5 @@
 import unittest,getopt,sys,os
-import matplotlib as mpl
-if mpl.get_backend() != 'agg':
-    mpl.use('agg')
+from htsint import Configure
 
 ## parse inputs                                                                                                                      
 try:
@@ -12,20 +10,17 @@ except getopt.GetoptError:
     print "... the verbose flag (-v) may be used"
     sys.exit()
 
-try:
-    from configure import CONFIG
-except:
-    CONFIG = None
-
-if CONFIG == None:
-    raise Exception("You must create a configure.py before running the unittests")
-
 VERBOSE = False
 RUNALL = False
 
 for o, a in optlist:
     if o == '-v':
         VERBOSE = True
+
+## ensure config is setup
+config = Configure()
+if config.log['dbname'] == '':
+    raise Exception("Config file is not setup")
 
 ## Database tests
 from DatabaseTest import *
@@ -38,7 +33,6 @@ GeneOntologyTestSuite = unittest.TestLoader().loadTestsFromTestCase(GeneOntology
 GeneOntologySuite = unittest.TestSuite([GeneOntologyTestSuite])
 
 ## Blast Tests
-if CONFIG['blast'] == True:
-    from BlastTest import *
-    BlastTestSuite = unittest.TestLoader().loadTestsFromTestCase(BlastTest)
-    BlastSuite = unittest.TestSuite([BlastTestSuite])
+from BlastTest import *
+BlastTestSuite = unittest.TestLoader().loadTestsFromTestCase(BlastTest)
+BlastSuite = unittest.TestSuite([BlastTestSuite])

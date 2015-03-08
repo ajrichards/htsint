@@ -37,14 +37,14 @@ Install `PostgreSQL <http://www.postgresql.org>`_ on you system.  For example on
 
       ~$ sudo apt-get install postgresql
 
-Then you need to create a database.  Here we do this with a database named `hts-integrate`, a user named `dbuser` and a password `somepassword`.  You should change these parameters to fit your system.
+Then you need to create a database.  Here we do this with a database named `htsintegrate`, a user named `dbuser` and a password `somepassword`.  You should change these parameters to fit your system.
 
    .. code-block:: bash
 
       ~$ sudo su - postgres
       ~$ psql -U postgres
       CREATE USER dbuser WITH ENCRYPTED PASSWORD 'somepassword';
-      CREATE DATABASE htsint WITH OWNER dbuser; 		   
+      CREATE DATABASE htsintegrate WITH OWNER dbuser; 		   
       \q
 
 Visit the `PostgreSQL documentation <http://www.postgresql.org/docs>`_ to learn more.
@@ -57,7 +57,7 @@ Set the database name, user, password and port
 >>> from htsint import Configure
 >>> config = Configure()
 >>> config.log['dbuser'] = 'dbuser'
->>> config.log['dbname'] = 'hts-integrate'
+>>> config.log['dbname'] = 'htsintegrate'
 >>> config.log['dbpass'] = 'somepassword'
 >>> config.save()
 
