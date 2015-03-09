@@ -77,7 +77,7 @@ If you would like to add *Solanum lycopersicum* then use typical list syntax.  Y
 >>> config.log['taxa'].append('4081')
 >>> config.save()
 
-It may be useful to specify the directory where all the downloaded data is stored (use full path)
+There is a good chance you will want to specify the directory where all the downloaded data is stored.  This can be done with any valid full path.
 
 The default is
 
@@ -90,7 +90,7 @@ Alternatively, it is possible to edit this file directly.  To locate the directo
 >>> os.path.join(os.path.expanduser('~'),".hts-integrate")
 '/home/adam/.hts-integrate'
 
-The dbport (default '5432'), dbhost (default 'localhost') may also be configured.
+The dbport (default '5432') and dbhost (default 'localhost') may also be configured.
 
 .. note:: hts-integrate will only populate annotation information for taxa in the *taxa* variable so make sure all species are present **before** database population.
 
@@ -114,6 +114,8 @@ This class only currently works under Linux/OSX operating systems.  For other sy
    * `idmapping.dat.gz <ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/idmapping.dat.gz>`_
    * `uniprot_sprot.fasta.gz <ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.fasta.gz>`_
 
+The fetching can take several hours depending on the speed of your connection.  The compressed files total less than 15GB, but be aware that the uncompressed versions will take up over 100GB of space.  If space is an issue all files may be erased except ``uniprot_sprot.fasta.*`` and ``go.obo`` as the former is used for BLAST and the latter is not stored directly in the database and is used as part of most analysis pipelines.  
+
 A logfile is produced and stored in your data directory.
 
 (4) Populate the database
@@ -121,14 +123,35 @@ A logfile is produced and stored in your data directory.
 
 Finally, the database can be populated with the following class.
 
->>> from htsint.database DatabaseCreate
+>>> from htsint.database import DatabaseCreate
 >>> db = DatabaseCreate()
 >>> db.run()
 
-A logfile is produced and stored in your data directory.
+A typical database will take a little over an hour to populate.  A logfile is produced and stored in your data directory.
+
+A summary can be produced at any time using which will produce a similar output.
+
+>>> from htsint.database import print_db_summary
+>>> print_db_summary()
+   
+   .. code-block:: none
+
+      DATABASE - htsintegrate - SUMMARY
+      There are 1262260 entries in the taxa table
+      There are 681732 entries in the genes table
+      There are 777608 entries in the uniprot table
+      There are 42627 entries in the go_terms table
+      There are 7463568 entries in the go_annotations table
 
 Additional Notes
 -----------------
+
+What exactly is stored in the database?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+   * All taxa from `NCBI taxonomy <http://www.ncbi.nlm.nih.gov/taxonomy>`_
+   * Gene, UniProt and GO annotation information for only the specified taxa
+   * All information about GO terms
 
 Database updating
 ^^^^^^^^^^^^^^^^^^^^^^
