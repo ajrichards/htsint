@@ -165,7 +165,7 @@ class Heatmap(object):
         self.indx[str(dim)] = indx
         self.z[str(dim)] = z
 
-    def draw_heatmap(self,mat,cmap='uy',clabels=True,rlabels=False,rowFont=None):
+    def draw_heatmap(self,mat,cmap='uy',clabels=True,rlabels=False,rowFont=None,colFont=None):
         """
         draw the heatmap portion of the plot
         cmap can be a custom instance of a cmap
@@ -182,6 +182,8 @@ class Heatmap(object):
 
         if rowFont == None:
             rowFont = self.fontSize-2
+        if colFont == None:
+            colFont = self.fontSize
 
         self.plt.sca(self.ax3)
         ax = self.ax3
@@ -225,7 +227,7 @@ class Heatmap(object):
         ## handle axes
         if clabels and len(self.colLabels) > 0:
             ax.set_xticks(range(m))
-            ax.set_xticklabels(self.colLabels[self.indx['1']],fontsize=self.fontSize,fontname=self.fontName)
+            ax.set_xticklabels(self.colLabels[self.indx['1']],fontsize=colFont,fontname=self.fontName,rotation='vertical')
         
         if rlabels and len(self.rowLabels) > 0:
                 
@@ -237,6 +239,7 @@ class Heatmap(object):
                 ax.yaxis.set_ticks_position('right')
                 ax.set_yticks(range(n))
                 ax.set_yticklabels(self.rowLabels[self.indx['0']],fontsize=rowFont,fontname=self.fontName)
+
         
         ## colorbar
         self.plt.sca(self.ax4)
