@@ -3,7 +3,8 @@
 import os,sys,re
 from distutils.sysconfig import get_python_lib
 from shutil import copytree
-from numpy.distutils.core import setup
+from distutils.core import setup
+#from numpy.distutils.core import setup
 
 try:
     from py2exe.build_exe import py2exe
@@ -17,27 +18,26 @@ __author__ = "AJ Richards"
 
 DESCRIPTION = "API and database for high-throughput sequencing analyses."
 LONG_DESCRIPTION = """
-A package meant to construct Bayesian models that aid in the discovering of
-biomarkers via the integration high-throughput data sources with additional 
-covariates.
+A package that creates gene sets using unsupervised clustering. Gene sets are
+generated based on Gene Ontology information from one or more species.
 
 """
 
-def get_files(dirPath):
-    included = ["\.py"]
-    allFiles = []
-    for fileName in os.listdir(dirPath):
-        include = False
-        for pat in included:
-            if re.search(pat,fileName):
-                include = True
-        filePath = os.path.join(dirPath,fileName)
-        if include == True and os.path.isfile(filePath):
-            allFiles.append(os.path.realpath(filePath))
-            
-    return allFiles
+#def get_files(dirPath):
+#    included = ["\.py"]
+#    allFiles = []
+#    for fileName in os.listdir(dirPath):
+#        include = False
+#        for pat in included:
+#            if re.search(pat,fileName):
+#                include = True
+#        filePath = os.path.join(dirPath,fileName)
+#        if include == True and os.path.isfile(filePath):
+#            allFiles.append(os.path.realpath(filePath))
+#            
+#    return allFiles
 
-REQUIRES = ['numpy', 'matplotlib','pymc','networkx','sqlalchemy','biopython']
+REQUIRES = ['numpy', 'matplotlib','networkx','sqlalchemy','biopython']
 DISTNAME = 'htsint'
 LICENSE = 'BSD 3-Clause'
 AUTHOR = "Adam J Richards"
@@ -49,15 +49,14 @@ CLASSIFIERS = [
     'Intended Audience :: Science/Research',
     'Programming Language :: Python',
     'Topic :: Scientific/Engineering',
-    'License :: OSI Approved :: BSD 3-Clause'
+    'License :: OSI Approved :: BSD License'
 ]
 
-DATADIRS = ["database","blast","stats","tools"]
-FILES = {'': [os.path.join("htsint","*.py")],
-         'database': [os.path.join("htsint","database","*.py")],
-         'blast': [os.path.join("htsint","blast","*.py *.pl")],
-         'stats': [os.path.join("htsint","stats","*.py")],
-         'tools':[os.path.join("htsint","tools","*.py")]}
+
+FILES = {'htsint': [os.path.join('database','*.py'),
+                    os.path.join('stats','*.py'),
+                    os.path.join('blast','*.py'),
+                    os.path.join('tools','*.py')]}
 
 ISRELEASED = True
 VERSION = __version__
@@ -77,6 +76,5 @@ if __name__ == '__main__':
           packages=['htsint'],
           long_description=LONG_DESCRIPTION,
           classifiers=CLASSIFIERS,
-          package_data= FILES,
-          data_files= [(os.path.join('htsint',dn),get_files(os.path.join('htsint',dn))) for dn in DATADIRS],
+          package_data=FILES,
           platforms='any')

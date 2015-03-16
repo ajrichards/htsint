@@ -2,7 +2,7 @@
 Introduction
 ************
 
-:Version: 0.4
+:Version: 0.4.1
 :Authors: Adam Richards
 :Web site: https://github.com/ajrichards/hts-integrate
 :Documentation: http://ajrichards.github.io/hts-integrate

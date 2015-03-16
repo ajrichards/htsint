@@ -36,7 +36,7 @@ class BlastMapper(object):
         self.conn = self.engine.connect()
         self.hits = None
 
-    def create_summarized(self,parsedFilePath,summaryFilePath=None,large=False):
+    def create_summarized(self,parsedFilePath,summaryFilePath=None,large=False,refseq=False):
         """
         htsint uses output 5 (XML) and then parses it into a simple csv file
         """
@@ -71,12 +71,18 @@ class BlastMapper(object):
             uniprotEntries.update([hitId])
                  
         uniprotEntries = list(uniprotEntries)
+
+        if refseq:
+            print("Quering %s refseq ids for Uniprot matches"%(len(uniprotEntries)))
+            refseqEntries = uniprotEntries
+            refseq2uniprot = {}
+            results = self.conn.execute(Uniprot.__table__.select(Uniprot.refseq.in_(refseqEntries)))
+            for row in results:
+                refseq2uniprot[str(row.refseq)] = str(row.uniprot_entry)
+            uniprotEntries = list(set(refseq2uniprot.values()))
         fidin.close()
 
         print("batch querying %s UniProt entries in the database... this may take some time"%(len(uniprotEntries)))
-        #results = self.conn.execute(mytable.__table__.select(mytable.value.in_(values))
-        #vailable_values = set(row.value for row in results)
-
         timeStart = time.time()
         upEntry2Gene, upEntry2Taxa = {},{}
         if large == False:
@@ -120,7 +126,7 @@ class BlastMapper(object):
             hitIdLong = linja[2]
             eScore = linja[3]
             bitScore = linja[4]
-            queryId = query.split(" ")[0]            
+            queryId = query.split(" ")[0]
 
             _hitId  = hitIdLong.split(" ")[1].split("|")
             if _hitId[-1] == '':
@@ -129,11 +135,18 @@ class BlastMapper(object):
                 hitId = _hitId[-1]
             
             hitNcbiId,hitSpeciesNcbiId = '-','-'
-            hitSpecies = re.findall("OS=.+[A-Z]=",hitIdLong)[0][3:-4]
+
+            if refseq:
+                hitSpecies = re.findall("\[.+\]",hitIdLong)[0][1:-1]
+            else:
+                hitSpecies = re.findall("OS=.+[A-Z]=",hitIdLong)[0][3:-4]
             if re.findall("[A-Z]=",hitSpecies):
                 hitSpecies = hitSpecies[:re.search("[A-Z]=",hitSpecies).start()-2]
 
             ## map the uniprot id to gene
+            if refseq and refseq2uniprot.has_key(hitId):
+                hitId = refseq2uniprot[hitId]
+
             if upEntry2Gene.has_key(hitId) and str(upEntry2Gene[hitId]) != 'None':
                 if gene2id.has_key(upEntry2Gene[hitId]) and str(gene2id[upEntry2Gene[hitId]]) != 'None':
                     hitNcbiId = gene2id[upEntry2Gene[hitId]]
@@ -145,8 +158,7 @@ class BlastMapper(object):
                     hitSpeciesNcbiId = taxaId2Ncbi[upEntry2Taxa[hitId]]
                 else:
                     print 'Were in! but taxaId2Ncbi does not have', upEntry2Taxa[hitId]
-            else:
-                print 'upEntry2Taxa does not have', hitId
+           
             writer.writerow([queryId,hitId,hitNcbiId,hitSpecies,hitSpeciesNcbiId,eScore])
 
         fidin.close()
