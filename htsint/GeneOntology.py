@@ -4,7 +4,6 @@ import networkx as nx
 from sqlalchemy.sql import select
 from htsint.database import Base,Taxon,Gene,Uniprot,GoTerm,GoAnnotation,db_connect
 from htsint.database import read_ontology_file,fetch_taxa_annotations
-from htsint.stats import EmpiricalCdf
 
 """
 Classes used to interact with gene ontology data
@@ -209,8 +208,7 @@ class GeneOntology(object):
         ## add the edges through shared genes
         if addShared == True:
             print('...adding term-term edges through shared genes')
-            eCDF = EmpiricalCdf(allDistances)
-            p5 = eCDF.get_percentile(0.05) 
+            p5 = np.percentile(allDistances,0.05)
             newEdges = 0
             for termI,genesI in go2gene.iteritems():
                 for termJ,genesJ in go2gene.iteritems():
