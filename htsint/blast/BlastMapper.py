@@ -136,10 +136,16 @@ class BlastMapper(object):
             
             hitNcbiId,hitSpeciesNcbiId = '-','-'
 
-            if refseq:
+            ## extract species id
+            if re.search("OS=.+[A-Z]=",hitIdLong):
+                hitSpecies = re.findall("OS=.+[A-Z]=",hitIdLong)[0][3:-4]
+            elif re.search("\[.+\]",hitIdLong):
                 hitSpecies = re.findall("\[.+\]",hitIdLong)[0][1:-1]
             else:
-                hitSpecies = re.findall("OS=.+[A-Z]=",hitIdLong)[0][3:-4]
+                print("WARNING: cannot find hitSpecies\n%s"%hitIdLong)
+                hitSpecies = '-'
+            
+            ## clean species name    
             if re.findall("[A-Z]=",hitSpecies):
                 hitSpecies = hitSpecies[:re.search("[A-Z]=",hitSpecies).start()-2]
 
@@ -224,8 +230,6 @@ class BlastMapper(object):
             totalHits += 1
 
             # filtering
-            if '-' in linja:
-                continue
             if _evalue > evalue:
                 evalueFilter += 1
                 continue
