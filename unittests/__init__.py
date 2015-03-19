@@ -36,3 +36,8 @@ GeneOntologySuite = unittest.TestSuite([GeneOntologyTestSuite])
 from BlastTest import *
 BlastTestSuite = unittest.TestLoader().loadTestsFromTestCase(BlastTest)
 BlastSuite = unittest.TestSuite([BlastTestSuite])
+
+from BlastMapperTest import *
+BlastMapperTestSuite = unittest.TestLoader().loadTestsFromTestCase(BlastMapperTest)
+BlastMapperSuite = unittest.TestSuite([BlastMapperTestSuite])
+

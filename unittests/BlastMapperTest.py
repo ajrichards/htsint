@@ -46,6 +46,7 @@ class BlastTest(unittest.TestCase):
         summaryFile = re.sub("\.csv","",self.parsedFile)+"_summary.csv"
         bmap = self.bm.load_summary(summaryFile,taxaList=["10090"])
         self.assertEqual(bmap['GG11117|c2_g1_i1'][0],'INT1_MOUSE')
+        self.assertEqual(bmap['GG11117|c2_g1_i1'][1],'68510')
         
         bmap = self.bm.load_summary(summaryFile,taxaList=["10090"],trinityGene=True)
         self.assertEqual(bmap['GG11117|c2_g1'][0],'INT1_MOUSE')
