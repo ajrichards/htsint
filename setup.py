@@ -23,20 +23,6 @@ generated based on Gene Ontology information from one or more species.
 
 """
 
-#def get_files(dirPath):
-#    included = ["\.py"]
-#    allFiles = []
-#    for fileName in os.listdir(dirPath):
-#        include = False
-#        for pat in included:
-#            if re.search(pat,fileName):
-#                include = True
-#        filePath = os.path.join(dirPath,fileName)
-#        if include == True and os.path.isfile(filePath):
-#            allFiles.append(os.path.realpath(filePath))
-#            
-#    return allFiles
-
 REQUIRES = ['numpy', 'matplotlib','networkx','sqlalchemy','biopython']
 DISTNAME = 'htsint'
 LICENSE = 'BSD 3-Clause'

@@ -81,12 +81,13 @@ class ParseBlast(object):
         result_handle = open(self.filePath)
         blast = NCBIXML.parse(result_handle)
 
-        hasResults = 0
-        totalResults = 0
+        hasResults = set([])
+        noResults = set([])
+        totalHits = 0
         print "parsing... %s"%('0'),
         for record in blast:
-            totalResults += 1
-            print "\rparsing... %s"%(totalResults),
+            totalHits += 1
+            print "\rparsing... %s"%(totalHits),
             if record.alignments:
                 query = record.query
                 for align in record.alignments:
@@ -97,11 +98,16 @@ class ParseBlast(object):
                 
                     ## remove any commas and write the results
                     self.resultsWriter.writerow([re.sub(",", "", x) for x in [query,str(identifier),hitIdLong]] + [escore,bitScore])
-                    hasResults += 1
+                    hasResults.update([query])
+            else:
+                noResults.update([record.query])
 
-        self.push_out("total blasted sequences: %s"%totalResults)
-        self.push_out("sequences with at least one match : %s"%hasResults)
-        self.push_out("percentage of sequences at least one match: %s"%(float(hasResults) / totalResults))
+        hasResults = list(hasResults)
+        noResults = list(noResults)
+        print("\n")
+        self.push_out("total hits: %s"%totalHits)
+        self.push_out("sequences with at least one match : %s"%len(hasResults))
+        self.push_out("sequences without any matches: %s"%len(noResults))
 
         ## clean up
         if self.fid1 != None:
