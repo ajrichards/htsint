@@ -39,6 +39,8 @@ class BlastMapper(object):
     def create_summarized(self,parsedFilePath,summaryFilePath=None,large=False,refseq=False):
         """
         htsint uses output 5 (XML) and then parses it into a simple csv file
+        large - use True if the parsed file as more than a few hundred hits
+        refseq - use True if the target database used RefSeq identifiers
         """
         
         ## error checking
@@ -169,6 +171,8 @@ class BlastMapper(object):
 
         fidin.close()
         fidout.close()
+        
+        return summaryFilePath
 
     def load_summary(self,filePath,taxaList=None,trinityGene=False,evalue=0.0001,best=True):
         """

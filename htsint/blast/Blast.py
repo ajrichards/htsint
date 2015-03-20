@@ -127,6 +127,8 @@ class Blast(object):
         stdout, stderr = blastx_cline()
         print "Total run time: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
 
+        return outFilePath
+
 if __name__ == "__main__":
 
     ## read in input file 

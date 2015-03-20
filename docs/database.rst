@@ -12,9 +12,9 @@ The schema for the database.
    :figclass: align-center
 
 
-The main uses of the database are:
+The main uses of the database are documented here:
 
-   * :doc:`name mapping <name-mapping>`
+   * :doc:`database cookbook <database-cookbook>`
    * :doc:`annotation fetching <annotation-fetching>`
 
 

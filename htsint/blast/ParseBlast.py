@@ -56,6 +56,7 @@ class ParseBlast(object):
             self.resultsWriter.writerow(["query","hit-identifier","hit-identifier-long","e-score","bit-score"])
         else:
             self.resultsWriter = fhResults
+        self.outFile = outFile
 
         ## set the environmental variable if specified  
         if BLASTDB != None:
@@ -115,3 +116,5 @@ class ParseBlast(object):
         if self.fid2 != None:
             self.fid2.close()
         print 'complete.'
+
+        return self.outFile
