@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Database &mdash; hts-integrate - 0.4.0</title>
+    <title>Database &mdash; hts-integrate - 0.4.1</title>
     
     <link rel="stylesheet" href="_static/agogo.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -23,19 +23,19 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="hts-integrate - 0.4.0" href="index.html" />
-    <link rel="next" title="Name-mapping" href="name-mapping.html" />
+    <link rel="top" title="hts-integrate - 0.4.1" href="index.html" />
+    <link rel="next" title="Common database tasks" href="database-cookbook.html" />
     <link rel="prev" title="Installation" href="install.html" /> 
   </head>
   <body>
     <div class="header-wrapper">
       <div class="header">
         <div class="headertitle"><a
-          href="index.html">hts-integrate - 0.4.0</a></div>
+          href="index.html">hts-integrate - 0.4.1</a></div>
         <div class="rel">
           <a href="install.html" title="Installation"
              accesskey="P">previous</a> |
-          <a href="name-mapping.html" title="Name-mapping"
+          <a href="database-cookbook.html" title="Common database tasks"
              accesskey="N">next</a> |
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a>
@@ -57,10 +57,10 @@
 <div class="align-center figure">
 <a class="reference internal image-reference" href="_images/dbschema.png"><img alt="database schema" src="_images/dbschema.png" style="width: 699.93px; height: 393.03px;" /></a>
 </div>
-<p>The main uses of the database are:</p>
+<p>The main uses of the database are documented here:</p>
 <blockquote>
 <div><ul class="simple">
-<li><a class="reference internal" href="name-mapping.html"><em>name mapping</em></a></li>
+<li><a class="reference internal" href="database-cookbook.html"><em>database cookbook</em></a></li>
 <li><a class="reference internal" href="annotation-fetching.html"><em>annotation fetching</em></a></li>
 </ul>
 </div></blockquote>
@@ -111,11 +111,27 @@ CREATE DATABASE htsintegrate WITH OWNER dbuser;
 </div>
 <p>Check that all taxa that you would like annotation information for are present.  You can print the default taxa with</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">log</span><span class="p">[</span><span class="s">&#39;taxa&#39;</span><span class="p">])</span>
-<span class="go">[&#39;10566&#39;, &#39;9606&#39;, &#39;10090&#39;, &#39;8364&#39;, &#39;10116&#39;, &#39;9913&#39;, &#39;8355&#39;, &#39;9031&#39;, &#39;9601&#39;, &#39;7955&#39;, &#39;9823&#39;, &#39;9986&#39;, &#39;9615&#39;,\</span>
-<span class="go"> &#39;9541&#39;, &#39;9598&#39;, &#39;7227&#39;, &#39;10029&#39;, &#39;100141&#39;, &#39;9796&#39;, &#39;3702&#39;]</span>
 </pre></div>
 </div>
-<p>If you would like to add <em>Solanum lycopersicum</em> then use typical list syntax.  You need to save any changes you make.</p>
+<p>The default taxa are:</p>
+<blockquote>
+<div><div class="highlight-none"><div class="highlight"><pre>3702, Arabidopsis thaliana
+4932, Saccharomyces cerevisiae
+5476, Candida albicans
+7227, Drosophila melanogaster
+7955, Danio rerio
+8355, Xenopus laevis
+8364, Xenopus (Silurana) tropicalis
+9031, Gallus gallus
+9606, Homo sapiens
+10090, Mus musculus
+10566, Human papillomavirus
+10116, Rattus norvegicus
+28377, Anolis carolinensis
+</pre></div>
+</div>
+</div></blockquote>
+<p>If you would like to add, for example,  <em>Solanum lycopersicum</em> then use typical list syntax.  You need to save any changes you make.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="o">.</span><span class="n">log</span><span class="p">[</span><span class="s">&#39;taxa&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;4081&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
 </pre></div>
@@ -239,7 +255,7 @@ CREATE DATABASE newdbname WITH OWNER dbuser;
 <li class="toctree-l1 current"><a class="current reference internal" href="">Database</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="name-mapping.html">Namespace mapping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="database-cookbook.html">Database cookbook</a></li>
 <li class="toctree-l1"><a class="reference internal" href="blast.html">Using BLAST</a></li>
 <li class="toctree-l1"><a class="reference internal" href="annotation-fetching.html">Gene Ontology annotation fetching</a></li>
 <li class="toctree-l1"><a class="reference internal" href="deseq-example.html">Gene level differential expression</a></li>
@@ -266,7 +282,7 @@ CREATE DATABASE newdbname WITH OWNER dbuser;
         <div class="left">
           <a href="install.html" title="Installation"
              >previous</a> |
-          <a href="name-mapping.html" title="Name-mapping"
+          <a href="database-cookbook.html" title="Common database tasks"
              >next</a> |
           <a href="genindex.html" title="General Index"
              >index</a>
@@ -279,7 +295,7 @@ CREATE DATABASE newdbname WITH OWNER dbuser;
           
     <div class="footer">
         &copy; Copyright 2015, A. Richards.
-      Last updated on Mar 09, 2015.
+      Last updated on Mar 20, 2015.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
         </div>
