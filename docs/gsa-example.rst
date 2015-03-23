@@ -1,0 +1,94 @@
+.. pipeline example
+
+Gene set analysis
+======================
+
+The procedure for gene set analysis using ``htsint`` is made up of two steps, where first we generate the groups of genes, then they are tested for significance and visualized.  This tutorial is also available as a script.
+
+   * :download:`gsa-example.py`
+
+Gene set generation
+----------------------------
+
+The basic process involves integrating Gene Ontology [Ashburner00]_ information from one or more taxa to infer functional distances between genes.  These distances are then used to cluster the genes in a specified list.  These genes are any groups of genes that you might want to cluster.  For example, you may use the genes in a large pathway or all genes from an RNA-Seq experiment, as is the case in this example.
+
+1. Run :doc:`BLAST and create a summarized blast map <blast>`.  To save time in the tutorial here is an example BLAST summary file.
+
+   * :download:`blast-parsed-summary.csv <blast-parsed-summary.csv>`
+
+   Load the file.
+
+   >>> from htsint.blast import BlastMapper
+   >>> bm = BlastMapper()
+   >>> bmap = bm.load_summary('blast-parsed-summary.csv',best=False)
+
+
+Create a term graph
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Because genes and their ontology terms will be loaded multiple times fetch the annotations only once then save the dictionaries.
+
+   >>> from htsint import GeneOntology
+   >>> go = GeneOntology(["8364","8355"],useIea=False,aspect='molecular_function')
+   >>> termsPath = "go-terms.pickle"
+   >>> graphPath = "go-graph.pickle"
+   >>> go.create_dicts(termsPath)
+   >>> gene2go,go2gene = go.load_dicts(termsPath)
+   >>> G = go.create_gograph(termsPath=termsPath,graphPath=graphPath)
+   >>> print("%s genes have at least one annotation"%(len(gene2go.keys())))
+   Term graph for with 15719 nodes successfully created.
+   >>> print("Term graph for with %s nodes successfully created."%(len(G.nodes())))
+   1291 genes have at least one annotation
+
+The valid GO aspects are: 'biological_process', 'molecular_function' and 'cellular_component'.
+
+Calculate term distances
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Ideally, this step is carried out in a cluster environment and if you are using `Grid Engine <http://gridscheduler.sourceforge.net>`_ then use the built-in methods.  Whether you are in a high performance environment or on a single machine the initialization is the same. 
+
+   >>> from htsint import TermDistances
+   >>> td = TermDistances(termsPath,graphPath)
+   >>> termDistancePath = "term-distances.csv"
+
+Using Grid Engine:
+"""""""""""""""""""""
+
+   >>> cpus = 60
+   >>> td.create_scripts('youremail@somewhere.edu',cpus=cpus)
+   >>> td.submit()
+
+Before you submit you can check in the ``htsint-tmp`` directory that was created in the current working directory to ensure the Bash scripts work for your computing environment.  The results are then assembled into a single file.
+
+   >>> from htsint import AssembleDistances
+   >>> ad = AssembleDistances(termsPath,graphPath,resultsPath=termDistancePath)
+   >>> ad.run(cpus=cpus)
+
+Using single machine
+""""""""""""""""""""""
+
+   >>> td.run_with_multiprocessing(termDistancePath,cpus=16)
+
+This is the most computationally expensive step in the pipeline so for lists with more than a few thousand genes this calculation becomes difficult outside of a cluster environment.  Using 16 cores on a single machine the previous command finished in 00:29:03 (hh:mm:ss).
+
+Calculate gene distances
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+With the term-term distances stored in the distance file we can map the gene-gene distances.
+
+   >>> from htsint import GeneDistances
+   >>> geneDistancePath = "gene-distances.csv"
+   >>> gd = GeneDistances(termsPath,graphPath,termDistancePath,outFile=geneDistancePath)
+   >>> gd.run()
+
+Spectral Clustering
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+Save gene sets
+^^^^^^^^^^^^^^^^^^^^
+
+
+
+
+

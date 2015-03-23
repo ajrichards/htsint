@@ -37,5 +37,5 @@ Tutorials:
    Using BLAST <blast>
    Gene Ontology annotation fetching <annotation-fetching>
    Gene level differential expression <deseq-example>
-   Geneset pipeline example <pipeline-example>
+   Gene set analysis example <gsa-example>
    References <references>

@@ -164,15 +164,13 @@ class TermDistances(object):
             return dijkDist
         return None
 
-    def run_with_multiprocessing(self,resultsFilePath,chunkSize=1000,cpus=7):
+    def run_with_multiprocessing(self,resultsFilePath,chunkSize=1000,cpus=8):
         """
-        experimental
+        method to calculate distances on a single multicore machine
         """
 
         ## create a results file )
         outFid = open(resultsFilePath,'w')
-        writer = csv.writer(outFid)
-        writer.writerow(["i","j","distance"])
 
         ## assemble the pairwise terms
         print("loading data")
@@ -185,15 +183,10 @@ class TermDistances(object):
                 
         print("loaded.")
 
-        #####################################
-        #print("DEBUG is on")
-        #pairwiseTerms = pairwiseTerms[:1000]
-        #chunkSize = 300
-        ####################################
-
         start = 0
         stop = chunkSize
-        
+        lineCount = 0 
+        mat = np.zeros((len(pairwiseTerms)),).astype(str)
         numChunks = int(np.ceil(float(len(pairwiseTerms) / float(chunkSize))))
         for chunk in range(numChunks):
             p = Pool(cpus)
@@ -204,13 +197,14 @@ class TermDistances(object):
  
             for row in results:
                 if row:
-                    writer.writerow(row)
+                    lineCount+=1
+                    mat[lineCount,:] = row
         
             print("%s"%((start+chunkSize)/float(len(pairwiseTerms)) * 100.0)+"% complete")
             start += chunkSize
 
         outFid.close()
-        #_results = p.map(mp_worker, pairwiseTerms)
+        np.save(outFile,mat)
 
 if __name__ == "__main__":
     ## read in input file      
@@ -238,36 +232,3 @@ if __name__ == "__main__":
 
     td = TermDistances(termsPath,termGraphPath,resultsDir)
     td.run(first=first,last=last)
-
-
-"""
-import multiprocessing
-
-class MyFancyClass(object):
-    
-    def __init__(self, name):
-        self.name = name
-    
-    def do_something(self):
-        proc_name = multiprocessing.current_process().name
-        print 'Doing something fancy in %s for %s!' % (proc_name, self.name)
-
-
-def worker(q):
-    obj = q.get()
-    obj.do_something()
-
-
-if __name__ == '__main__':
-    queue = multiprocessing.Queue()
-
-    p = multiprocessing.Process(target=worker, args=(queue,))
-    p.start()
-    
-    queue.put(MyFancyClass('Fancy Dan'))
-    
-    # Wait for the worker to finish
-    queue.close()
-    queue.join_thread()
-    p.join()
-"""

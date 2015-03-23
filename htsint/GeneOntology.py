@@ -117,7 +117,7 @@ class GeneOntology(object):
             raise Exception("Invalid aspect specified%s"%self.aspect)
 
         ## gene2go
-        print("...creating gene2go dictionary -- this may take several minutes or longer on the number of genes")
+        print("...creating gene2go dictionary -- this may take several minutes or longer depending on the number of genes")
         _gene2go,prot2go = fetch_taxa_annotations(self.taxaList,self.engine,aspect=self.aspect,\
                                                  useIea=self.useIea)
 
