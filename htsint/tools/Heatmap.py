@@ -72,8 +72,8 @@ class Heatmap(object):
 
     """
 
-    def __init__(self,width=6,height=7,rowLabels=[],colLabels=[],title=None,dpi=300,
-                 hpad=0.1,vpad=0.05,fontSize=10,fontName='sans-serif'):
+    def __init__(self,mat,rowLabels,colLabels,width=6,height=7,title=None,dpi=300,
+                 hpad=0.14,vpad=0.05,fontSize=10,fontName='sans-serif'):
         """ 
         Constructor
         """
@@ -82,13 +82,14 @@ class Heatmap(object):
         self.z = {}
         self.fontSize = fontSize
         self.fontName = fontName
-        
+        self.mat = mat
 
         if type(rowLabels) == type([]):
             self.rowLabels = np.array(rowLabels)
         else:
             self.rowLabels = rowLabels
-        if type(colLabels)== type([]):
+        
+        if type(colLabels) == type([]):
             self.colLabels = np.array(colLabels)
         else:
             self.colLabels = colLabels
@@ -133,7 +134,12 @@ class Heatmap(object):
 
         self.title = None
 
-    def cluster(self,mat,dim,labels=None):
+        ## cluster the matrix
+        self.mat = mat
+        self.cluster(0)
+        self.cluster(1)
+
+    def cluster(self,dim,labels=None):
         """
         use hierarchical clustering to group the data
         dim = 0 are the rows
@@ -142,13 +148,13 @@ class Heatmap(object):
         
         if dim == 0:
             print("clustering the rows...")
-            x = mat
+            x = self.mat
             orientation='right'
             self.plt.sca(self.ax2)
             ax = self.ax2
         if dim == 1:
             print("clustering the columns...")
-            x = mat.transpose()
+            x = self.mat.transpose()
             orientation='top'
             self.plt.sca(self.ax1)
             ax = self.ax1
@@ -165,7 +171,7 @@ class Heatmap(object):
         self.indx[str(dim)] = indx
         self.z[str(dim)] = z
 
-    def draw_heatmap(self,mat,cmap='uy',clabels=True,rlabels=False,rowFont=None,colFont=None):
+    def draw_heatmap(self,cmap='uy',clabels=True,rlabels=False,rowFont=None,colFont=None):
         """
         draw the heatmap portion of the plot
         cmap can be a custom instance of a cmap
@@ -188,7 +194,7 @@ class Heatmap(object):
         self.plt.sca(self.ax3)
         ax = self.ax3
 
-        n,m = mat.shape
+        n,m = self.mat.shape
         
         if not self.indx.has_key('0') or not self.indx.has_key('1'):
             raise Exception("cluster before plotting heatmap")
@@ -220,7 +226,7 @@ class Heatmap(object):
             return False, dict()
 
         ## reorder matrix
-        matReordered = mat[self.indx['0'],:]
+        matReordered = self.mat[self.indx['0'],:]
         matReordered = matReordered[:,self.indx['1']]
         hmap = ax.imshow(matReordered, interpolation='nearest',aspect='auto',cmap=cmap,picker=mat_picker,origin='lower')
 
@@ -240,12 +246,11 @@ class Heatmap(object):
                 ax.set_yticks(range(n))
                 ax.set_yticklabels(self.rowLabels[self.indx['0']],fontsize=rowFont,fontname=self.fontName)
 
-        
         ## colorbar
         self.plt.sca(self.ax4)
         ax = self.ax4
 
-        val = np.ceil(np.abs(mat).max())
+        val = np.ceil(np.abs(self.mat).max())
         norm = mpl.colors.Normalize(vmin=-1*val, vmax=val)
         cb1 = mpl.colorbar.ColorbarBase(ax,cmap=cmap,
                                         ticks=[int(round(i)) for i in np.linspace(-1*val,val,5)],

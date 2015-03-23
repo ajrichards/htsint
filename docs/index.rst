@@ -38,3 +38,4 @@ Tutorials:
    Gene Ontology annotation fetching <annotation-fetching>
    Gene level differential expression <deseq-example>
    Geneset pipeline example <pipeline-example>
+   References <references>
