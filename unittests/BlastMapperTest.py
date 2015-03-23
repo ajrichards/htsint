@@ -13,7 +13,7 @@ from htsint.blast import BlastMapper
 from htsint import __basedir__
 
 ## test class for the main window function
-class BlastTest(unittest.TestCase):
+class BlastMapperTest(unittest.TestCase):
     """
     Run a number of tests using taxa id
     """
