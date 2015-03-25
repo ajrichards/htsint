@@ -169,9 +169,6 @@ class TermDistances(object):
         method to calculate distances on a single multicore machine
         """
 
-        ## create a results file )
-        outFid = open(resultsFilePath,'w')
-
         ## assemble the pairwise terms
         print("loading data")
         pairwiseTerms = []
@@ -186,7 +183,7 @@ class TermDistances(object):
         start = 0
         stop = chunkSize
         lineCount = 0 
-        mat = np.zeros((len(pairwiseTerms)),).astype(str)
+        mat = np.zeros((len(pairwiseTerms),3),).astype(str)
         numChunks = int(np.ceil(float(len(pairwiseTerms) / float(chunkSize))))
         for chunk in range(numChunks):
             p = Pool(cpus)
@@ -203,8 +200,7 @@ class TermDistances(object):
             print("%s"%((start+chunkSize)/float(len(pairwiseTerms)) * 100.0)+"% complete")
             start += chunkSize
 
-        outFid.close()
-        np.save(outFile,mat)
+        np.save(resultsFilePath,mat)
 
 if __name__ == "__main__":
     ## read in input file      

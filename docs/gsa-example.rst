@@ -3,7 +3,13 @@
 Gene set analysis
 ======================
 
-The procedure for gene set analysis using ``htsint`` is made up of two steps, where first we generate the groups of genes, then they are tested for significance and visualized.  This tutorial is also available as a script.
+The procedure in this tutorial example to carry out gene set analysis using ``htsint`` is composed of three main steps. 
+
+   #. Gene set generation
+   #. Gene set testing
+   #. Gene set visualization
+
+This example takes approximately 30 minutes to complete on a modern desktop computer.  The code discussed in this document is available as a script for convenience.
 
    * :download:`gsa-example.py`
 
@@ -12,7 +18,7 @@ Gene set generation
 
 The basic process involves integrating Gene Ontology [Ashburner00]_ information from one or more taxa to infer functional distances between genes.  These distances are then used to cluster the genes in a specified list.  These genes are any groups of genes that you might want to cluster.  For example, you may use the genes in a large pathway or all genes from an RNA-Seq experiment, as is the case in this example.
 
-1. Run :doc:`BLAST and create a summarized blast map <blast>`.  To save time in the tutorial here is an example BLAST summary file.
+1. Run :doc:`BLAST and create a summarized blast map <blast>`.  To save time in this tutorial we provide an example summary file below.
 
    * :download:`blast-parsed-summary.csv <blast-parsed-summary.csv>`
 
@@ -21,7 +27,6 @@ The basic process involves integrating Gene Ontology [Ashburner00]_ information 
    >>> from htsint.blast import BlastMapper
    >>> bm = BlastMapper()
    >>> bmap = bm.load_summary('blast-parsed-summary.csv',best=False)
-
 
 Create a term graph
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -45,7 +50,7 @@ The valid GO aspects are: 'biological_process', 'molecular_function' and 'cellul
 Calculate term distances
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Ideally, this step is carried out in a cluster environment and if you are using `Grid Engine <http://gridscheduler.sourceforge.net>`_ then use the built-in methods.  Whether you are in a high performance environment or on a single machine the initialization is the same. 
+Ideally, this step is carried out in a cluster environment and if you are using `Grid Engine <http://gridscheduler.sourceforge.net>`_ then there are built-in convenience methods.  Whether you are in a high performance environment or on a single machine the initialization is the same. 
 
    >>> from htsint import TermDistances
    >>> td = TermDistances(termsPath,graphPath)
@@ -61,7 +66,7 @@ Using Grid Engine:
 Before you submit you can check in the ``htsint-tmp`` directory that was created in the current working directory to ensure the Bash scripts work for your computing environment.  The results are then assembled into a single file.
 
    >>> from htsint import AssembleDistances
-   >>> ad = AssembleDistances(termsPath,graphPath,resultsPath=termDistancePath)
+   >>> ad = AssembleDistances(termsPath,resultsPath=termDistancePath)
    >>> ad.run(cpus=cpus)
 
 Using single machine
@@ -69,7 +74,7 @@ Using single machine
 
    >>> td.run_with_multiprocessing(termDistancePath,cpus=16)
 
-This is the most computationally expensive step in the pipeline so for lists with more than a few thousand genes this calculation becomes difficult outside of a cluster environment.  Using 16 cores on a single machine the previous command finished in 00:29:03 (hh:mm:ss).
+This is the most computationally expensive step in the pipeline so for lists with more than a few thousand genes this calculation becomes difficult outside of a cluster environment.  Using 16 cores on a single machine the previous command finished in 00:27:32 (hh:mm:ss).
 
 Calculate gene distances
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -83,6 +88,8 @@ With the term-term distances stored in the distance file we can map the gene-gen
 
 Spectral Clustering
 ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+   
 
 
 Save gene sets

@@ -7,7 +7,6 @@ __author__ = "Adam Richards"
 
 import os,sys,csv,shutil,cPickle,getopt
 import numpy as np
-import networkx as nx
 from basedir import __basedir__
 
 class GeneDistances(object):
@@ -15,19 +14,18 @@ class GeneDistances(object):
     A generic class to handle calculate gene distances using term distances
     """
 
-    def __init__(self,termsPath,termGraphPath,termDistancesPath,outFile=None):
+    def __init__(self,termsPath,termDistancesPath,outFile=None):
         """
         Constructor
         """
 
         ## error checking
-        for path in [termGraphPath, termsPath]:
+        for path in [termsPath]:
             if os.path.exists(path) == False:
                 raise Exception("Cannot find specified path\n%s"%path)
         
         ## variables
         self.termsPath = os.path.realpath(termsPath)
-        self.termGraphPath = os.path.realpath(termGraphPath)
         self.queue = []
         self.baseDir =  os.path.realpath(os.path.dirname(__file__))
             
@@ -37,7 +35,6 @@ class GeneDistances(object):
             self.outFile = outFile
 
         ## load the graph, the terms and the term distances
-        self.G = nx.read_gpickle(self.termGraphPath)
         tmp = open(self.termsPath,'r')
         self.gene2go,self.go2gene = cPickle.load(tmp)
         tmp.close()
@@ -45,8 +42,12 @@ class GeneDistances(object):
         ## read in the term distances
         termDist = {}
         mat = np.load(termDistancesPath)
+        print mat
+        print mat.shape
+
 
         for i in range(mat.shape[0]):
+            
             linja = mat[i,:]
 
             if not termDist.has_key(linja[0]):
