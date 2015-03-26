@@ -9,7 +9,7 @@ import os,sys,csv,shutil,cPickle,getopt
 import numpy as np
 import networkx as nx
 from basedir import __basedir__
-from multiprocessing import Pool, cpu_count, Manager
+from multiprocessing import Pool, cpu_count
 
 def mp_worker((source,sink,graphPath)):
     """

@@ -53,6 +53,7 @@ unittests/blast-parsed_summary.csv
 
 ## docs
 docs/_sphinx/*
+docs/demo/*
 
 ## database directory
 htsint/database/createdb.log

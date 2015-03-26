@@ -18,7 +18,7 @@ In Advances in Neural Information Processing Systems 17, 2004
 
 __author__ = "Adam Richards"
 
-import sys
+import sys,os,re,csv
 import numpy as np
 from scipy.spatial.distance import pdist,cdist,squareform
 from scipy.cluster.vq import kmeans2
@@ -31,7 +31,7 @@ class SpectralCluster(object):
     M - similarity matrix
     k - the number of clusters
     sigma - bandwidth parameter for the kernel
-    similarity - default is a similarity matrix
+    dtype - 'points','distance','similarity' [default]
 
     """
 
@@ -41,10 +41,49 @@ class SpectralCluster(object):
         dtype - matrix type [points|distance|similarity|]
         """
 
-        ## error checkinn
+        ## error check
         dtype = dtype.lower()
         if dtype not in ['points','distance','similarity']:
             raise Exception("Invalid dtype %s"%dtype)
+
+        ## if M is a filepath with lines (i,j,[dist|sim]) then save/load
+        if type(M) == type('str') and os.path.exists(M) and re.search(".csv",M):
+            distancesPath = M
+            matrixPath = re.sub("\.csv","-matrix.npy",distancesPath)
+            genesPath = re.sub("\.csv","-genes.npy",distancesPath)
+            if not os.path.exists(matrixPath):
+                print("...saving matrix in binary format for faster indexing")
+                fid = open(distancesPath,'r')
+                reader = csv.reader(fid)
+                header = reader.next()
+
+                items = set([])
+                for linja in reader:
+                    items.update(linja[:1])
+                fid.close()
+                items = np.sort(np.array(list(items)))
+
+                ## create the similarity matrix
+                M = np.zeros((items.size,items.size),)
+                fid = open(distancesPath,'r')
+                reader = csv.reader(fid)
+                header = reader.next()
+                for linja in reader:
+                    i = np.where(items == linja[0])
+                    j = np.where(items == linja[1])
+                    M[i,j] = float(linja[2])
+                    M[j,i] = float(linja[2])
+
+                fid.close()
+                np.save(genesPath,items)
+                np.save(matrixPath,M)
+            else:
+                M = np.load(matrixPath)
+                items = np.load(genesPath)
+
+        ## error check
+        if type(M) != type(np.array([1,2,3])):
+            raise Exception("M must be a matrix or a valid file path to a matrix")
 
         if dtype == 'points':
             _M = M.copy()

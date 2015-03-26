@@ -18,16 +18,6 @@ Gene set generation
 
 The basic process involves integrating Gene Ontology [Ashburner00]_ information from one or more taxa to infer functional distances between genes.  These distances are then used to cluster the genes in a specified list.  These genes are any groups of genes that you might want to cluster.  For example, you may use the genes in a large pathway or all genes from an RNA-Seq experiment, as is the case in this example.
 
-1. Run :doc:`BLAST and create a summarized blast map <blast>`.  To save time in this tutorial we provide an example summary file below.
-
-   * :download:`blast-parsed-summary.csv <blast-parsed-summary.csv>`
-
-   Load the file.
-
-   >>> from htsint.blast import BlastMapper
-   >>> bm = BlastMapper()
-   >>> bmap = bm.load_summary('blast-parsed-summary.csv',best=False)
-
 Create a term graph
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -89,13 +79,24 @@ With the term-term distances stored in the distance file we can map the gene-gen
 Spectral Clustering
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-   
+With the gene-gene distances a number of unsupervised clustering algorithms can be used here.  There is a bandwidth parameter :math:`\sigma` and the number of clusters `k` that need to be given.
 
+Parameter estimation [optional]
+"""""""""""""""""""""""""""""""""
+
+   >>> from htsint.stats import SpectralClustering, SpectralClusterParamSearch
 
 Save gene sets
 ^^^^^^^^^^^^^^^^^^^^
 
+1. Run :doc:`BLAST and create a summarized blast map <blast>`.  To save time in this tutorial we provide an example summary file below.
 
+   * :download:`blast-parsed-summary.csv <blast-parsed-summary.csv>`
 
+   Load the file.
+
+   >>> from htsint.blast import BlastMapper
+   >>> bm = BlastMapper()
+   >>> bmap = bm.load_summary('blast-parsed-summary.csv',best=False)
 
 
