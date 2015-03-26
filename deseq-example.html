@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Gene Ontology &mdash; hts-integrate - 0.4.1</title>
+    <title>Differential expression analysis &mdash; hts-integrate - 0.4.1</title>
     
     <link rel="stylesheet" href="_static/agogo.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="hts-integrate - 0.4.1" href="index.html" />
-    <link rel="next" title="Gene Ontology" href="pipeline-example.html" />
+    <link rel="next" title="Gene set analysis" href="gsa-example.html" />
     <link rel="prev" title="Annotation fetching" href="annotation-fetching.html" /> 
   </head>
   <body>
@@ -35,7 +35,7 @@
         <div class="rel">
           <a href="annotation-fetching.html" title="Annotation fetching"
              accesskey="P">previous</a> |
-          <a href="pipeline-example.html" title="Gene Ontology"
+          <a href="gsa-example.html" title="Gene set analysis"
              accesskey="N">next</a> |
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a>
@@ -51,9 +51,116 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="gene-ontology">
-<h1>Gene Ontology<a class="headerlink" href="#gene-ontology" title="Permalink to this headline">¶</a></h1>
-<p>in progress</p>
+  <div class="section" id="differential-expression-analysis">
+<h1>Differential expression analysis<a class="headerlink" href="#differential-expression-analysis" title="Permalink to this headline">¶</a></h1>
+<p>In principal, all that is needed to carry out a transcript-level
+differential expression analysis is a count matrix where rows
+correspond to transcripts and columns are the samples from the
+experiment.  There are a number of programs and possible pipelines
+that you can use to obtain a count matrix, but a review of the
+different methods is beyond the scope of this documentation.  In this
+example we start with this count matrix and make a comparison between
+two unpaired groups.</p>
+<p>The count matrix in this example was created with the following sequence of tools.</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><em>de novo</em> assembly using Trinity <a class="reference internal" href="references.html#grabherr11" id="id1">[Grabherr11]</a></li>
+<li>Read abundances estimated with Sailfish <a class="reference internal" href="references.html#patro14" id="id2">[Patro14]</a></li>
+</ol>
+</div></blockquote>
+<div class="section" id="transcript-level-differential-expression-analysis">
+<h2>Transcript level differential expression analysis<a class="headerlink" href="#transcript-level-differential-expression-analysis" title="Permalink to this headline">¶</a></h2>
+<p>In this example the <a class="reference external" href="http://www.r-project.org">R</a> package <a class="reference external" href="http://www.bioconductor.org/packages/release/bioc/html/DESeq2.html">DESeq2</a> is used to compare two frog groups (endurant vs non-endurant) that have distinct phenotypes <a class="reference internal" href="references.html#love14" id="id3">[Love14]</a>.  Sailfish estimates counts at the individual isoform level.  It is important that the count matrix is not transformed or normalized when used as input into DESeq2.</p>
+<blockquote>
+<div><ul class="simple">
+<li><a class="reference download internal" href="_downloads/raw-counts.csv"><tt class="xref download docutils literal"><span class="pre">raw-counts.csv</span></tt></a></li>
+<li><a class="reference download internal" href="_downloads/run-deseq.R"><tt class="xref download docutils literal"><span class="pre">run-deseq.R</span></tt></a></li>
+</ul>
+</div></blockquote>
+<p>To run the example you use:</p>
+<blockquote>
+<div><div class="highlight-bash"><div class="highlight"><pre>~<span class="nv">$ </span>Rscript run-deseq.R raw-counts.csv
+</pre></div>
+</div>
+</div></blockquote>
+<p>For more details on the functions used within the Rscript see the <a class="reference external" href="http://www.bioconductor.org/packages/release/bioc/manuals/DESeq2/man/DESeq2.pdf">DESeq2 documentation</a>.  This will produce two files.</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>A csv file with the transcript level differential expression results (deseq.csv)</li>
+<li>A csv file with counts that have been transformed with a regularized logarithm (deseq-samples.csv)</li>
+</ol>
+</div></blockquote>
+<p>The second file was created using the function <tt class="docutils literal"><span class="pre">rlog</span></tt> provided with DESeq2.  From the manual, we see that the function transforms the count data to the log2 scale &#8220;in a way that in a way which minimizes differences between samples for rows with small counts, and which normalizes with respect to library size&#8221;. DESeq2 does this by fitting a model.  To estimate differential expression (first file) let <img class="math" src="_images/math/cf204843be0c2bd8b346afa38bf09ff74a9cdb4e.png" alt="K_{ij}"/> be the count for transcript <img class="math" src="_images/math/a581f053bbfa5115f42c13094857cdd12a37ec49.png" alt="i"/> and sample <img class="math" src="_images/math/d32c78b759903e3f4bd4fd2ce0b86358f7500c5d.png" alt="j"/>.  DESeq2 uses a GLM to models these counts with a negative binomial distribution.</p>
+<blockquote>
+<div><div class="math">
+<p><img src="_images/math/7aa136be43844e032ff3e4e09499c48aa82c7d8c.png" alt="K_{ij} &amp;\sim \textrm{NB}(\mu_{ij},\alpha_{i})\\
+\mu_{ij} &amp;= s_{j} q_{ij}\\
+\textrm{log}_{2}(q_{ij}) &amp;= x_{j} \beta_{i}"/></p>
+</div></div></blockquote>
+<p>where <img class="math" src="_images/math/ea8022b7a1405c0ec4394a865f85582ef12b0159.png" alt="\mu_{ij}"/> is the fitted mean and <img class="math" src="_images/math/e057d7f8f3571ad881f61fe6a0184ed47187cd83.png" alt="\alpha_{i}"/> is the gene specific dispersion parameter.   The fitted mean is composed of a sample specific size factor (<img class="math" src="_images/math/0fe99b198ac16b1b5478acfcf003d44660b9259a.png" alt="s_{j}"/>) and <img class="math" src="_images/math/f6a9b59fc79401d447d730416b4fb497fc1ea63f.png" alt="q_{ij}"/> which corresponds to the &#8220;expected true concentration of fragments for sample j.  The coefficients <img class="math" src="_images/math/eef3e44d86ea5d84ed2324caddaf3f29312ad715.png" alt="\beta_{i}"/> give the log2 fold changes for gene <img class="math" src="_images/math/a581f053bbfa5115f42c13094857cdd12a37ec49.png" alt="i"/> for each column of the GLM model matrix <img class="math" src="_images/math/f026aecf11ec7f6141ab863f260d395f94b10f51.png" alt="X"/>.</p>
+</div>
+<div class="section" id="creating-a-heatmap">
+<h2>Creating a Heatmap<a class="headerlink" href="#creating-a-heatmap" title="Permalink to this headline">¶</a></h2>
+<p>The code in this section is available as a script.</p>
+<blockquote>
+<div><ul class="simple">
+<li><a class="reference download internal" href="_downloads/deseq-example.py"><tt class="xref download docutils literal"><span class="pre">deseq-example.py</span></tt></a></li>
+</ul>
+</div></blockquote>
+<ol class="arabic">
+<li><p class="first">Load these two files into Python.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">htsint.tools</span> <span class="kn">import</span> <span class="n">read_matrix</span><span class="p">,</span><span class="n">read_de_results</span><span class="p">,</span><span class="n">Heatmap</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">deseqIds</span><span class="p">,</span> <span class="n">deseqColumns</span><span class="p">,</span> <span class="n">deseqMat</span> <span class="o">=</span> <span class="n">read_de_results</span><span class="p">(</span><span class="s">&#39;deseq.csv&#39;</span><span class="p">,</span><span class="n">tool</span><span class="o">=</span><span class="s">&#39;DESeq&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dfeIds</span><span class="p">,</span><span class="n">dfeColumns</span><span class="p">,</span><span class="n">dfeMat</span> <span class="o">=</span> <span class="n">read_matrix</span><span class="p">(</span><span class="s">&#39;deseq_samples.csv&#39;</span><span class="p">,</span><span class="n">mtype</span><span class="o">=</span><span class="s">&#39;float&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">padjInd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">deseqColumns</span> <span class="o">==</span> <span class="s">&#39;padj&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Filter out NA values</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">size1</span> <span class="o">=</span> <span class="n">deseqIds</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filter1Ids</span> <span class="o">=</span> <span class="n">deseqIds</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">deseqMat</span><span class="p">[:,</span><span class="n">padjInd</span><span class="p">]))[</span><span class="mi">0</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">in1d</span><span class="p">(</span><span class="n">dfeIds</span><span class="p">,</span><span class="n">filter1Ids</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">deseqIds</span> <span class="o">=</span> <span class="n">deseqIds</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">deseqMat</span> <span class="o">=</span> <span class="n">deseqMat</span><span class="p">[</span><span class="n">mask</span><span class="p">,:]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dfeIds</span> <span class="o">=</span> <span class="n">dfeIds</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dfeMat</span> <span class="o">=</span> <span class="n">dfeMat</span><span class="p">[</span><span class="n">mask</span><span class="p">,:]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&quot;... </span><span class="si">%s</span><span class="s">/</span><span class="si">%s</span><span class="s"> transcripts pass nan filter&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">filter1Ids</span><span class="o">.</span><span class="n">size</span><span class="p">,</span><span class="n">size1</span><span class="p">))</span>
+<span class="gp">... </span><span class="mi">98575</span><span class="o">/</span><span class="mi">103983</span> <span class="n">transcripts</span> <span class="k">pass</span> <span class="n">nan</span> <span class="nb">filter</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Filter for only the most significant transcripts (max 75)</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">threshold</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">size2</span> <span class="o">=</span> <span class="n">deseqIds</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filter2Ids</span> <span class="o">=</span> <span class="n">deseqIds</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">deseqMat</span><span class="p">[:,</span><span class="n">padjInd</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">threshold</span><span class="p">)[</span><span class="mi">0</span><span class="p">][:</span><span class="mi">75</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">in1d</span><span class="p">(</span><span class="n">dfeIds</span><span class="p">,</span><span class="n">filter2Ids</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">deseqIds</span> <span class="o">=</span> <span class="n">deseqIds</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">deseqMat</span> <span class="o">=</span> <span class="n">deseqMat</span><span class="p">[</span><span class="n">mask</span><span class="p">,:]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dfeIds</span> <span class="o">=</span> <span class="n">dfeIds</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dfeMat</span> <span class="o">=</span> <span class="n">dfeMat</span><span class="p">[</span><span class="n">mask</span><span class="p">,:]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&quot;... </span><span class="si">%s</span><span class="s">/</span><span class="si">%s</span><span class="s"> transcripts pass significance (</span><span class="si">%s</span><span class="s">) filter&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">filter2Ids</span><span class="o">.</span><span class="n">size</span><span class="p">,</span><span class="n">size2</span><span class="p">,</span><span class="n">threshold</span><span class="p">))</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Draw a heatmap of transformed count data</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">rowLabels</span> <span class="o">=</span> <span class="n">dfeIds</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">colLabels</span> <span class="o">=</span> <span class="n">dfeColumns</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hm</span> <span class="o">=</span> <span class="n">Heatmap</span><span class="p">(</span><span class="n">dfeMat</span><span class="p">,</span><span class="n">rowLabels</span><span class="p">,</span><span class="n">colLabels</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hm</span><span class="o">.</span><span class="n">draw_heatmap</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="s">&#39;uy&#39;</span><span class="p">,</span><span class="n">clabels</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span><span class="n">rlabels</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span><span class="n">rowFont</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hm</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s">&quot;heatmap_demo.png&quot;</span><span class="p">,</span><span class="n">dpi</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<div class="align-center figure">
+<a class="reference internal image-reference" href="_images/heatmap-demo.png"><img alt="top 75 transcripts" src="_images/heatmap-demo.png" style="width: 360.0px; height: 420.0px;" /></a>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <tt class="docutils literal"><span class="pre">rowLabels</span></tt> can be changed for more meaningful labels by using <a class="reference internal" href="blast.html"><em>BLAST and BlastMapper</em></a></p>
+</div>
+</div>
 </div>
 
 
@@ -72,7 +179,8 @@
 <li class="toctree-l1"><a class="reference internal" href="blast.html">Using BLAST</a></li>
 <li class="toctree-l1"><a class="reference internal" href="annotation-fetching.html">Gene Ontology annotation fetching</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="">Gene level differential expression</a></li>
-<li class="toctree-l1"><a class="reference internal" href="pipeline-example.html">Geneset pipeline example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gsa-example.html">Gene set analysis example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 </ul>
 
           <h3 style="margin-top: 1.5em;">Search</h3>
@@ -95,7 +203,7 @@
         <div class="left">
           <a href="annotation-fetching.html" title="Annotation fetching"
              >previous</a> |
-          <a href="pipeline-example.html" title="Gene Ontology"
+          <a href="gsa-example.html" title="Gene set analysis"
              >next</a> |
           <a href="genindex.html" title="General Index"
              >index</a>
@@ -108,7 +216,7 @@
           
     <div class="footer">
         &copy; Copyright 2015, A. Richards.
-      Last updated on Mar 20, 2015.
+      Last updated on Mar 26, 2015.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
         </div>

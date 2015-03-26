@@ -8,7 +8,7 @@ To install ``hts-integrate`` there are two steps.
    1. install the python package
    2. setup the database
 
-hts-integrate (``htsint``) is intended to run under GNU/Linux or another UNIX-based environment.  The software is tested with Ubuntu 14.04 and OSX although it should run under any operating system as it is simply a Python package with an attached PostgreSQL (or another) database.  Because Debian based distros are common in the bioinformatics world, some installation details are Debian specific, though they may be modified for other systems.  
+hts-integrate (``htsint``) is tested with Ubuntu 14.04 and OSX although it should run under any operating system as it is simply a Python package with an attached PostgreSQL database.  Because Debian based distros are common in the bioinformatics world, some installation details are Debian specific.  
 
 To ensure that you can run BLAST locally install the Suite of `BLAST+ tools <http://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=Download>`_. For example,
 
