@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Differential expression analysis &mdash; hts-integrate - 0.4.1</title>
+    <title>Differential expression analysis &mdash; hts-integrate - 0.4.2</title>
     
     <link rel="stylesheet" href="_static/agogo.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="hts-integrate - 0.4.1" href="index.html" />
+    <link rel="top" title="hts-integrate - 0.4.2" href="index.html" />
     <link rel="next" title="Gene set analysis" href="gsa-example.html" />
     <link rel="prev" title="Annotation fetching" href="annotation-fetching.html" /> 
   </head>
@@ -31,7 +31,7 @@
     <div class="header-wrapper">
       <div class="header">
         <div class="headertitle"><a
-          href="index.html">hts-integrate - 0.4.1</a></div>
+          href="index.html">hts-integrate - 0.4.2</a></div>
         <div class="rel">
           <a href="annotation-fetching.html" title="Annotation fetching"
              accesskey="P">previous</a> |
@@ -86,8 +86,8 @@ two unpaired groups.</p>
 <p>For more details on the functions used within the Rscript see the <a class="reference external" href="http://www.bioconductor.org/packages/release/bioc/manuals/DESeq2/man/DESeq2.pdf">DESeq2 documentation</a>.  This will produce two files.</p>
 <blockquote>
 <div><ol class="arabic simple">
-<li>A csv file with the transcript level differential expression results (deseq.csv)</li>
-<li>A csv file with counts that have been transformed with a regularized logarithm (deseq-samples.csv)</li>
+<li>A csv file with the transcript level differential expression results (<tt class="docutils literal"><span class="pre">deseq.csv</span></tt>)</li>
+<li>A csv file with counts that have been transformed with a regularized logarithm (<tt class="docutils literal"><span class="pre">deseq-samples.csv</span></tt>)</li>
 </ol>
 </div></blockquote>
 <p>The second file was created using the function <tt class="docutils literal"><span class="pre">rlog</span></tt> provided with DESeq2.  From the manual, we see that the function transforms the count data to the log2 scale &#8220;in a way that in a way which minimizes differences between samples for rows with small counts, and which normalizes with respect to library size&#8221;. DESeq2 does this by fitting a model.  To estimate differential expression (first file) let <img class="math" src="_images/math/cf204843be0c2bd8b346afa38bf09ff74a9cdb4e.png" alt="K_{ij}"/> be the count for transcript <img class="math" src="_images/math/a581f053bbfa5115f42c13094857cdd12a37ec49.png" alt="i"/> and sample <img class="math" src="_images/math/d32c78b759903e3f4bd4fd2ce0b86358f7500c5d.png" alt="j"/>.  DESeq2 uses a GLM to models these counts with a negative binomial distribution.</p>
@@ -118,28 +118,27 @@ two unpaired groups.</p>
 </li>
 <li><p class="first">Filter out NA values</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">padjInd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">deseqColumns</span> <span class="o">==</span> <span class="s">&#39;padj&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">size1</span> <span class="o">=</span> <span class="n">deseqIds</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">filter1Ids</span> <span class="o">=</span> <span class="n">deseqIds</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">deseqMat</span><span class="p">[:,</span><span class="n">padjInd</span><span class="p">]))[</span><span class="mi">0</span><span class="p">]]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">in1d</span><span class="p">(</span><span class="n">dfeIds</span><span class="p">,</span><span class="n">filter1Ids</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">deseqIds</span> <span class="o">=</span> <span class="n">deseqIds</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">deseqMat</span> <span class="o">=</span> <span class="n">deseqMat</span><span class="p">[</span><span class="n">mask</span><span class="p">,:]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filter1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">deseqMat</span><span class="p">[:,</span><span class="n">padjInd</span><span class="p">]))[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">deseqIds</span> <span class="o">=</span> <span class="n">deseqIds</span><span class="p">[</span><span class="n">filter1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">deseqMat</span> <span class="o">=</span> <span class="n">deseqMat</span><span class="p">[</span><span class="n">filter1</span><span class="p">,:]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">in1d</span><span class="p">(</span><span class="n">dfeIds</span><span class="p">,</span><span class="n">deseqIds</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dfeIds</span> <span class="o">=</span> <span class="n">dfeIds</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dfeMat</span> <span class="o">=</span> <span class="n">dfeMat</span><span class="p">[</span><span class="n">mask</span><span class="p">,:]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&quot;... </span><span class="si">%s</span><span class="s">/</span><span class="si">%s</span><span class="s"> transcripts pass nan filter&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">filter1Ids</span><span class="o">.</span><span class="n">size</span><span class="p">,</span><span class="n">size1</span><span class="p">))</span>
-<span class="gp">... </span><span class="mi">98575</span><span class="o">/</span><span class="mi">103983</span> <span class="n">transcripts</span> <span class="k">pass</span> <span class="n">nan</span> <span class="nb">filter</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&quot;... </span><span class="si">%s</span><span class="s">/</span><span class="si">%s</span><span class="s"> transcripts pass nan filter&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">filter1</span><span class="o">.</span><span class="n">size</span><span class="p">,</span><span class="n">size1</span><span class="p">))</span>
 </pre></div>
 </div>
 </li>
-<li><p class="first">Filter for only the most significant transcripts (max 75)</p>
+<li><p class="first">Filter for only the most significant transcripts (max 50)</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">threshold</span> <span class="o">=</span> <span class="mf">0.5</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">size2</span> <span class="o">=</span> <span class="n">deseqIds</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">filter2Ids</span> <span class="o">=</span> <span class="n">deseqIds</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">deseqMat</span><span class="p">[:,</span><span class="n">padjInd</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">threshold</span><span class="p">)[</span><span class="mi">0</span><span class="p">][:</span><span class="mi">75</span><span class="p">]]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">in1d</span><span class="p">(</span><span class="n">dfeIds</span><span class="p">,</span><span class="n">filter2Ids</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">deseqIds</span> <span class="o">=</span> <span class="n">deseqIds</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">deseqMat</span> <span class="o">=</span> <span class="n">deseqMat</span><span class="p">[</span><span class="n">mask</span><span class="p">,:]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filter2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">deseqMat</span><span class="p">[:,</span><span class="n">padjInd</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">threshold</span><span class="p">)[</span><span class="mi">0</span><span class="p">][:</span><span class="mi">50</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">deseqIds</span> <span class="o">=</span> <span class="n">deseqIds</span><span class="p">[</span><span class="n">filter2</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">deseqMat</span> <span class="o">=</span> <span class="n">deseqMat</span><span class="p">[</span><span class="n">filter2</span><span class="p">,:]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">in1d</span><span class="p">(</span><span class="n">dfeIds</span><span class="p">,</span><span class="n">deseqIds</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dfeIds</span> <span class="o">=</span> <span class="n">dfeIds</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dfeMat</span> <span class="o">=</span> <span class="n">dfeMat</span><span class="p">[</span><span class="n">mask</span><span class="p">,:]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&quot;... </span><span class="si">%s</span><span class="s">/</span><span class="si">%s</span><span class="s"> transcripts pass significance (</span><span class="si">%s</span><span class="s">) filter&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">filter2Ids</span><span class="o">.</span><span class="n">size</span><span class="p">,</span><span class="n">size2</span><span class="p">,</span><span class="n">threshold</span><span class="p">))</span>
 </pre></div>
 </div>
 </li>
@@ -216,7 +215,7 @@ two unpaired groups.</p>
           
     <div class="footer">
         &copy; Copyright 2015, A. Richards.
-      Last updated on Mar 26, 2015.
+      Last updated on Apr 05, 2015.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
         </div>

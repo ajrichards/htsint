@@ -18,6 +18,10 @@ Works cited
 .. [Grabherr11] M.G Grabherr et al. *Full-length transcriptome assembly from RNA-Seq data without a reference genome*,
 		Nature biotechnology, 29, 644-52 (2011)
 
+.. [Ng01] A. Y. Ng, M. I. Jordan & Y. Weiss. *On Spectral Clustering: Analysis and an algorithm*,
+	  Advances in Neural Information Processing Systems 14, MIT Press, 849-856 (2001)
+
+
 .. [Patro14] R. Patro, S. M. Mount, & C Kingsford. *Sailfish enables alignment-free isoform quantification from RNA-seq reads using lightweight algorithms*,
              Nature biotechnology, 32, 462-4 (2014)
 
@@ -26,3 +30,6 @@ Works cited
    
 .. [UniProtConsortium14] U. Consortium, *Activities at the Universal Protein Resource (UniProt)*,
 			 Nucleic acids research, 42, D191-8 (2014)
+
+.. [Zelnik-Manor04] L. Zelnik-Manor & P. Perona, *Self-tuning spectral clustering*,
+		    Advances in Neural Information Processing Systems 17, MIT Press, 1601-1608 (2004)
