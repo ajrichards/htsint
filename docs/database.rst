@@ -195,3 +195,6 @@ To add the database to another server
       CREATE DATABASE newdbname WITH OWNER dbuser; 		   
       \q
       ~$ psql newdbname < htsint.sql
+
+
+See the :doc:`database cookbook <database-cookbook>` for more information on getting started with the database.

@@ -4,12 +4,16 @@ GSA demo script from htsint documentation
 """
 
 import time,os,re
-from htsint import GeneOntology,TermDistances,GeneDistances
-from htsint.stats import SpectralClustering, SpectralClusterParamSearch
+from htsint import GeneOntology,TermDistances,GeneDistances,GeneSetCollection
+from htsint.stats import SpectralCluster, SpectralClusterParamSearch, SpectralClusterResults
 from htsint.blast import BlastMapper
 
 # specify main variables (biological_process, molecular_function, cellular_component)
 homeDir = os.path.join(".","demo")
+if not os.path.isdir(homeDir):
+    os.mkdir(homeDir)
+
+_aspect = 'mf'
 aspect = 'molecular_function' 
 
 # Create a term graph 
@@ -38,23 +42,37 @@ if not os.path.exists(geneDistancePath):
     gd = GeneDistances(termsPath,termDistancePath,outFile=geneDistancePath)
     gd.run()
 
-# Spectral clustering parameter estimation [optional]
-#paramSearchPath1 = re.sub("\.csv","-scparams-sv.csv",geneDistancePath)
-#paramSearchPath2 = re.sub("\.csv","-scparams-cl.csv",geneDistancePath)
-#if not os.path.exists(paramSearchPath1):
-#    scps = SpectralClusterParamSearch(geneDistancePath,dtype='distance',aspect=aspect)
+# Spectral Clustering parameter search 
+#silvalFile = re.sub("\.csv","-scparams-sv.csv",geneDistancePath)
+#clustersFile = re.sub("\.csv","-scparams-cl.csv",geneDistancePath)
+#if not os.path.exists(silvalFile):
+#    scps = SpectralClusterParamSearch(geneDistancePath,dtype='distance')
 #    scps.run(chunks=15)
 
-# Spectral clustering
+## plot the parameter search 
+#psFigureFile = os.path.join(homeDir,"param-scan-%s.png"%(_aspect))
+#if not os.path.exists(psFigureFile):
+#    scr = SpectralClusterResults(silvalFile,clustersFile)
+#    scr.plot(figName=psFigureFile)
 
+## run spectral clustering
+k = 123
+sigma = 0.08
 
-# Save gene sets
+labelsPath = os.path.join(homeDir,"sc-labels-%s.csv"%(_aspect))
+if not os.path.exists(labelsPath):
+    sc = SpectralCluster(geneDistancePath,dtype='distance')
+    sc.run(k,sk=None,sigma=sigma,verbose=True)
+    sc.save(labelsPath=labelsPath)
 
+## Save gene sets
+bm = BlastMapper()
+bmap = bm.load_summary('blast-parsed-summary.csv',best=False,taxaList=['8355','8364'])
 
-
-#bm = BlastMapper()
-#bmap = bm.load_summary('blast-parsed-summary.csv',best=False)
-
-
+transcriptMin,transcriptMax = 9,1000  
+gsFile = os.path.join(homeDir,"%s.gmt"%(_aspect))                                                                                                       
+if not os.path.exists(gsFile):
+    gsc = GeneSetCollection(labelsPath,gene2go)
+    gsc.write(blastMap=bmap,transcriptMin=transcriptMin,transcriptMax=transcriptMax,outFile=gsFile)
 
 print("process complete.")

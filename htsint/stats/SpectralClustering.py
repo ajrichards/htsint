@@ -97,9 +97,10 @@ class SpectralCluster(object):
         ## add eps to avoid divide by zero
         M = M + np.spacing(1)
 
+        self.items = items
         self.M = M
 
-    def run(self,k,sk=7,sigma=None,verbose=False):
+    def run(self,k,sk=None,sigma=None,verbose=False):
         """
         run spectral clustering
         given a number of clusters (k) and bandwidth param (sigma) 
@@ -111,6 +112,9 @@ class SpectralCluster(object):
             print "\tsimilarity to affinity matrix..."
 
         k = int(round(k))
+
+        self.k = k
+        self.sigma = sigma
 
         self.A = self.similarity_to_affinity(self.M,sk=sk,sigma=sigma)
         
@@ -229,6 +233,24 @@ class SpectralCluster(object):
         return A
 
 
+    def save(self,labelsPath='sc-labels.csv'):
+        """
+        save the labels
+        """
+
+        ## save the results 
+        outFid = open(labelsPath,'wa')
+        writer = csv.writer(outFid)
+        writer.writerow(['k=%s'%(self.k),'sigma=%s'%(self.sigma)])
+        header = ['gene','label']
+        writer.writerow(header)
+
+        for i,gene in enumerate(self.items):
+            writer.writerow([self.items[i],self.labels[i]])
+
+        outFid.close()
+        print("labels saved (sigma=%s,k=%s)."%(self.sigma,self.k))
+
 if __name__ == "__main__":
     print "Running..."
 
@@ -289,3 +311,6 @@ if __name__ == "__main__":
     ax.set_aspect(1./ax.get_data_ratio())
 
     fig.savefig("spectral-clustering-test.png")
+
+
+

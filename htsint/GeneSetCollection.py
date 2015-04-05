@@ -47,20 +47,34 @@ class GeneSetCollection(object):
         if type(gene2go) != type({}):
             raise Exception("invalid gene2go dictionary")
         self.gene2go = gene2go
-
         self.allClusters = np.sort(np.unique(self.labels))
     
-    def write(self,blastMap=None, sizeMin=4, sizeMax=100,outFile="genesets.gmt"):
+    def write(self,blastMap=None, transcriptMin=9, transcriptMax=1000,outFile="genesets.gmt"):
         """
         outFile: specifies the output file path (*.gmt)
         also a *.csv file with gene transcript mapping will be created if a bmap is provided
 
         blastMap: BlastMap returned after loading summary file in BlastMapper 
-        sizeMin: minimum size for a gene set
-        sizeMax: maximum size for a gene set
+        transcriptMin: minimum size for a gene set
+        transcriptMax: maximum size for a gene set
         outFile: outfile path
 
         """
+
+        print("---------------------")
+        print('There are %s genes with at least one annotation'%(len(self.gene2go.keys())))
+        print('There are %s genes in the labels file'%(len(self.genes)))
+
+        if blastMap:
+            bm = BlastMapper()
+            bmGenes = bm.print_summary(blastMap)
+            gene2transcript = bm.get_gene_dict(blastMap)
+            usableGenes = list(set(bmGenes).intersection(set(self.gene2go.keys())))
+
+        if blastMap:
+            print('There are %s genes with at least one BLAST hit'%(len(bmGenes)))
+            print('There are %s genes that have both a BLAST hit and an annotation'%(len(usableGenes)))
+            #print('There are %s genes in clusters with at least one BLAST hits'%(len(set(self.genes).intersection.(set(bmGenes.keys())))))
 
         ## prepare outfiles
         writer = csv.writer(open(outFile,'w'),delimiter="\t")
@@ -70,45 +84,31 @@ class GeneSetCollection(object):
             writerMap = csv.writer(open(outFileMap,'w'))
             writerMap.writerow(["gene_set","gene_id","mapped_transcripts"])
 
-        ## prepare a blastmap
-        if blastMap:
-            bm = BlastMapper()
-            transcript2gene,gene2transcript = bm.get_dicts(blastMap)
-
         ## save gene sets to file
         failedThreshold = 0
-        realizedGenes = 0
+        
         for _k in self.allClusters:
-
-            numGenes = np.where(self.labels==_k)[0].size
-            mappedGenes = set([])
-            gsName = "gs-"+str(_k)
             clusterInds = np.where(self.labels==_k)[0]
             clusterGenes = self.genes[clusterInds]
+            gsName = "gs-"+str(_k)
             description = self.get_description(clusterGenes)
 
             ## map the genes
             if blastMap:
+                mapped = set([])
                 for gene in clusterGenes:
-                    geneTranscripts = set([])
                     if not gene2transcript.has_key(gene):
                         continue
-            
-                    for taxa,matchedTranscripts in gene2transcript[gene].iteritems():
-                        mappedGenes.update(matchedTranscripts)
-                        geneTranscripts.update(matchedTranscripts)
+                    geneTranscripts = gene2transcript[gene]
                     if blastMap:
                         writerMap.writerow([gsName,gene,";".join(list(geneTranscripts))])
-
-
+                    mapped.update(geneTranscripts)
+                mapped = list(mapped)
             else:
-                mappedGenes = clusterGenes
+                mapped = clusterGenes
 
-            mappedGenes = list(mappedGenes)
-            realizedGenes += len(mappedGenes)
-
-            if len(mappedGenes) >= sizeMin and len(mappedGenes) <= sizeMax: 
-                writer.writerow([gsName,description] + mappedGenes)
+            if len(mapped) >= transcriptMin and len(mapped) <= transcriptMax: 
+                writer.writerow([gsName,description] + mapped)
             else:
                 failedThreshold+=clusterGenes.size
 
@@ -117,8 +117,8 @@ class GeneSetCollection(object):
         print("k: %s"%self.k)
         print('Total clusters: %s '%self.allClusters.size)
         percentAccepted = float(self.genes.size-failedThreshold) / float(self.genes.size)
-        print("Genes in clusters %s/%s (%s)"%(self.genes.size-failedThreshold,self.genes.size,round(percentAccepted,2)) + "%)")
-    
+        print("genes pass threshold %s/%s (%s)"%(self.genes.size-failedThreshold,self.genes.size,round(percentAccepted,2)) + "%)")
+        
     def get_description(self,geneList):
         """
         function the return description

@@ -34,8 +34,8 @@ To run the example you use:
 For more details on the functions used within the Rscript see the `DESeq2 documentation <http://www.bioconductor.org/packages/release/bioc/manuals/DESeq2/man/DESeq2.pdf>`_.  This will produce two files.  
 
 
-  1. A csv file with the transcript level differential expression results (deseq.csv)
-  2. A csv file with counts that have been transformed with a regularized logarithm (deseq-samples.csv)
+  1. A csv file with the transcript level differential expression results (``deseq.csv``)
+  2. A csv file with counts that have been transformed with a regularized logarithm (``deseq-samples.csv``)
 
 
 The second file was created using the function ``rlog`` provided with DESeq2.  From the manual, we see that the function transforms the count data to the log2 scale "in a way that in a way which minimizes differences between samples for rows with small counts, and which normalizes with respect to library size". DESeq2 does this by fitting a model.  To estimate differential expression (first file) let :math:`K_{ij}` be the count for transcript :math:`i` and sample :math:`j`.  DESeq2 uses a GLM to models these counts with a negative binomial distribution.
@@ -94,7 +94,7 @@ The code in this section is available as a script.
    >>> hm.draw_heatmap(cmap='uy',clabels=True,rlabels=True,rowFont=6)
    >>> hm.save("heatmap_demo.png",dpi=200)
 
-.. figure:: ../heatmap-demo.png
+.. figure:: ../figures/heatmap-demo.png
    :scale: 30%
    :align: center
    :alt: top 75 transcripts

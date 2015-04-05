@@ -79,12 +79,38 @@ With the term-term distances stored in the distance file we can map the gene-gen
 Spectral Clustering
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-With the gene-gene distances a number of unsupervised clustering algorithms can be used here.  There is a bandwidth parameter :math:`\sigma` and the number of clusters `k` that need to be given.
+With the gene-gene distances a number of unsupervised clustering algorithms can be used here.  Because spectral clustering is appropriate for networks we have implemented two algorithms as part of ``htsint``.  There is a bandwidth parameter :math:`\sigma` and a parameter for the number of clusters `k` that need to be given.
 
 Parameter estimation [optional]
 """""""""""""""""""""""""""""""""
 
-   >>> from htsint.stats import SpectralClustering, SpectralClusterParamSearch
+   >>> from htsint.stats import SpectralClusterParamSearch, SpectralClusterResults
+   >>> scps = SpectralClusterParamSearch(geneDistancePath,dtype='distance')
+   >>> scps.run(chunks=15)
+   >>> psFigureFile = os.path.join(homeDir,"param-scan-%s.png"%(_aspect))
+   >>> scr = SpectralClusterResults(silvalFile,clustersFile)
+   >>> scr.plot(figName=psFigureFile,threshMin=5,threshoMax=100)
+
+.. figure:: ../figures/param-scan-mf.png
+   :scale: 30%
+   :align: center
+   :alt: top 75 transcripts
+   :figclass: align-center
+
+Ideally, we are looking for values of :math:`\sigma` and `k` that maximize our silhouette value, while at the same time maximize the number of clusters that fall into a reasonable size range.  The size range can be set with the ``threshMin`` and ``threshMax`` arguments.  It helps result interpretation if the specified range can be reasonably investigated through visualization.  The top panel shows the average silhouette value for the clustering results over a grid of possible parameter values. For the same grid the bottom panel illustrates the percentage of total genes that fall into clusters of the desired size.  There is usually a trade-off between high silhouette values and the reasonably sized clusters.  The top three optimal values are marked on the plots.  For this example the parameters are maximized at :math:`k=123` and :math:`\sigma=0.08`.  It is worth noting that strongly associated clusters tend to remain mostly intact over a wide range of parameter values.  In the script version of this example this section the parameter estimation is commented out to minimize compute time.
+
+
+Run spectral clustering
+"""""""""""""""""""""""""""""""""
+
+There are two implementations of spectral clustering available through the SpectralCluster class.  If the argument ``sk`` is ``None`` then the original algorithm proposed by Andrew Ng *et al*. is used [Ng01]_.  Alternatively, a self-tuning version of this algorithm was proposed by Zelnik-Manor and Perona that uses a different :math:`\sigma` around each neighborhood.  The neighborhood size is controlled by the parameter ``sk`` as discussed in the manuscript [Zelnik-Manor04]_.  For smaller networks the self-tuning method gives reasonable results, however for larger networks the grid parameter search seems to provide more biologically intuitive clusters.
+
+   >>> from htsint.stats import SpectralCluster
+   >>> k = 123
+   >>> sigma = 0.08
+   >>> sc = SpectralCluster(geneDistancePath,dtype='distance')
+   >>> sc.run(k,sk=None,sigma=sigma,verbose=True)
+   >>> sc.save(labelsPath=labelsPath)
 
 Save gene sets
 ^^^^^^^^^^^^^^^^^^^^
@@ -100,3 +126,5 @@ Save gene sets
    >>> bmap = bm.load_summary('blast-parsed-summary.csv',best=False)
 
 
+   >>> from htsint import GeneSetCollection
+   

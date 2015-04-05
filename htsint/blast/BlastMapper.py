@@ -360,24 +360,55 @@ class BlastMapper(object):
 
         fid.close()
 
-    def get_dicts(self,bmap):
+    def print_summary(self,bmap):
+        """
+        print a bmap summary
+        queries are usually transcripts
+        hits depend on the database
+        """
+
+        hits,genes = set([]),set([])
+        for key,item in bmap.iteritems():
+            if type(item) == type([]):
+                hitIds = [i[0] for i in item]
+                geneIds = [i[1] for i in item]
+            else:
+                hitIds = [item[0]]
+                geneIds = [item[1]]
+
+            hits.update(hitIds)
+            genes.update(geneIds)
+        hits = list(hits)
+        genes = list(genes)
+        if '-' in genes:
+            genes.remove("-")
+        
+        print("...queries: %s"%(len(bmap.keys())))
+        print("...genes: %s"%(len(genes)))
+        print("...hits: %s"%(len(hits)))
+        return genes
+
+    def get_gene_dict(self,bmap):
         """
         returns a gene to transcript and transcript to gene dictionary
         """
          
-        transcript2gene = {}
         gene2transcript = {}
-        for key,_item in bmap.iteritems():
-            for item in _item:
-                if item[1] != '-':
-                    transcript2gene[key] = item[1]
-                    if not gene2transcript.has_key(item[1]):
-                        gene2transcript[item[1]] = {}
-                    if not gene2transcript[item[1]].has_key(item[3]):
-                        gene2transcript[item[1]][item[3]] = set([])
-                    gene2transcript[item[1]][item[3]].update([key])
-        return transcript2gene,gene2transcript  
+        for key,item in bmap.iteritems():
 
+            if type(item) == type([]):
+                genes =  [i[1] for i in item]
+            else:
+                genes = [item[1]]
+
+            for gene in genes:
+                if gene == '-':
+                    continue
+                if not gene2transcript.has_key(gene):
+                    gene2transcript[gene] = []
+                gene2transcript[gene].append(key)
+
+        return gene2transcript
 
 if __name__ == "__main__":
     print "Running..."
