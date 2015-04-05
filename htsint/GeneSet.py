@@ -42,7 +42,7 @@ class GeneSet(object):
         self.nodeSizeTerm = 300
         self.colors = ['#000000','#FFCC33','#3333DD']
         self.cmap = plt.cm.Blues
-        self.lineEnd = 60
+        self.lineEnd = 53
         self.linesMax = 32
 
         ## gene2go input
