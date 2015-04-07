@@ -32,11 +32,10 @@ htsint/database/PrintUniprotInfo.py
 htsint/database/TestDatabase.py
 htsint/database/__init__.py
 htsint/database/fetchTimeExperiment.py
-htsint/database/foo.py
 htsint/stats/ClusteringData.py
 htsint/stats/ClusteringLib.py
-htsint/stats/GeneSetAnalysis.py
 htsint/stats/SilValueGenerator.py
+htsint/stats/SpectralClusterParamSearch.py
 htsint/stats/SpectralClusterResults.py
 htsint/stats/SpectralClustering.py
 htsint/stats/__init__.py
