@@ -164,6 +164,7 @@ Inside of the demo directory a file names ``geneset-results.csv`` will be create
 
 First, we need to specify a few paths to files that were created duing the gene set generation process.  Then using the object ``GeneSet``, a network visualization that makes use of `NetworkX <http://networkx.github.io/>`_ can be made for any arbitrary gene set.
 
+   >>> import numpy as np
    >>> from htsint import GeneSet
    >>> distMat = np.load(os.path.join(".","demo","term-distances.npy"))
    >>> genesetFile = os.path.join(".","demo","mf.csv")

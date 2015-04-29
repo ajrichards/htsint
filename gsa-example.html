@@ -209,7 +209,8 @@
 <div class="section" id="visualizing-gene-sets">
 <h2>(3) Visualizing gene sets<a class="headerlink" href="#visualizing-gene-sets" title="Permalink to this headline">¶</a></h2>
 <p>First, we need to specify a few paths to files that were created duing the gene set generation process.  Then using the object <tt class="docutils literal"><span class="pre">GeneSet</span></tt>, a network visualization that makes use of <a class="reference external" href="http://networkx.github.io/">NetworkX</a> can be made for any arbitrary gene set.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">htsint</span> <span class="kn">import</span> <span class="n">GeneSet</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">htsint</span> <span class="kn">import</span> <span class="n">GeneSet</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">distMat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s">&quot;.&quot;</span><span class="p">,</span><span class="s">&quot;demo&quot;</span><span class="p">,</span><span class="s">&quot;term-distances.npy&quot;</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">genesetFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s">&quot;.&quot;</span><span class="p">,</span><span class="s">&quot;demo&quot;</span><span class="p">,</span><span class="s">&quot;mf.csv&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">termsPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s">&quot;.&quot;</span><span class="p">,</span><span class="s">&quot;demo&quot;</span><span class="p">,</span><span class="s">&quot;go-terms.pickle&quot;</span><span class="p">)</span>
@@ -277,7 +278,7 @@
           
     <div class="footer">
         &copy; Copyright 2015, A. Richards.
-      Last updated on Apr 05, 2015.
+      Last updated on Apr 29, 2015.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
         </div>

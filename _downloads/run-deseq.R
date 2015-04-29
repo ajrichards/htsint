@@ -37,13 +37,13 @@ if (is.na(outFile)){
 #### from counts file (count matrix)
 countData <- read.csv(countsFile,header=TRUE,row.names=1,com='')
 countData <- round(countData)
-
 colData <- data.frame(
     row.names=colnames(countData),
     condition=c("endurant", "non-endurant", "non-endurant", "endurant", "endurant", "non-endurant","endurant","non-endurant"),
     libType=c("paired", "paired", "paired","paired","paired","paired","paired","paired")
 )
 
+## filter the data
 dds <- DESeqDataSetFromMatrix(countData=countData,colData=colData,design=~condition)
 dds$condition <- factor(dds$condition,levels=c("non-endurant","endurant"))
 
@@ -55,16 +55,16 @@ print(table(use))
 
 ## run DESeq2 using filtered data
 countData <- countData[use& ! is.na(res$pvalue),]
-dds <- DESeqDataSetFromMatrix(countData=countData,colData=colData,design=~condition)
-dds$condition <- factor(dds$condition,levels=c("non-endurant","endurant"))
 
 ## create a DESeqDataSet
-dds <- DESeqDataSetFromMatrix(countData=countData,colData=colData,design=~condition)
 colData <- data.frame(
     row.names=colnames(countData),
     condition=c("endurant", "non-endurant", "non-endurant", "endurant", "endurant", "non-endurant","endurant","non-endurant"),
     libType=c("paired", "paired", "paired","paired","paired","paired","paired","paired")
 )
+
+dds <- DESeqDataSetFromMatrix(countData=countData,colData=colData,design=~condition)
+dds$condition <- factor(dds$condition,levels=c("non-endurant","endurant"))
 
 ## set 'non-endurant' as the control
 dds <- DESeq(dds)
