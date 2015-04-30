@@ -100,12 +100,18 @@ class GeneSetCollection(object):
                     if not gene2transcript.has_key(gene):
                         continue
                     geneTranscripts = gene2transcript[gene]
+                    geneTranscripts = list(set([re.sub("\.[0-9]$","",g) for g in geneTranscripts]))
+
                     if blastMap:
                         writerMap.writerow([gsName,gene,";".join(list(geneTranscripts))])
                     mapped.update(geneTranscripts)
                 mapped = list(mapped)
             else:
                 mapped = clusterGenes
+
+            ### remove non-unique and versioned genes
+            #if len(mapped) > 0:
+                
 
             if len(mapped) >= transcriptMin and len(mapped) <= transcriptMax: 
                 writer.writerow([gsName,description] + mapped)
