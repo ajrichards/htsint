@@ -18,12 +18,9 @@ class GeneSet(object):
     gene set class
     """
 
-    def __init__(self,genesetFile,gene2go,distMat,verbose=True):
+    def __init__(self,verbose=True):
         """
         Constructor
-        geneList - list
-        gene2go - dictionary
-
         """
 
         ## setup db
@@ -45,6 +42,12 @@ class GeneSet(object):
         self.cmap = plt.cm.Blues
         self.lineEnd = 53
         self.linesMax = 32
+
+
+    def load_geneset(self,genesetFile,gene2go,distMat):
+        """
+        gene2go - dictionary or file path
+        """
 
         ## gene2go input
         if type(gene2go) == type({}):
@@ -152,7 +155,6 @@ class GeneSet(object):
             """
             return ((val - src[0]) / (src[1]-src[0])) * (dst[1]-dst[0]) + dst[0]
 
-        print 'getting distances'
         mat = self.distMat[:,2].astype(float)
 
         ## get the percentile threshold
@@ -184,6 +186,33 @@ class GeneSet(object):
             return description
         else:
             return 'None'
+
+    def get_term_counts(self,geneList):
+        
+        ## count the terms
+        geneEdges = []
+        termCounts = {}
+
+        for gene in geneList:
+            if not self.gene2go.has_key(gene):
+                continue
+            for term in self.gene2go[gene]:
+                geneEdges.append((gene,term))
+                if not termCounts.has_key(term):
+                    termCounts[term] = 0
+                termCounts[term] += 1
+
+        ## rank the terms by the number of connections
+        termList = np.array(termCounts.keys())
+        edgeCounts = np.array(termCounts.values())
+        rankedInds = np.argsort(edgeCounts)[::-1]
+        termIds = np.array(["%s"%str(i+1) for i in range(termList.size)])
+
+        toReturn = []
+        for r,rank in enumerate(rankedInds):
+            toReturn.append({'rank':r+1,'term':termList[rank],'desc':self.get_go_term(termList[rank]),'counts':edgeCounts[rank]})
+
+        return toReturn
 
     def draw_network(self,geneSetId,layout='spring',name='None',percentile=50,ax=None):
         """
@@ -217,7 +246,6 @@ class GeneSet(object):
         for gene in geneList:
             if not self.gene2go.has_key(gene):
                 continue
-            print "...",gene,self.gene2go[gene]
             for term in self.gene2go[gene]:
                 geneEdges.append((gene,term))
                 if not termCounts.has_key(term):
@@ -263,7 +291,6 @@ class GeneSet(object):
         ## term term edges
         termDistances = self.get_term_distances(termList,percentile=percentile)
 
-        print 'term distances...'
         edgeList2 = []
         for term1,items in termDistances.iteritems():
             for term2,dist in items.iteritems():
@@ -409,7 +436,7 @@ class GeneSet(object):
             term = id2term[termId]
             desc = self.get_go_term(term)
             toPrint = "%s - %s"%(termId.zfill(3),desc)
-            print toPrint, term
+            #print toPrint, term
             
             ## check to see if we need to use multiple lines
             if len(toPrint) > self.lineEnd:
@@ -435,7 +462,6 @@ class GeneSet(object):
 
         ## save
         plt.savefig(name,bbox_inches='tight',dpi=self.dpi)
-
 
 if __name__ == "__main__":
     print "Running..."

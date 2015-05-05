@@ -169,7 +169,8 @@ First, we need to specify a few paths to files that were created duing the gene 
    >>> distMat = np.load(os.path.join(".","demo","term-distances.npy"))
    >>> genesetFile = os.path.join(".","demo","mf.csv")
    >>> termsPath = os.path.join(".","demo","go-terms.pickle")
-   >>> gsets = GeneSet(genesetFile,termsPath,distMat)
+   >>> gsets = GeneSet()
+   >>> gsets.load_geneset(genesetFile,termsPath,distMat)
    >>> genesetId = 'gs-4'
    >>> gsets.draw_figure(genesetId,layout='spring',name='%s.png'%(genesetId),percentile=25)
 
