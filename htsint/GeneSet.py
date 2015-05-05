@@ -18,7 +18,7 @@ class GeneSet(object):
     gene set class
     """
 
-    def __init__(self,genesetFile,gene2go,distMat):
+    def __init__(self,genesetFile,gene2go,distMat,verbose=True):
         """
         Constructor
         geneList - list
@@ -27,10 +27,11 @@ class GeneSet(object):
         """
 
         ## setup db
-        self.session, self.engine = db_connect()
+        self.session, self.engine = db_connect(verbose=verbose)
         self.conn = self.engine.connect()
 
         ## global variables
+        self.verbose = verbose
         self.dpi = 400
         self.labelOffset = 0.05
         self.fontSize = 8 
@@ -121,11 +122,13 @@ class GeneSet(object):
             self.gene2transcript = gene2transcript
 
         fid.close()
-        print("-----------------")
-        print("%s gene sets loaded from gene set file."%(len(self.geneset2gene.keys())))
+        if self.verbose:
+            print("-----------------")
+            print("%s gene sets loaded from gene set file."%(len(self.geneset2gene.keys())))
 
     def get_gene_info(self,geneList):
-        print("...getting gene info")
+        if self.verbose:
+            print("...getting gene info")
         geneInfo = {}
         results = self.conn.execute(Gene.__table__.select(Gene.ncbi_id.in_(geneList)))
         for row in results:
@@ -154,7 +157,8 @@ class GeneSet(object):
 
         ## get the percentile threshold
         threshold = np.percentile(mat,percentile)
-        print "percentile threshold: %s (%s)"%(threshold,percentile)
+        if self.verbose:
+            print "percentile threshold: %s (%s)"%(threshold,percentile)
 
         termDist = {}
         for i in range(self.distMat.shape[0]):
@@ -202,7 +206,8 @@ class GeneSet(object):
             print("Cannot draw graph for '%s' because ID was not found"%(geneSetId))
             return
         
-        print('...fetching information about gene set')
+        if self.verbose:
+            print('...fetching information about gene set')
         geneList = self.geneset2gene[geneSetId]
 
         ## get terms
@@ -235,7 +240,8 @@ class GeneSet(object):
         taxonNames.sort()
         taxonIds = {}
         for t,taxon in enumerate(taxonNames):
-            print t,taxon
+            if self.verbose:
+                print("%s,%s"%(t,taxon))
             taxonIds[taxon] = str(t)
 
         geneSymbols = {}
@@ -276,11 +282,10 @@ class GeneSet(object):
         for edge in edgeList2:
             self.G.add_edge(edge[0],edge[1],weight=edge[2])
             edge2colors.append(edge[2])
-        print("...there are %s annotation edges"%(len(edgeList1)))
-        print("...there are %s term-term edges"%(len(edgeList2)))
-
-        ## prepare matplotlib axis
-        print('...drawing and saving')
+        if self.verbose:
+            print("...there are %s annotation edges"%(len(edgeList1)))
+            print("...there are %s term-term edges"%(len(edgeList2)))
+            print('...drawing and saving')
 
         ## use provided axis or create a new one
         if not ax:
@@ -379,11 +384,6 @@ class GeneSet(object):
         lineCount = 0
         current = 0.98
         increment = 0.03
-
-        ## add the taxa
-        #current,lineCount = add_line("taxa 1 goes here",lineCount,current)
-        #current,lineCount  add_line("taxa 2 goes here",lineCount,current)        
-        
         G1 = nx.Graph()
         colorIter = 1
         pos1 = {}
@@ -397,33 +397,6 @@ class GeneSet(object):
             current,lineCount = add_line(toAdd,lineCount,current)
             colorIter += 1
         
-        ## intitalize
-        """
-        G1 = nx.Graph()
-        for node in ["A","B","C","1","2","3","4"]:
-            G4.add_node(node)
-
-        ## explicitly set edges 
-        edgeTerms4 = [("A","B"),("B","C"),("1","2"),("3","4"),("5","6")]
-        edges4 = []
-        edges4.extend(edgeTerms4)
-
-        for edge in edges4:
-            G4.add_edge(edge[0],edge[1],weight=1)
-
-        ## explicitly set positions
-        pos4={"A":(0.15,0.9),
-              "B":(0.15,0.74),
-              "C":(0.15,0.58),
-              "1":(0.05,0.42),
-              "2":(0.25,0.42),
-              "3":(0.05,0.26),
-              "4":(0.25,0.26),
-              "5":(0.05,0.1),
-              "6":(0.25,0.1)}
-        """
-
-        ## add all of the go lines
         current,lineCount = add_line("-"*self.lineEnd,lineCount,current)
         termIds = [int(i) for i in list(set(term2id.values()))]
         termIds.sort()

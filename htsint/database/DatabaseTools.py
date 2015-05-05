@@ -70,12 +70,14 @@ def db_connect(verbose=False,upass=''):
         raise Exception("Invalid database parameters -- parameters not specified in config file")
             
     ## create connection to db and create necessary tables 
-    print "connecting to database: %s"%dbname
+    if verbose:
+        print "connecting to database: %s"%dbname
     engine = create_engine('postgresql://%s:%s@%s:%s/%s'%(uname,upass,dbhost,port,dbname),echo=verbose)
     connection = engine.connect()
     Session = sessionmaker(bind=engine)
     session = Session()
-    print 'connected.'
+    if verbose:
+        print 'connected.'
 
     return session,engine
 
