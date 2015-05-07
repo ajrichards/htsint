@@ -79,7 +79,6 @@ class SpectralClusterParamSearch(object):
         ## specify the ranges
         kRange = np.array([int(round(i)) for i in np.linspace(20,500,15)])
 
-        
         ## different sigma ranges are appropriate for different GO aspects
         if sigmaRange:
             pass
@@ -119,11 +118,15 @@ class SpectralClusterParamSearch(object):
             stopPoints = np.hstack([stopPoints[1:],np.array([len(toRun)])])
 
         begin = 0
-        for i,chunk in enumerate(range(stopPoints.size)):
-            stop = stopPoints[chunk]
-            print('...running %s-%s/%s'%(begin,stop,len(toRun)))
-            self.run_sc(toRun,begin,stop)
-            begin = stop
+
+        if chunk == 1:
+            self._run_sc(toRun)
+        else:
+            for i,chunk in enumerate(range(stopPoints.size)):
+                stop = stopPoints[chunk]
+                print('...running %s-%s/%s'%(begin,stop,len(toRun)))
+                self.run_sc(toRun,begin,stop)
+                begin = stop
 
         print "complete."
         outFid1.close()
@@ -160,3 +163,16 @@ class SpectralClusterParamSearch(object):
 
         po.close()
         po.join()
+
+    def _run_sc(self,toRun):
+        """
+        run spectral clustering (single core)
+        """
+
+        for params in toRun:
+            k,sigma,dpath,dtype = params
+            sc = SpectralCluster(distancePath,dtype=dtype)
+            sc.run(k,sk=None,sigma=sigma,verbose=True)
+            clusterSizes = self.get_cluster_sizes(sc)
+            self.writer1.writerow([k,sigma] + [round(sc.avgSilValue,4)])
+            self.writer2.writerow([k,sigma] + clusterSizes)
