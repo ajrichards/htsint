@@ -119,7 +119,7 @@ class SpectralClusterParamSearch(object):
 
         begin = 0
 
-        if chunk == 1:
+        if chunks == 1:
             self._run_sc(toRun)
         else:
             for i,chunk in enumerate(range(stopPoints.size)):
@@ -171,7 +171,7 @@ class SpectralClusterParamSearch(object):
 
         for params in toRun:
             k,sigma,dpath,dtype = params
-            sc = SpectralCluster(distancePath,dtype=dtype)
+            sc = SpectralCluster(self.distancePath,dtype=dtype)
             sc.run(k,sk=None,sigma=sigma,verbose=True)
             clusterSizes = self.get_cluster_sizes(sc)
             self.writer1.writerow([k,sigma] + [round(sc.avgSilValue,4)])
