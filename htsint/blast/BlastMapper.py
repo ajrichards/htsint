@@ -36,11 +36,12 @@ class BlastMapper(object):
         self.conn = self.engine.connect()
         self.hits = None
 
-    def create_summarized(self,parsedFilePath,summaryFilePath=None,large=False,refseq=False):
+    def create_summarized(self,parsedFilePath,summaryFilePath=None,large=False,refseq=False,species=None,speciesNcbi=None):
         """
         htsint uses output 5 (XML) and then parses it into a simple csv file
         large - use True if the parsed file as more than a few hundred hits
         refseq - use True if the target database used RefSeq identifiers
+        species - if None htsint will try to find the species otherwise the scientific name is given
         """
         
         ## error checking
@@ -139,7 +140,9 @@ class BlastMapper(object):
             hitNcbiId,hitSpeciesNcbiId = '-','-'
 
             ## extract species id
-            if re.search("OS=.+[A-Z]=",hitIdLong):
+            if species:
+                hitSpecies = species
+            elif re.search("OS=.+[A-Z]=",hitIdLong):
                 hitSpecies = re.findall("OS=.+[A-Z]=",hitIdLong)[0][3:-4]
             elif re.search("\[.+\]",hitIdLong):
                 hitSpecies = re.findall("\[.+\]",hitIdLong)[0][1:-1]
@@ -160,12 +163,15 @@ class BlastMapper(object):
                     hitNcbiId = gene2id[upEntry2Gene[hitId]]
        
             ## get taxa id associated with uniprot id
-            hitSpeciesNcbiId = '-'
-            if upEntry2Taxa.has_key(hitId) and str(upEntry2Taxa[hitId]) != 'None':
-                if taxaId2Ncbi.has_key(upEntry2Taxa[hitId]) and str(taxaId2Ncbi.has_key(upEntry2Taxa[hitId])) != 'None':
-                    hitSpeciesNcbiId = taxaId2Ncbi[upEntry2Taxa[hitId]]
-                else:
-                    print 'Were in! but taxaId2Ncbi does not have', upEntry2Taxa[hitId]
+            if speciesNcbi:
+                hitSpeciesNcbiId = speciesNcbi
+            else:
+                hitSpeciesNcbiId = '-'
+                if upEntry2Taxa.has_key(hitId) and str(upEntry2Taxa[hitId]) != 'None':
+                    if taxaId2Ncbi.has_key(upEntry2Taxa[hitId]) and str(taxaId2Ncbi.has_key(upEntry2Taxa[hitId])) != 'None':
+                        hitSpeciesNcbiId = taxaId2Ncbi[upEntry2Taxa[hitId]]
+                    else:
+                        print 'Were in! but taxaId2Ncbi does not have', upEntry2Taxa[hitId]
            
             writer.writerow([queryId,hitId,hitNcbiId,hitSpecies,hitSpeciesNcbiId,eScore])
 
@@ -390,7 +396,7 @@ class BlastMapper(object):
 
     def get_gene_dict(self,bmap):
         """
-        returns a gene to transcript and transcript to gene dictionary
+        returns a gene to transcript dictionary
         """
          
         gene2transcript = {}
@@ -409,6 +415,31 @@ class BlastMapper(object):
                 gene2transcript[gene].append(key)
 
         return gene2transcript
+
+
+    def get_hit_dict(self,bmap):
+        """
+        returns a hit to transcript dictionary
+        """
+         
+        hit2transcript = {}
+        for key,item in bmap.iteritems():
+
+            if type(item) == type([]):
+                hits =  [i[0] for i in item]
+            else:
+                hits = [item[0]]
+
+            for hit in hits:
+                if hit == '-':
+                    continue
+                if not hit2transcript.has_key(hit):
+                    hit2transcript[hit] = []
+                hit2transcript[hit].append(key)
+
+        return hit2transcript
+
+
 
 if __name__ == "__main__":
     print "Running..."
