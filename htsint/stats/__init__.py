@@ -10,3 +10,4 @@ from ClusteringData import dataLetters,dataLettersLabels,dataNetwork,dataNetwork
 from SpectralClustering import SpectralCluster
 from SpectralClusterParamSearch import SpectralClusterParamSearch
 from SpectralClusterResults import SpectralClusterResults
+from EnrichmentTests import enrichment_hypergeo
