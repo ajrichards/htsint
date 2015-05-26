@@ -378,10 +378,11 @@ class GeneSet(object):
 
         return term2id,termList,taxonNames
 
-    def draw_figure(self,geneSetId,layout='spring',name=None,percentile=50):
+    def draw_figure(self,geneSetId,layout='spring',name=None,percentile=50,fig=None):
 
-        ## specify axes l,b,w,h 
-        fig = plt.figure(figsize=(10,6))
+        ## specify axes l,b,w,h
+        if not fig:
+            fig = plt.figure(figsize=(10,6))
         ax1  = fig.add_axes([0.3, 0.0, 0.7, 1.0])
         ax2  = fig.add_axes([0.0, 0.07, 0.3, 0.93],axisbg='#EEEEEE')
         ax3  = fig.add_axes([0.0, 0.0, 0.3, 0.07],axisbg='#EEEEEE')      # empty
