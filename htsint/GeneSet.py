@@ -33,6 +33,7 @@ class GeneSet(object):
         self.labelOffset = 0.05
         self.fontSize = 8 
         self.legendFontSize = 8
+        self.increment = 0.03
         self.fontName = 'serif'
         self.termAlpha = 0.95
         self.geneAlpha = 0.4
@@ -330,7 +331,7 @@ class GeneSet(object):
 
         ## layout
         if layout == 'spring':
-            pos = nx.spring_layout(self.G,scale=1)
+            pos = nx.spring_layout(self.G,scale=1.75)
         elif layout == 'spectral':
             pos = nx.spectral_layout(self.G)
         else:
@@ -353,9 +354,6 @@ class GeneSet(object):
                                    node_color=self.colors[colorItr],alpha=self.geneAlpha,ax=ax)
             colorItr += 1
 
-            ## offset labels
-            #for p in _pos:
-            #    _pos[p][1] += self.labelOffset
             nx.draw_networkx_labels(_G,_pos,font_color='black',font_family=self.fontName,labels=geneLabels[taxon],ax=ax)
 
         ## draw term nodes
@@ -400,14 +398,14 @@ class GeneSet(object):
             toPrint = toPrint[:self.lineEnd]
             if lineCount == self.linesMax:
                 ax2.text(0.01,current," ...",color='k',fontsize=self.legendFontSize,fontname=self.fontName,ha="left", va="center")
-                current = current - increment
+                current = current - self.increment
                 lineCount += 1
                 return current, lineCount
             elif lineCount > self.linesMax:
                 return current, lineCount
 
             ax2.text(0.01,current,toPrint,color='k',fontsize=self.legendFontSize,fontname=self.fontName,ha="left", va="center")
-            current = current - increment
+            current = current - self.increment
             lineCount += 1
         
             return current, lineCount
@@ -418,7 +416,6 @@ class GeneSet(object):
         ## axis 2 (legend)
         lineCount = 0
         current = 0.98
-        increment = 0.03
         G1 = nx.Graph()
         colorIter = 1
         pos1 = {}
@@ -428,9 +425,22 @@ class GeneSet(object):
             nx.draw_networkx_nodes(G1,pos1,node_size=100,nodelist=[node],
                                    node_color=self.colors[colorIter],alpha=self.geneAlpha,ax=ax2)
             query = self.session.query(Taxon).filter_by(ncbi_id=node).first()
-            toAdd = "        %s (%s)"%(query.name,node)[:self.lineEnd]
-            current,lineCount = add_line(toAdd,lineCount,current)
+            toPrint = "        %s (%s)"%(query.name,node)[:self.lineEnd]
+            
             colorIter += 1
+            if len(toPrint) > self.lineEnd:
+                wordBreaks = np.array([m.start(0) for m in re.finditer("\s+",toPrint)])
+                lineBreak = wordBreaks[np.where(wordBreaks < self.lineEnd)[0]][-1]
+                remaining = toPrint[lineBreak:]
+                toPrint = toPrint[:lineBreak]
+            else:
+                remaining = None
+            toPrint = toPrint[:self.lineEnd]
+            current,lineCount = add_line(toPrint,lineCount,current)
+
+            if remaining:
+                current,lineCount = add_line("       "+remaining,lineCount,current)
+
         
         current,lineCount = add_line("-"*self.lineEnd,lineCount,current)
         termIds = [int(i) for i in list(set(term2id.values()))]
