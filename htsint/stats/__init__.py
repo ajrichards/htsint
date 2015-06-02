@@ -11,3 +11,4 @@ from SpectralClustering import SpectralCluster
 from SpectralClusterParamSearch import SpectralClusterParamSearch
 from SpectralClusterResults import SpectralClusterResults
 from EnrichmentTests import enrichment_hypergeo
+from SilValueGenerator import SilValueGenerator
