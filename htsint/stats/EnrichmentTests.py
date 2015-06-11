@@ -3,6 +3,7 @@ enrichment functions
 """
 
 import sys
+import numpy as np
 from scipy.stats import hypergeom
 from htsint.database import fetch_taxa_annotations, db_connect, Taxon, Gene
 
