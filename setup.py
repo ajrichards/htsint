@@ -23,7 +23,7 @@ generated based on Gene Ontology information from one or more species.
 
 """
 
-REQUIRES = ['numpy', 'matplotlib','networkx','sqlalchemy','biopython']
+REQUIRES = ['numpy', 'matplotlib','networkx','sqlalchemy','psycopg2','biopython']
 DISTNAME = 'htsint'
 LICENSE = 'BSD 3-Clause'
 AUTHOR = "Adam J Richards"

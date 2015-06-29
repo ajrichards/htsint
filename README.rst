@@ -2,35 +2,33 @@
 Introduction
 ************
 
-:Version: 0.4.3
+:Version: 0.5.1
 :Authors: Adam Richards
-:Web site: https://github.com/ajrichards/hts-integrate
-:Documentation: http://ajrichards.github.io/hts-integrate
+:Web site: https://github.com/ajrichards/htsint
+:Documentation: http://ajrichards.github.io/htsint
 :Copyright: This document has been placed in the public domain.
-:License: HTS-Integrate is released under the MIT License
+:License: htsint is released under the MIT License
 
 
 Purpose
 =======
 
-``hts-integrate`` is a Python package principally used to create gene sets that are used in RNA-Seq studies.  Annotation data are integrated through the creation of gene sets.  The main functions included in ``hts-integrate`` are: 
+HTSInt (High-Througput Sequencing INTegrate) is a Python package principally used to create gene sets that are used in sequencing studies.  Annotation data are integrated through the creation of gene sets.  HTSInt also serves as a general purpose library to study gene expression.  The target audience for HTSInt are developers that piece together high-throughput sequencing (HTS) pipelines.  The software in its current form is an API library and because HTS pipelines have different goals with many varied tasks required to achieve these goals, a flexible library in a scripting language commonly used in bioinformatics was selected.  One important aspect of this project is to provide both abstracted functions for non-Python programmers as well as convenient means to enable a higher levels of customization.  The main functions included in HTSInt are: 
 
-  * Name mapping
-  * BLAST
+  * BLAST mapping
   * Gene Ontology queries
   * Heatmaps for differential expression analysis
   * Creation of gene sets for gene set enrichment analysis
   * Visualization of gene sets
-
 
 Installation
 ================
 
 For more details visit the documentation:
 
-  *  http://ajrichards.github.io/hts-integrate
+  *  http://ajrichards.github.io/htsint
 
-The easiest way to install and maintain ``hts-integrate`` is to use `pip <https://pypi.python.org/pypi/pip>`_
+The easiest way to install and maintain HTSInt is to use `pip <https://pypi.python.org/pypi/pip>`_
 
   .. code-block:: bash
 
@@ -40,12 +38,15 @@ The easiest way to install and maintain ``hts-integrate`` is to use `pip <https:
 
       ~$ pip install htsint --upgrade
 
-Next you need to `setup your database <http://ajrichards.github.io/hts-integrate/database.html>`_ to get a working version of ``hts-integrate``.
+Next you need to `setup your database <http://ajrichards.github.io/htsint/database.html>`_ to get a working version of ``htsint``.
 
 Prerequsites 
 -----------------------------------
 
   * `PostgreSQL <www.postgresql.org/>`_
-  * https://networkx.github.io/
-  * http://www.sqlalchemy.org
+  * `NetworkX <https://networkx.github.io/>`_
+  * `SQLAlchemy <http://www.sqlalchemy.org/>`_
+  * `Psycopg2 <http://initd.org/psycopg/>`_
+  * `NumPy <www.numpy.org/>`_
 
+  

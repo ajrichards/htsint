@@ -32,7 +32,7 @@ class Configure(object):
         constructor
         """
 
-        self.logFileDir = os.path.join(os.path.expanduser('~'),".hts-integrate")
+        self.logFileDir = os.path.join(os.path.expanduser('~'),".htsint")
         if os.path.exists(self.logFileDir) == True and os.path.isdir(self.logFileDir) == False:
             os.remove(self.logFileDir)
         

@@ -24,7 +24,7 @@ Setting up your database
 There are 4 step that you need to carry out in order to have a working database.
 
 1. Install `PostgreSQL <http://www.postgresql.org>`_ and create an empty database
-2. Modify the `hts-integrate` config file
+2. Modify the `htsint` config file
 3. Fetch all necessary data files
 4. Populate the datbase
 
@@ -103,8 +103,8 @@ The default is
 Alternatively, it is possible to edit this file directly.  To locate the directory where it is stored you may type the following.
 
 >>> import os
->>> os.path.join(os.path.expanduser('~'),".hts-integrate")
-'/home/adam/.hts-integrate'
+>>> os.path.join(os.path.expanduser('~'),".htsint")
+'/home/adam/.htsint'
 
 The dbport (default '5432') and dbhost (default 'localhost') may also be configured.
 

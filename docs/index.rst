@@ -7,7 +7,7 @@ hts-integrate
 
 .. figure:: example_web.png
 
-``hts-integrate`` is a Python package used to create gene sets for the study of high-throughput sequencing data.
+HTSInt is a Python package used to create gene sets for the study of high-throughput sequencing data.  The target audience for HTSInt are developers that piece together high-throughput sequencing (HTS) pipelines.  The software in its current form is an API library and because HTS pipelines have different goals with many varied tasks required to achieve these goals, a flexible library in a scripting language commonly used in bioinformatics was selected.  One important aspect of this project is to provide both abstracted functions for non-Python programmers as well as convenient means to enable a higher levels of customization.
 
 Features
 ------------
