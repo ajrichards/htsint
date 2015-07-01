@@ -3,12 +3,12 @@
 Installation
 ======================
 
-To install ``hts-integrate`` there are two steps.
+To install ``htsint`` there are two steps.
 
    1. install the python package
    2. setup the database
 
-hts-integrate (``htsint``) is tested with Ubuntu 14.04 and OSX although it should run under any operating system as it is simply a Python package with an attached PostgreSQL database.  Because Debian based distros are common in the bioinformatics world, some installation details are Debian specific.  
+``htsint`` is tested with current versions of Ubuntu and OSX although it should run under any operating system as it is simply a Python package with an attached PostgreSQL database.  Because Debian based distros are common in the bioinformatics world, some installation details are Debian specific.  
 
 To ensure that you can run BLAST locally install the Suite of `BLAST+ tools <http://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=Download>`_. For example,
 
@@ -20,7 +20,7 @@ To ensure that you can run BLAST locally install the Suite of `BLAST+ tools <htt
 Install hst-integrate
 --------------------------
 
-``hts-integrate`` is at its core a Python package so it may be installed (or upgraded) like most other packages in the `Python package index <Python Package Index>`_.
+``htsint`` is at its core a Python package so it may be installed (or upgraded) like most other packages in the `Python package index <Python Package Index>`_.
 
    .. code-block:: bash
 
@@ -31,7 +31,7 @@ Install hst-integrate
       ~$ pip install htsint --upgrade
 
 
-.. note:: ``hts-integrate`` can also be installed from source.
+.. note:: ``htsint`` can also be installed from source.
 
 Setting up your database
 -----------------------------
@@ -70,7 +70,7 @@ First you will need to download the data and populate the database.  Instruction
 
    .. code-block:: bash 
       
-         ~$ cd /hts-integrate
+         ~$ cd /htsint
          ~$ python runTests.py
 
 Links

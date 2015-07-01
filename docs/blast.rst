@@ -88,7 +88,7 @@ This will create a parsed and concatenated file in the ``cluster`` directory.
 BlastMapper
 ---------------------
 
-BlastMapper is a class that htsint uses to interact with BLAST results.  BlastMapper takes as input the parsed results.  A method called ``create_summarized`` will take the parsed results and try to find matching UniProt and NCBI identifiers from the local database.  This summary can take time so it is saved as a separate file.
+BlastMapper is a class that ``htsint`` uses to interact with BLAST results.  BlastMapper takes as input the parsed results.  A method called ``create_summarized`` will take the parsed results and try to find matching UniProt and NCBI identifiers from the local database.  This summary can take time so it is saved as a separate file.
 
 >>> from htsint.blast import BlastMapper
 >>> bm = BlastMapper()

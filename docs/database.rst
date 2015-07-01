@@ -108,7 +108,7 @@ Alternatively, it is possible to edit this file directly.  To locate the directo
 
 The dbport (default '5432') and dbhost (default 'localhost') may also be configured.
 
-.. note:: hts-integrate will only populate annotation information for taxa in the *taxa* variable so make sure all species are present **before** database population.
+.. note:: ``htsint`` will only populate annotation information for taxa in the *taxa* variable so make sure all species are present **before** database population.
 
 
 (3) Fetch the necessary data files

@@ -13,7 +13,7 @@ Introduction
 Purpose
 =======
 
-HTSInt (High-Througput Sequencing INTegrate) is a Python package principally used to create gene sets that are used in sequencing studies.  Annotation data are integrated through the creation of gene sets.  HTSInt also serves as a general purpose library to study gene expression.  The target audience for HTSInt are developers that piece together high-throughput sequencing (HTS) pipelines.  The software in its current form is an API library and because HTS pipelines have different goals with many varied tasks required to achieve these goals, a flexible library in a scripting language commonly used in bioinformatics was selected.  One important aspect of this project is to provide both abstracted functions for non-Python programmers as well as convenient means to enable a higher levels of customization.  The main functions included in HTSInt are: 
+``htsint`` (High-Througput Sequencing INTegrate) is a Python package principally used to create gene sets that are used in sequencing studies.  Annotation data are integrated through the creation of gene sets.  ``htsint`` also serves as a general purpose library to study gene expression.  The target audience for ``htsint`` are developers that piece together high-throughput sequencing (HTS) pipelines.  The software in its current form is an API library and because HTS pipelines have different goals with many varied tasks required to achieve these goals, a flexible library in a scripting language commonly used in bioinformatics was selected.  One important aspect of this project is to provide both abstracted functions for non-Python programmers as well as convenient means to enable a higher levels of customization.  The main functions included in ``htsint`` are: 
 
   * BLAST mapping
   * Gene Ontology queries
@@ -28,7 +28,7 @@ For more details visit the documentation:
 
   *  http://ajrichards.github.io/htsint
 
-The easiest way to install and maintain HTSInt is to use `pip <https://pypi.python.org/pypi/pip>`_
+The easiest way to install and maintain ``htsint`` is to use `pip <https://pypi.python.org/pypi/pip>`_
 
   .. code-block:: bash
 

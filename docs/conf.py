@@ -9,7 +9,7 @@ logFilePath = os.path.join(os.path.split(currentFilePath)[0],'sphinx.log')
 sl = SphinxLogger(logFilePath) 
 
 ## these variables can be overwritten here or edited using lpEdit
-projectName = "hts-integrate - %s"%__version__
+projectName = "htsint - %s"%__version__
 authors  = sl.log['authors']
 extensions = ['sphinx.ext.pngmath',
               'sphinx.ext.doctest',
@@ -19,7 +19,7 @@ extensions = ['sphinx.ext.pngmath',
 
 version = sl.log['version']
 release = sl.log['release']
-htmlTitle = "hts-integrate - %s"%__version__
+htmlTitle = "htsint - %s"%__version__
 htmlTheme = "agogo"
 htmlShowCopyright = ast.literal_eval(sl.log['html_show_copyright'])
 paperSize = sl.log['latex_papersize']
