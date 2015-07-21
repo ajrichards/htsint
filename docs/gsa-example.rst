@@ -11,7 +11,7 @@ The procedure in this tutorial example to carry out gene set analysis using ``ht
 
 This example takes approximately 30 minutes to complete on a modern desktop computer.  The code used for gene set generation in this document is available as a script for convenience.
 
-   * :download:`generate-genesets.py`
+   * :download:`gsa-example.py`
 
 (1) Gene set generation
 ----------------------------
@@ -21,31 +21,50 @@ The basic process involves integrating Gene Ontology [Ashburner00]_ information 
 Create a term graph
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+First make the necessary imports.
+
+   >>> import time,os,re
+   >>> from htsint import GeneOntology,TermDistances,GeneDistances,GeneSetCollection
+   >>> from htsint.stats import SpectralCluster, SpectralClusterParamSearch, SpectralClusterResults
+   >>> from htsint.blast import BlastMapper
+
+Then specify an output directory along with a GO aspect with an abbreviation.  The valid GO aspects are: 'biological_process', 'molecular_function' and 'cellular_component'.
+
+   >>> homeDir = os.path.join(".","demo")
+   >>> if not os.path.isdir(homeDir):
+   >>>  os.mkdir(homeDir)
+
+   >>> aspect = 'biological_process' 
+   >>> _aspect = 'mf'   
+   
 Because genes and their ontology terms will be loaded multiple times fetch the annotations only once then save the dictionaries.
 
-   >>> from htsint import GeneOntology
-   >>> go = GeneOntology(["8364","8355"],useIea=False,aspect='molecular_function')
-   >>> termsPath = "go-terms.pickle"
-   >>> graphPath = "go-graph.pickle"
+   >>> go = GeneOntology(["8364","8355"],useIea=False,aspect=aspect)
+   >>> termsPath = os.path.join(homeDir,"go-terms.pickle")
+   >>> graphPath = os.path.join(homeDir,"go-graph.pickle")
    >>> go.create_dicts(termsPath)
-   >>> gene2go,go2gene = go.load_dicts(termsPath)
-   >>> G = go.create_gograph(termsPath=termsPath,graphPath=graphPath)
+   >>> gene2go,go2gene = go.load_dicts(termsPath)   
    >>> print("%s genes have at least one annotation"%(len(gene2go.keys())))
-   Term graph for with 15719 nodes successfully created.
+   1597 genes have at least one annotation
    >>> print("Term graph for with %s nodes successfully created."%(len(G.nodes())))
-   1291 genes have at least one annotation
+   total distances to evaluate: 1219141.0
 
-The valid GO aspects are: 'biological_process', 'molecular_function' and 'cellular_component'.
+Create the graph of term-term relationships.
+   
+   >>> G = go.create_gograph(termsPath=termsPath,graphPath=graphPath)
+   Term graph for with 15719 nodes successfully created.
 
 Calculate term distances
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Ideally, this step is carried out in a cluster environment and if you are using `Grid Engine <http://gridscheduler.sourceforge.net>`_ then there are built-in convenience methods.  Whether you are in a high performance environment or on a single machine the initialization is the same. 
 
-   >>> from htsint import TermDistances
+   >>> termDistancePath = os.path.join(homeDir,"term-distances.npy")
    >>> td = TermDistances(termsPath,graphPath)
-   >>> termDistancePath = "term-distances.csv"
-
+   >>> print("total distances to evaluate: %s"%td.totalDistances)
+   total distances to evaluate: 1219141.0
+   >>> timeStart = time.time()
+    
 Using Grid Engine:
 """""""""""""""""""""
 
@@ -64,17 +83,16 @@ Using single machine
 
    >>> td.run_with_multiprocessing(termDistancePath,cpus=16)
 
-This is the most computationally expensive step in the pipeline so for lists with more than a few thousand genes this calculation becomes difficult outside of a cluster environment.  Using 16 cores on a single machine the previous command finished in 00:27:32 (hh:mm:ss).
+This is the most computationally expensive step in the pipeline so for lists with more than a few thousand genes this calculation becomes difficult outside of a cluster environment.  Using 8 cores on a single machine the previous command finished in XX:XX:XX (hh:mm:ss).
 
 Calculate gene distances
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 With the term-term distances stored in the distance file we can map the gene-gene distances.
 
-   >>> from htsint import GeneDistances
-   >>> geneDistancePath = "gene-distances.csv"
-   >>> gd = GeneDistances(termsPath,graphPath,termDistancePath,outFile=geneDistancePath)
-   >>> gd.run()
+   >>> geneDistancePath = os.path.join(homeDir,"gene-distances.csv")
+   >>> gd = GeneDistances(termsPath,termDistancePath,outFile=geneDistancePath)
+   >>>  gd.run()
 
 Spectral Clustering
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -84,14 +102,18 @@ With the gene-gene distances a number of unsupervised clustering algorithms can 
 Parameter estimation [optional]
 """""""""""""""""""""""""""""""""
 
-   >>> from htsint.stats import SpectralClusterParamSearch, SpectralClusterResults
+   >>> silvalFile = re.sub("\.csv","-scparams-sv.csv",geneDistancePath)
+   >>> clustersFile = re.sub("\.csv","-scparams-cl.csv",geneDistancePath)
    >>> scps = SpectralClusterParamSearch(geneDistancePath,dtype='distance')
    >>> scps.run(chunks=15)
+
+Plot the parameter search 
+
    >>> psFigureFile = os.path.join(homeDir,"param-scan-%s.png"%(_aspect))
    >>> scr = SpectralClusterResults(silvalFile,clustersFile)
-   >>> scr.plot(figName=psFigureFile,threshMin=5,threshoMax=100)
+   >>> scr.plot(figName=psFigureFile)
 
-.. figure:: ../figures/param-scan-mf.png
+.. figure:: ../figures/param-scan-bp.png
    :scale: 25%
    :align: center
    :alt: top 75 transcripts

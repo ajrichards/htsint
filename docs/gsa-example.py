@@ -14,7 +14,7 @@ if not os.path.isdir(homeDir):
     os.mkdir(homeDir)
 
 _aspect = 'mf'
-aspect = 'molecular_function' 
+aspect = 'biological_process' 
 
 # Create a term graph 
 go = GeneOntology(["8364","8355"],useIea=False,aspect=aspect)
@@ -43,17 +43,17 @@ if not os.path.exists(geneDistancePath):
     gd.run()
 
 # Spectral Clustering parameter search 
-#silvalFile = re.sub("\.csv","-scparams-sv.csv",geneDistancePath)
-#clustersFile = re.sub("\.csv","-scparams-cl.csv",geneDistancePath)
-#if not os.path.exists(silvalFile):
-#    scps = SpectralClusterParamSearch(geneDistancePath,dtype='distance')
-#    scps.run(chunks=15)
+silvalFile = re.sub("\.csv","-scparams-sv.csv",geneDistancePath)
+clustersFile = re.sub("\.csv","-scparams-cl.csv",geneDistancePath)
+if not os.path.exists(silvalFile):
+    scps = SpectralClusterParamSearch(geneDistancePath,dtype='distance')
+    scps.run(chunks=15)
 
 ## plot the parameter search 
-#psFigureFile = os.path.join(homeDir,"param-scan-%s.png"%(_aspect))
-#if not os.path.exists(psFigureFile):
-#    scr = SpectralClusterResults(silvalFile,clustersFile)
-#    scr.plot(figName=psFigureFile)
+psFigureFile = os.path.join(homeDir,"param-scan-%s.png"%(_aspect))
+if not os.path.exists(psFigureFile):
+    scr = SpectralClusterResults(silvalFile,clustersFile)
+    scr.plot(figName=psFigureFile)
 
 ## run spectral clustering
 k = 123

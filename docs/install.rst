@@ -17,8 +17,8 @@ To ensure that you can run BLAST locally install the Suite of `BLAST+ tools <htt
       ~$ sudo apt-get install ncbi-blast+
 
 
-Install hst-integrate
---------------------------
+Install hstint
+-------------------
 
 ``htsint`` is at its core a Python package so it may be installed (or upgraded) like most other packages in the `Python package index <Python Package Index>`_.
 
@@ -34,7 +34,7 @@ Install hst-integrate
 .. note:: ``htsint`` can also be installed from source.
 
 Setting up your database
------------------------------
+---------------------------
 
 Follow the :doc:`database setup instructions <database>`. Ensure that you edit the ``taxa`` field of the config file to fit your needs.
 
@@ -43,24 +43,20 @@ Installing from source
 
 Installation from source requires that the prerequsites are present before proceeding.
 
-First install the prerequsite Python packages.
+First install the prerequsite Python packages.  For example,
 
-      .. code-block:: bash
+   .. code-block:: bash
 
-         ~$ sudo apt-get install python-numpy python-matplotlib python-networkx python-biopython
-         ~$ sudo apt-get install python-scipy
+   ~$ sudo apt-get install python-numpy python-matplotlib python-networkx python-biopython
+   ~$ sudo apt-get install python-scipy python-psycopg2 python-sqlalchemy 
 
 Then install the database (see previous section for details on setup).
-
-      .. code-block:: bash
-
-         ~$ sudo apt-get install python-psycopg2 python-sqlalchemy 
         
 Install ``htsint``
 
       .. code-block:: bash
 
-         ~$ cd /hts-integrate
+         ~$ cd /htsint
          ~$ sudo python setup.py install
 
 Unittests

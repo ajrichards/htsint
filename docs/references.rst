@@ -25,6 +25,9 @@ Works cited
 .. [Patro14] R. Patro, S. M. Mount, & C Kingsford. *Sailfish enables alignment-free isoform quantification from RNA-seq reads using lightweight algorithms*,
              Nature biotechnology, 32, 462-4 (2014)
 
+.. [Subramian05] A. Subramian *et al*. *Gene set enrichment analysis: a knowledge-based approach for interpreting genome-wide expression profiles*,
+		 PNAS 102(43), 15545–50 (2005)
+	     
 .. [Love14] M. I. Love, W. Huber, & S. Anders. *Moderated estimation of fold change and dispersion for RNA-seq data with DESeq2*,
             Genome biology, 15, 550 (2014)
    
