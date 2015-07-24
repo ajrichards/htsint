@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Gene set analysis &mdash; hts-integrate - 0.4.3</title>
+    <title>Gene set analysis &mdash; htsint - 0.5.1</title>
     
     <link rel="stylesheet" href="_static/agogo.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="hts-integrate - 0.4.3" href="index.html" />
+    <link rel="top" title="htsint - 0.5.1" href="index.html" />
     <link rel="next" title="Works cited" href="references.html" />
     <link rel="prev" title="Differential expression analysis" href="deseq-example.html" /> 
   </head>
@@ -31,7 +31,7 @@
     <div class="header-wrapper">
       <div class="header">
         <div class="headertitle"><a
-          href="index.html">hts-integrate - 0.4.3</a></div>
+          href="index.html">htsint - 0.5.1</a></div>
         <div class="rel">
           <a href="deseq-example.html" title="Differential expression analysis"
              accesskey="P">previous</a> |
@@ -64,7 +64,7 @@
 <p>This example takes approximately 30 minutes to complete on a modern desktop computer.  The code used for gene set generation in this document is available as a script for convenience.</p>
 <blockquote>
 <div><ul class="simple">
-<li><a class="reference download internal" href="_downloads/generate-genesets.py"><tt class="xref download docutils literal"><span class="pre">generate-genesets.py</span></tt></a></li>
+<li><a class="reference download internal" href="_downloads/gsa-example.py"><tt class="xref download docutils literal"><span class="pre">gsa-example.py</span></tt></a></li>
 </ul>
 </div></blockquote>
 <div class="section" id="gene-set-generation">
@@ -72,28 +72,48 @@
 <p>The basic process involves integrating Gene Ontology <a class="reference internal" href="references.html#ashburner00" id="id1">[Ashburner00]</a> information from one or more taxa to infer functional distances between genes.  These distances are then used to cluster the genes in a specified list.  These genes are any groups of genes that you might want to cluster.  For example, you may use the genes in a large pathway or all genes from an RNA-Seq experiment, as is the case in this example.</p>
 <div class="section" id="create-a-term-graph">
 <h3>Create a term graph<a class="headerlink" href="#create-a-term-graph" title="Permalink to this headline">¶</a></h3>
-<p>Because genes and their ontology terms will be loaded multiple times fetch the annotations only once then save the dictionaries.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">htsint</span> <span class="kn">import</span> <span class="n">GeneOntology</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">go</span> <span class="o">=</span> <span class="n">GeneOntology</span><span class="p">([</span><span class="s">&quot;8364&quot;</span><span class="p">,</span><span class="s">&quot;8355&quot;</span><span class="p">],</span><span class="n">useIea</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="n">aspect</span><span class="o">=</span><span class="s">&#39;molecular_function&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">termsPath</span> <span class="o">=</span> <span class="s">&quot;go-terms.pickle&quot;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">graphPath</span> <span class="o">=</span> <span class="s">&quot;go-graph.pickle&quot;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">go</span><span class="o">.</span><span class="n">create_dicts</span><span class="p">(</span><span class="n">termsPath</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">gene2go</span><span class="p">,</span><span class="n">go2gene</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">load_dicts</span><span class="p">(</span><span class="n">termsPath</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">G</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">create_gograph</span><span class="p">(</span><span class="n">termsPath</span><span class="o">=</span><span class="n">termsPath</span><span class="p">,</span><span class="n">graphPath</span><span class="o">=</span><span class="n">graphPath</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s"> genes have at least one annotation&quot;</span><span class="o">%</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gene2go</span><span class="o">.</span><span class="n">keys</span><span class="p">())))</span>
-<span class="go">Term graph for with 15719 nodes successfully created.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&quot;Term graph for with </span><span class="si">%s</span><span class="s"> nodes successfully created.&quot;</span><span class="o">%</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">())))</span>
-<span class="go">1291 genes have at least one annotation</span>
+<p>First make the necessary imports.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">time</span><span class="o">,</span><span class="nn">os</span><span class="o">,</span><span class="nn">re</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">htsint</span> <span class="kn">import</span> <span class="n">GeneOntology</span><span class="p">,</span><span class="n">TermDistances</span><span class="p">,</span><span class="n">GeneDistances</span><span class="p">,</span><span class="n">GeneSetCollection</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">htsint.stats</span> <span class="kn">import</span> <span class="n">SpectralCluster</span><span class="p">,</span> <span class="n">SpectralClusterParamSearch</span><span class="p">,</span> <span class="n">SpectralClusterResults</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">htsint.blast</span> <span class="kn">import</span> <span class="n">BlastMapper</span>
 </pre></div>
 </div>
-<p>The valid GO aspects are: &#8216;biological_process&#8217;, &#8216;molecular_function&#8217; and &#8216;cellular_component&#8217;.</p>
+<p>Then specify an output directory along with a GO aspect with an abbreviation.  The valid GO aspects are: &#8216;biological_process&#8217;, &#8216;molecular_function&#8217; and &#8216;cellular_component&#8217;.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">homeDir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s">&quot;.&quot;</span><span class="p">,</span><span class="s">&quot;demo&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">homeDir</span><span class="p">):</span>
+<span class="gp">&gt;&gt;&gt; </span> <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">homeDir</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">aspect</span> <span class="o">=</span> <span class="s">&#39;biological_process&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">_aspect</span> <span class="o">=</span> <span class="s">&#39;bp&#39;</span>
+</pre></div>
+</div>
+<p>Because genes and their ontology terms will be loaded multiple times fetch the annotations only once then save the dictionaries.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">go</span> <span class="o">=</span> <span class="n">GeneOntology</span><span class="p">([</span><span class="s">&quot;8364&quot;</span><span class="p">,</span><span class="s">&quot;8355&quot;</span><span class="p">],</span><span class="n">useIea</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="n">aspect</span><span class="o">=</span><span class="n">aspect</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">termsPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">homeDir</span><span class="p">,</span><span class="s">&quot;go-terms.pickle&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">graphPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">homeDir</span><span class="p">,</span><span class="s">&quot;go-graph.pickle&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">go</span><span class="o">.</span><span class="n">create_dicts</span><span class="p">(</span><span class="n">termsPath</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gene2go</span><span class="p">,</span><span class="n">go2gene</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">load_dicts</span><span class="p">(</span><span class="n">termsPath</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s"> genes have at least one annotation&quot;</span><span class="o">%</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gene2go</span><span class="o">.</span><span class="n">keys</span><span class="p">())))</span>
+<span class="go">1597 genes have at least one annotation</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&quot;Term graph for with </span><span class="si">%s</span><span class="s"> nodes successfully created.&quot;</span><span class="o">%</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">())))</span>
+<span class="go">total distances to evaluate: 1219141.0</span>
+</pre></div>
+</div>
+<p>Create the graph of term-term relationships.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">G</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">create_gograph</span><span class="p">(</span><span class="n">termsPath</span><span class="o">=</span><span class="n">termsPath</span><span class="p">,</span><span class="n">graphPath</span><span class="o">=</span><span class="n">graphPath</span><span class="p">)</span>
+<span class="go">Term graph for with 15719 nodes successfully created.</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="calculate-term-distances">
 <h3>Calculate term distances<a class="headerlink" href="#calculate-term-distances" title="Permalink to this headline">¶</a></h3>
 <p>Ideally, this step is carried out in a cluster environment and if you are using <a class="reference external" href="http://gridscheduler.sourceforge.net">Grid Engine</a> then there are built-in convenience methods.  Whether you are in a high performance environment or on a single machine the initialization is the same.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">htsint</span> <span class="kn">import</span> <span class="n">TermDistances</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">termDistancePath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">homeDir</span><span class="p">,</span><span class="s">&quot;term-distances.npy&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">td</span> <span class="o">=</span> <span class="n">TermDistances</span><span class="p">(</span><span class="n">termsPath</span><span class="p">,</span><span class="n">graphPath</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">termDistancePath</span> <span class="o">=</span> <span class="s">&quot;term-distances.csv&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&quot;total distances to evaluate: </span><span class="si">%s</span><span class="s">&quot;</span><span class="o">%</span><span class="n">td</span><span class="o">.</span><span class="n">totalDistances</span><span class="p">)</span>
+<span class="go">total distances to evaluate: 1219141.0</span>
 </pre></div>
 </div>
 <div class="section" id="using-grid-engine">
@@ -115,15 +135,14 @@
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">td</span><span class="o">.</span><span class="n">run_with_multiprocessing</span><span class="p">(</span><span class="n">termDistancePath</span><span class="p">,</span><span class="n">cpus</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>This is the most computationally expensive step in the pipeline so for lists with more than a few thousand genes this calculation becomes difficult outside of a cluster environment.  Using 16 cores on a single machine the previous command finished in 00:27:32 (hh:mm:ss).</p>
+<p>This is the most computationally expensive step in the pipeline so for lists with more than a few thousand genes this calculation becomes difficult outside of a cluster environment.  Using 8 cores on a single machine the previous command finished in XX:XX:XX (hh:mm:ss).</p>
 </div>
 </div>
 <div class="section" id="calculate-gene-distances">
 <h3>Calculate gene distances<a class="headerlink" href="#calculate-gene-distances" title="Permalink to this headline">¶</a></h3>
 <p>With the term-term distances stored in the distance file we can map the gene-gene distances.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">htsint</span> <span class="kn">import</span> <span class="n">GeneDistances</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">geneDistancePath</span> <span class="o">=</span> <span class="s">&quot;gene-distances.csv&quot;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">gd</span> <span class="o">=</span> <span class="n">GeneDistances</span><span class="p">(</span><span class="n">termsPath</span><span class="p">,</span><span class="n">graphPath</span><span class="p">,</span><span class="n">termDistancePath</span><span class="p">,</span><span class="n">outFile</span><span class="o">=</span><span class="n">geneDistancePath</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">geneDistancePath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">homeDir</span><span class="p">,</span><span class="s">&quot;gene-distances.csv&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gd</span> <span class="o">=</span> <span class="n">GeneDistances</span><span class="p">(</span><span class="n">termsPath</span><span class="p">,</span><span class="n">termDistancePath</span><span class="p">,</span><span class="n">outFile</span><span class="o">=</span><span class="n">geneDistancePath</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gd</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -133,16 +152,20 @@
 <p>With the gene-gene distances a number of unsupervised clustering algorithms can be used here.  Because spectral clustering is appropriate for networks we have implemented two algorithms as part of <tt class="docutils literal"><span class="pre">htsint</span></tt>.  There is a bandwidth parameter <img class="math" src="_images/math/2298cf1485084afe72757a9c8483af49a138d81f.png" alt="\sigma"/> and a parameter for the number of clusters <cite>k</cite> that need to be given.</p>
 <div class="section" id="parameter-estimation-optional">
 <h4>Parameter estimation [optional]<a class="headerlink" href="#parameter-estimation-optional" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">htsint.stats</span> <span class="kn">import</span> <span class="n">SpectralClusterParamSearch</span><span class="p">,</span> <span class="n">SpectralClusterResults</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">silvalFile</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&quot;\.csv&quot;</span><span class="p">,</span><span class="s">&quot;-scparams-sv.csv&quot;</span><span class="p">,</span><span class="n">geneDistancePath</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">clustersFile</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&quot;\.csv&quot;</span><span class="p">,</span><span class="s">&quot;-scparams-cl.csv&quot;</span><span class="p">,</span><span class="n">geneDistancePath</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">scps</span> <span class="o">=</span> <span class="n">SpectralClusterParamSearch</span><span class="p">(</span><span class="n">geneDistancePath</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="s">&#39;distance&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">scps</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">chunks</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">psFigureFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">homeDir</span><span class="p">,</span><span class="s">&quot;param-scan-</span><span class="si">%s</span><span class="s">.png&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">_aspect</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Plot the parameter search</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">psFigureFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">homeDir</span><span class="p">,</span><span class="s">&quot;param-scan-</span><span class="si">%s</span><span class="s">.png&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">_aspect</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">scr</span> <span class="o">=</span> <span class="n">SpectralClusterResults</span><span class="p">(</span><span class="n">silvalFile</span><span class="p">,</span><span class="n">clustersFile</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">scr</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">figName</span><span class="o">=</span><span class="n">psFigureFile</span><span class="p">,</span><span class="n">threshMin</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span><span class="n">threshoMax</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scr</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">figName</span><span class="o">=</span><span class="n">psFigureFile</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="align-center figure">
-<a class="reference internal image-reference" href="_images/param-scan-mf.png"><img alt="top 75 transcripts" src="_images/param-scan-mf.png" style="width: 700.0px; height: 600.0px;" /></a>
+<a class="reference internal image-reference" href="_images/param-scan-bp.png"><img alt="parameter scan" src="_images/param-scan-bp.png" style="width: 700.0px; height: 600.0px;" /></a>
 </div>
 <p>Ideally, we are looking for values of <img class="math" src="_images/math/2298cf1485084afe72757a9c8483af49a138d81f.png" alt="\sigma"/> and <cite>k</cite> that maximize our silhouette value, while at the same time maximize the number of clusters that fall into a reasonable size range.  The size range can be set with the <tt class="docutils literal"><span class="pre">threshMin</span></tt> and <tt class="docutils literal"><span class="pre">threshMax</span></tt> arguments.  It helps result interpretation if the specified range can be reasonably investigated through visualization.  The top panel shows the average silhouette value for the clustering results over a grid of possible parameter values. For the same grid the bottom panel illustrates the percentage of total genes that fall into clusters of the desired size.  There is usually a trade-off between high silhouette values and the reasonably sized clusters.  The top three optimal values are marked on the plots.  For this example the parameters are maximized at <img class="math" src="_images/math/3b2f575eb4e7de2f7e39fc2cc2986fac142e0475.png" alt="k=123"/> and <img class="math" src="_images/math/fe818f5845875abf4a1b8bc1ab59e6325ffb9ef6.png" alt="\sigma=0.08"/>.  It is worth noting that strongly associated clusters tend to remain mostly intact over a wide range of parameter values.  In the script version of this example this section the parameter estimation is commented out to minimize compute time.</p>
 </div>
@@ -183,7 +206,7 @@
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gsc</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">blastMap</span><span class="o">=</span><span class="n">bmap</span><span class="p">,</span><span class="n">transcriptMin</span><span class="o">=</span><span class="n">transcriptMin</span><span class="p">,</span><span class="n">transcriptMax</span><span class="o">=</span><span class="n">transcriptMax</span><span class="p">,</span><span class="n">outFile</span><span class="o">=</span><span class="n">gsFile</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The class <tt class="docutils literal"><span class="pre">GeneSetCollection</span></tt> will create two files and the <tt class="docutils literal"><span class="pre">write</span></tt> method can be used to create these files for different assemblies assuming the BLAST mapper is appropriate.  The file name specified by gsFile will specify where to write <a class="reference external" href="http://www.broadinstitute.org/cancer/software/gsea/wiki/index.php/Data_formats#GMT:_Gene_Matrix_Transposed_file_format_.28.2A.gmt.29">GMT formatted</a> file.  For convenience and visualization another file (in csv format) with the same  name base will be created to store the gene to transcript mappings.  In this case <tt class="docutils literal"><span class="pre">./demo/mf.gmt</span></tt> and <tt class="docutils literal"><span class="pre">./demo/mf.csv</span></tt> will be created.</p>
+<p>The class <tt class="docutils literal"><span class="pre">GeneSetCollection</span></tt> will create two files and the <tt class="docutils literal"><span class="pre">write</span></tt> method can be used to create these files for different assemblies assuming the BLAST mapper is appropriate.  The file name specified by gsFile will specify where to write <a class="reference external" href="http://www.broadinstitute.org/cancer/software/gsea/wiki/index.php/Data_formats#GMT:_Gene_Matrix_Transposed_file_format_.28.2A.gmt.29">GMT formatted</a> file.  For convenience and visualization another file (in csv format) with the same  name base will be created to store the gene to transcript mappings.  In this case <tt class="docutils literal"><span class="pre">./demo/bp.gmt</span></tt> and <tt class="docutils literal"><span class="pre">./demo/bp.csv</span></tt> will be created.</p>
 </div>
 </div>
 <div class="section" id="gene-set-testing-gsa">
@@ -200,7 +223,7 @@
 </div></blockquote>
 <p>Once you have run DESeq the transformed counts are available and GSA can be run.</p>
 <blockquote>
-<div><div class="highlight-bash"><div class="highlight"><pre>~<span class="nv">$ </span>Rscript run-gsa.R mf
+<div><div class="highlight-bash"><div class="highlight"><pre>~<span class="nv">$ </span>Rscript run-gsa.R bp
 </pre></div>
 </div>
 </div></blockquote>
@@ -212,16 +235,16 @@
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">htsint</span> <span class="kn">import</span> <span class="n">GeneSet</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">distMat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s">&quot;.&quot;</span><span class="p">,</span><span class="s">&quot;demo&quot;</span><span class="p">,</span><span class="s">&quot;term-distances.npy&quot;</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">genesetFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s">&quot;.&quot;</span><span class="p">,</span><span class="s">&quot;demo&quot;</span><span class="p">,</span><span class="s">&quot;mf.csv&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">genesetFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s">&quot;.&quot;</span><span class="p">,</span><span class="s">&quot;demo&quot;</span><span class="p">,</span><span class="s">&quot;bp.csv&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">termsPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s">&quot;.&quot;</span><span class="p">,</span><span class="s">&quot;demo&quot;</span><span class="p">,</span><span class="s">&quot;go-terms.pickle&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gsets</span> <span class="o">=</span> <span class="n">GeneSet</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gsets</span><span class="o">.</span><span class="n">load_geneset</span><span class="p">(</span><span class="n">genesetFile</span><span class="p">,</span><span class="n">termsPath</span><span class="p">,</span><span class="n">distMat</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">genesetId</span> <span class="o">=</span> <span class="s">&#39;gs-4&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">genesetId</span> <span class="o">=</span> <span class="s">&#39;gs-60&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gsets</span><span class="o">.</span><span class="n">draw_figure</span><span class="p">(</span><span class="n">genesetId</span><span class="p">,</span><span class="n">layout</span><span class="o">=</span><span class="s">&#39;spring&#39;</span><span class="p">,</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">.png&#39;</span><span class="o">%</span><span class="p">(</span><span class="n">genesetId</span><span class="p">),</span><span class="n">percentile</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="align-center figure">
-<a class="reference internal image-reference" href="_images/gs-4.png"><img alt="top 75 transcripts" src="_images/gs-4.png" style="width: 612.0px; height: 371.85px;" /></a>
+<a class="reference internal image-reference" href="_images/gs-60.png"><img alt="example gene set" src="_images/gs-60.png" style="width: 612.0px; height: 372.0px;" /></a>
 </div>
 </div>
 </div>
@@ -279,8 +302,8 @@
           
     <div class="footer">
         &copy; Copyright 2015, A. Richards.
-      Last updated on May 05, 2015.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Last updated on Jul 23, 2015.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
         </div>
         <div class="clearer"></div>

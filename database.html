@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Database &mdash; hts-integrate - 0.4.3</title>
+    <title>Database &mdash; htsint - 0.5.1</title>
     
     <link rel="stylesheet" href="_static/agogo.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="hts-integrate - 0.4.3" href="index.html" />
+    <link rel="top" title="htsint - 0.5.1" href="index.html" />
     <link rel="next" title="Common database tasks" href="database-cookbook.html" />
     <link rel="prev" title="Installation" href="install.html" /> 
   </head>
@@ -31,7 +31,7 @@
     <div class="header-wrapper">
       <div class="header">
         <div class="headertitle"><a
-          href="index.html">hts-integrate - 0.4.3</a></div>
+          href="index.html">htsint - 0.5.1</a></div>
         <div class="rel">
           <a href="install.html" title="Installation"
              accesskey="P">previous</a> |
@@ -69,7 +69,7 @@
 <p>There are 4 step that you need to carry out in order to have a working database.</p>
 <ol class="arabic simple">
 <li>Install <a class="reference external" href="http://www.postgresql.org">PostgreSQL</a> and create an empty database</li>
-<li>Modify the <cite>hts-integrate</cite> config file</li>
+<li>Modify the <cite>htsint</cite> config file</li>
 <li>Fetch all necessary data files</li>
 <li>Populate the datbase</li>
 </ol>
@@ -85,8 +85,8 @@
 <blockquote>
 <div><div class="highlight-bash"><div class="highlight"><pre>~<span class="nv">$ </span>sudo su - postgres
 ~<span class="nv">$ </span>psql -U postgres
-CREATE USER dbuser WITH ENCRYPTED PASSWORD <span class="s1">&#39;somepassword&#39;</span>;
-CREATE DATABASE htsintegrate WITH OWNER dbuser;
+CREATE USER dbuser WITH ENCRYPTED PASSWORD <span class="s1">&#39;somepassword&#39;</span><span class="p">;</span>
+CREATE DATABASE htsintegrate WITH OWNER dbuser<span class="p">;</span>
 <span class="se">\q</span>
 </pre></div>
 </div>
@@ -144,14 +144,14 @@ CREATE DATABASE htsintegrate WITH OWNER dbuser;
 </div>
 <p>Alternatively, it is possible to edit this file directly.  To locate the directory where it is stored you may type the following.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s">&#39;~&#39;</span><span class="p">),</span><span class="s">&quot;.hts-integrate&quot;</span><span class="p">)</span>
-<span class="go">&#39;/home/adam/.hts-integrate&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s">&#39;~&#39;</span><span class="p">),</span><span class="s">&quot;.htsint&quot;</span><span class="p">)</span>
+<span class="go">&#39;/home/adam/.htsint&#39;</span>
 </pre></div>
 </div>
 <p>The dbport (default &#8216;5432&#8217;) and dbhost (default &#8216;localhost&#8217;) may also be configured.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">hts-integrate will only populate annotation information for taxa in the <em>taxa</em> variable so make sure all species are present <strong>before</strong> database population.</p>
+<p class="last"><tt class="docutils literal"><span class="pre">htsint</span></tt> will only populate annotation information for taxa in the <em>taxa</em> variable so make sure all species are present <strong>before</strong> database population.</p>
 </div>
 </div>
 <div class="section" id="fetch-the-necessary-data-files">
@@ -232,8 +232,8 @@ There are 7463568 entries in the go_annotations table
 <blockquote>
 <div><div class="highlight-bash"><div class="highlight"><pre>~<span class="nv">$ </span>sudo su - postgres
 ~<span class="nv">$ </span>psql -U postgres
-CREATE USER dbuser WITH ENCRYPTED PASSWORD <span class="s1">&#39;somepassword&#39;</span>;
-CREATE DATABASE newdbname WITH OWNER dbuser;
+CREATE USER dbuser WITH ENCRYPTED PASSWORD <span class="s1">&#39;somepassword&#39;</span><span class="p">;</span>
+CREATE DATABASE newdbname WITH OWNER dbuser<span class="p">;</span>
 <span class="se">\q</span>
 ~<span class="nv">$ </span>psql newdbname &lt; htsint.sql
 </pre></div>
@@ -297,8 +297,8 @@ CREATE DATABASE newdbname WITH OWNER dbuser;
           
     <div class="footer">
         &copy; Copyright 2015, A. Richards.
-      Last updated on May 05, 2015.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Last updated on Jul 23, 2015.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
         </div>
         <div class="clearer"></div>

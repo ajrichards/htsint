@@ -18,7 +18,7 @@ library("stats")
 args <-commandArgs(TRUE)
 
 if (length(args)==0){
-    print("ERROR: Did not specify name-aspect e.g 'Rscript runGSA.R mf'")
+    print("ERROR: Did not specify name-aspect e.g 'Rscript run-gsa.R bp'")
     q()
 }
 

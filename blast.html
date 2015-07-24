@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>BLAST &mdash; hts-integrate - 0.4.3</title>
+    <title>BLAST &mdash; htsint - 0.5.1</title>
     
     <link rel="stylesheet" href="_static/agogo.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="hts-integrate - 0.4.3" href="index.html" />
+    <link rel="top" title="htsint - 0.5.1" href="index.html" />
     <link rel="next" title="Annotation fetching" href="annotation-fetching.html" />
     <link rel="prev" title="Common database tasks" href="database-cookbook.html" /> 
   </head>
@@ -31,7 +31,7 @@
     <div class="header-wrapper">
       <div class="header">
         <div class="headertitle"><a
-          href="index.html">hts-integrate - 0.4.3</a></div>
+          href="index.html">htsint - 0.5.1</a></div>
         <div class="rel">
           <a href="database-cookbook.html" title="Common database tasks"
              accesskey="P">previous</a> |
@@ -101,7 +101,7 @@
 <p>This produces the XML output file that was specified and a log file.  To do BLAST the entire file from the command line use you may use:</p>
 <blockquote>
 <div><div class="highlight-bash"><div class="highlight"><pre>~<span class="nv">$ </span><span class="nb">export </span><span class="nv">BLASTDB</span><span class="o">=</span><span class="s1">&#39;/usr/local/share/htsint/:$BLASTDB&#39;</span>
-~<span class="nv">$ </span>blastx -query xtrop.fasta -db uniprot_sprot.fasta.db -out xtrop.xml -evalue 0.0001 -num_threads 8 -outfmt 5
+~<span class="nv">$ </span>blastx -query xtrop.fasta -db uniprot_sprot.fasta.db -out xtrop.xml -evalue 0.0001 -num_threads <span class="m">8</span> -outfmt 5
 </pre></div>
 </div>
 </div></blockquote>
@@ -140,7 +140,7 @@
 </div>
 <div class="section" id="blastmapper">
 <h2>BlastMapper<a class="headerlink" href="#blastmapper" title="Permalink to this headline">¶</a></h2>
-<p>BlastMapper is a class that htsint uses to interact with BLAST results.  BlastMapper takes as input the parsed results.  A method called <tt class="docutils literal"><span class="pre">create_summarized</span></tt> will take the parsed results and try to find matching UniProt and NCBI identifiers from the local database.  This summary can take time so it is saved as a separate file.</p>
+<p>BlastMapper is a class that <tt class="docutils literal"><span class="pre">htsint</span></tt> uses to interact with BLAST results.  BlastMapper takes as input the parsed results.  A method called <tt class="docutils literal"><span class="pre">create_summarized</span></tt> will take the parsed results and try to find matching UniProt and NCBI identifiers from the local database.  This summary can take time so it is saved as a separate file.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">htsint.blast</span> <span class="kn">import</span> <span class="n">BlastMapper</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">bm</span> <span class="o">=</span> <span class="n">BlastMapper</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">summaryFile</span> <span class="o">=</span> <span class="n">bm</span><span class="o">.</span><span class="n">create_summarized</span><span class="p">(</span><span class="n">parsedFile</span><span class="p">)</span>
@@ -237,8 +237,8 @@
           
     <div class="footer">
         &copy; Copyright 2015, A. Richards.
-      Last updated on May 05, 2015.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Last updated on Jul 23, 2015.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
         </div>
         <div class="clearer"></div>

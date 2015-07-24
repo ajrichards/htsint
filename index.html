@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>hts-integrate &mdash; hts-integrate - 0.4.3</title>
+    <title>htsint &mdash; htsint - 0.5.1</title>
     
     <link rel="stylesheet" href="_static/agogo.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -23,14 +23,14 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="hts-integrate - 0.4.3" href="#" />
+    <link rel="top" title="htsint - 0.5.1" href="#" />
     <link rel="next" title="Installation" href="install.html" /> 
   </head>
   <body>
     <div class="header-wrapper">
       <div class="header">
         <div class="headertitle"><a
-          href="#">hts-integrate - 0.4.3</a></div>
+          href="#">htsint - 0.5.1</a></div>
         <div class="rel">
           <a href="install.html" title="Installation"
              accesskey="N">next</a> |
@@ -48,12 +48,20 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="hts-integrate">
-<h1>hts-integrate<a class="headerlink" href="#hts-integrate" title="Permalink to this headline">¶</a></h1>
-<div class="figure">
-<img alt="_images/example_web.png" src="_images/example_web.png" />
+  <div class="section" id="htsint">
+<h1>htsint<a class="headerlink" href="#htsint" title="Permalink to this headline">¶</a></h1>
+<div class="align-center figure">
+<a class="reference internal image-reference" href="_images/example-web.png"><img alt="example functional module" src="_images/example-web.png" style="width: 422.4px; height: 316.8px;" /></a>
 </div>
-<p><tt class="docutils literal"><span class="pre">hts-integrate</span></tt> is a Python package used to create gene sets for the study of high-throughput sequencing data.</p>
+<hr class="docutils" />
+<p><tt class="docutils literal"><span class="pre">htsint</span></tt> (High-Throughput Sequencing INTegrate) is a Python package used to create gene sets for the study of high-throughput sequencing data.  The goal is to create functional modules through the integration of heterogeneous types of data.  These functional modules are primarily based on the Gene Ontology <a class="reference internal" href="references.html#ashburner00" id="id1">[Ashburner00]</a>, but as the package matures additional sources of data will be incorporated.  The functional modules produced can be subsequently tested for significance in terms of differential expression in RNA-Seq or microarray studies using gene set enrichment analysis <a class="reference internal" href="references.html#subramian05" id="id2">[Subramian05]</a>.  Shown below is the placement of <tt class="docutils literal"><span class="pre">htsint</span></tt> in an example analysis pipeline.</p>
+<div class="align-center figure">
+<a class="reference internal image-reference" href="_images/figure-conceptual.png"><img alt="example RNA-Seq pipeline" src="_images/figure-conceptual.png" style="width: 245.05px; height: 306.8px;" /></a>
+</div>
+<div class="section" id="who-are-the-intended-users">
+<h2>Who are the intended users?<a class="headerlink" href="#who-are-the-intended-users" title="Permalink to this headline">¶</a></h2>
+<p>The software in its current form is an API library and because HTS pipelines have different goals with many varied tasks required to achieve these goals, a flexible library in a scripting language commonly used in bioinformatics was selected.  The target audience for <tt class="docutils literal"><span class="pre">htsint</span></tt> are developers that piece together high-throughput sequencing (HTS) pipelines.  That being said one important aspect of this project is to provide both abstracted functions for non-Python programmers as well as convenient means to enable high levels of customization.</p>
+</div>
 <div class="section" id="features">
 <h2>Features<a class="headerlink" href="#features" title="Permalink to this headline">¶</a></h2>
 <blockquote>
@@ -65,9 +73,8 @@
 <li>Easy to follow examples that require only a basic knowledge of Python</li>
 </ol>
 </div></blockquote>
-</div>
 <div class="section" id="general-contents">
-<h2>General contents:<a class="headerlink" href="#general-contents" title="Permalink to this headline">¶</a></h2>
+<h3>General contents:<a class="headerlink" href="#general-contents" title="Permalink to this headline">¶</a></h3>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
@@ -76,7 +83,7 @@
 </div>
 </div>
 <div class="section" id="tutorials">
-<h2>Tutorials:<a class="headerlink" href="#tutorials" title="Permalink to this headline">¶</a></h2>
+<h3>Tutorials:<a class="headerlink" href="#tutorials" title="Permalink to this headline">¶</a></h3>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="database-cookbook.html">Database cookbook</a></li>
@@ -86,6 +93,7 @@
 <li class="toctree-l1"><a class="reference internal" href="gsa-example.html">Gene set analysis example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 </ul>
+</div>
 </div>
 </div>
 </div>
@@ -141,8 +149,8 @@
           
     <div class="footer">
         &copy; Copyright 2015, A. Richards.
-      Last updated on May 05, 2015.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Last updated on Jul 23, 2015.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
         </div>
         <div class="clearer"></div>

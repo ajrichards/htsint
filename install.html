@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Installation &mdash; hts-integrate - 0.4.3</title>
+    <title>Installation &mdash; htsint - 0.5.1</title>
     
     <link rel="stylesheet" href="_static/agogo.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -23,17 +23,17 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="hts-integrate - 0.4.3" href="index.html" />
+    <link rel="top" title="htsint - 0.5.1" href="index.html" />
     <link rel="next" title="Database" href="database.html" />
-    <link rel="prev" title="hts-integrate" href="index.html" /> 
+    <link rel="prev" title="htsint" href="index.html" /> 
   </head>
   <body>
     <div class="header-wrapper">
       <div class="header">
         <div class="headertitle"><a
-          href="index.html">hts-integrate - 0.4.3</a></div>
+          href="index.html">htsint - 0.5.1</a></div>
         <div class="rel">
-          <a href="index.html" title="hts-integrate"
+          <a href="index.html" title="htsint"
              accesskey="P">previous</a> |
           <a href="database.html" title="Database"
              accesskey="N">next</a> |
@@ -53,23 +53,23 @@
             
   <div class="section" id="installation">
 <h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
-<p>To install <tt class="docutils literal"><span class="pre">hts-integrate</span></tt> there are two steps.</p>
+<p>To install <tt class="docutils literal"><span class="pre">htsint</span></tt> there are two steps.</p>
 <blockquote>
 <div><ol class="arabic simple">
 <li>install the python package</li>
 <li>setup the database</li>
 </ol>
 </div></blockquote>
-<p>hts-integrate (<tt class="docutils literal"><span class="pre">htsint</span></tt>) is tested with Ubuntu 14.04 and OSX although it should run under any operating system as it is simply a Python package with an attached PostgreSQL database.  Because Debian based distros are common in the bioinformatics world, some installation details are Debian specific.</p>
+<p><tt class="docutils literal"><span class="pre">htsint</span></tt> is tested with current versions of Ubuntu and OSX although it should run under any operating system as it is simply a Python package with an attached PostgreSQL database.  Because Debian based distros are common in the bioinformatics world, some installation details are Debian specific.</p>
 <p>To ensure that you can run BLAST locally install the Suite of <a class="reference external" href="http://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&amp;PAGE_TYPE=BlastDocs&amp;DOC_TYPE=Download">BLAST+ tools</a>. For example,</p>
 <blockquote>
 <div><div class="highlight-bash"><div class="highlight"><pre>~<span class="nv">$ </span>sudo apt-get install ncbi-blast+
 </pre></div>
 </div>
 </div></blockquote>
-<div class="section" id="install-hst-integrate">
-<h2>Install hst-integrate<a class="headerlink" href="#install-hst-integrate" title="Permalink to this headline">¶</a></h2>
-<p><tt class="docutils literal"><span class="pre">hts-integrate</span></tt> is at its core a Python package so it may be installed (or upgraded) like most other packages in the <a class="reference external" href="PythonPackageIndex">Python package index</a>.</p>
+<div class="section" id="install-hstint">
+<h2>Install hstint<a class="headerlink" href="#install-hstint" title="Permalink to this headline">¶</a></h2>
+<p><tt class="docutils literal"><span class="pre">htsint</span></tt> is at its core a Python package so it may be installed (or upgraded) like most other packages in the <a class="reference external" href="PythonPackageIndex">Python package index</a>.</p>
 <blockquote>
 <div><div class="highlight-bash"><div class="highlight"><pre>~<span class="nv">$ </span>pip install htsint
 </pre></div>
@@ -80,7 +80,7 @@
 </div></blockquote>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last"><tt class="docutils literal"><span class="pre">hts-integrate</span></tt> can also be installed from source.</p>
+<p class="last"><tt class="docutils literal"><span class="pre">htsint</span></tt> can also be installed from source.</p>
 </div>
 </div>
 <div class="section" id="setting-up-your-database">
@@ -90,22 +90,18 @@
 <div class="section" id="installing-from-source">
 <h2>Installing from source<a class="headerlink" href="#installing-from-source" title="Permalink to this headline">¶</a></h2>
 <p>Installation from source requires that the prerequsites are present before proceeding.</p>
-<p>First install the prerequsite Python packages.</p>
+<p>First install the prerequsite Python packages.  For example,</p>
 <blockquote>
-<div><div class="highlight-bash"><div class="highlight"><pre>~<span class="nv">$ </span>sudo apt-get install python-numpy python-matplotlib python-networkx python-biopython
-~<span class="nv">$ </span>sudo apt-get install python-scipy
+<div><div class="highlight-bash"><div class="highlight"><pre>
 </pre></div>
 </div>
+<p>~$ sudo apt-get install python-numpy python-matplotlib python-networkx python-biopython
+~$ sudo apt-get install python-scipy python-psycopg2 python-sqlalchemy</p>
 </div></blockquote>
 <p>Then install the database (see previous section for details on setup).</p>
-<blockquote>
-<div><div class="highlight-bash"><div class="highlight"><pre>~<span class="nv">$ </span>sudo apt-get install python-psycopg2 python-sqlalchemy
-</pre></div>
-</div>
-</div></blockquote>
 <p>Install <tt class="docutils literal"><span class="pre">htsint</span></tt></p>
 <blockquote>
-<div><div class="highlight-bash"><div class="highlight"><pre>~<span class="nv">$ </span><span class="nb">cd</span> /hts-integrate
+<div><div class="highlight-bash"><div class="highlight"><pre>~<span class="nv">$ </span><span class="nb">cd</span> /htsint
 ~<span class="nv">$ </span>sudo python setup.py install
 </pre></div>
 </div>
@@ -114,7 +110,7 @@
 <h3>Unittests<a class="headerlink" href="#unittests" title="Permalink to this headline">¶</a></h3>
 <p>First you will need to download the data and populate the database.  Instructions for this are on the <a class="reference internal" href="database.html"><em>database</em></a> page.  Once everything is setup you can run the unittests to ensure everything is working properly.</p>
 <blockquote>
-<div><div class="highlight-bash"><div class="highlight"><pre>~<span class="nv">$ </span><span class="nb">cd</span> /hts-integrate
+<div><div class="highlight-bash"><div class="highlight"><pre>~<span class="nv">$ </span><span class="nb">cd</span> /htsint
 ~<span class="nv">$ </span>python runTests.py
 </pre></div>
 </div>
@@ -170,7 +166,7 @@
     <div class="footer-wrapper">
       <div class="footer">
         <div class="left">
-          <a href="index.html" title="hts-integrate"
+          <a href="index.html" title="htsint"
              >previous</a> |
           <a href="database.html" title="Database"
              >next</a> |
@@ -185,8 +181,8 @@
           
     <div class="footer">
         &copy; Copyright 2015, A. Richards.
-      Last updated on May 05, 2015.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Last updated on Jul 23, 2015.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
         </div>
         <div class="clearer"></div>
