@@ -35,7 +35,7 @@ Then specify an output directory along with a GO aspect with an abbreviation.  T
    >>>  os.mkdir(homeDir)
 
    >>> aspect = 'biological_process' 
-   >>> _aspect = 'mf'   
+   >>> _aspect = 'bp'   
    
 Because genes and their ontology terms will be loaded multiple times fetch the annotations only once then save the dictionaries.
 
@@ -63,7 +63,6 @@ Ideally, this step is carried out in a cluster environment and if you are using 
    >>> td = TermDistances(termsPath,graphPath)
    >>> print("total distances to evaluate: %s"%td.totalDistances)
    total distances to evaluate: 1219141.0
-   >>> timeStart = time.time()
     
 Using Grid Engine:
 """""""""""""""""""""
@@ -92,7 +91,7 @@ With the term-term distances stored in the distance file we can map the gene-gen
 
    >>> geneDistancePath = os.path.join(homeDir,"gene-distances.csv")
    >>> gd = GeneDistances(termsPath,termDistancePath,outFile=geneDistancePath)
-   >>>  gd.run()
+   >>> gd.run()
 
 Spectral Clustering
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -113,10 +112,10 @@ Plot the parameter search
    >>> scr = SpectralClusterResults(silvalFile,clustersFile)
    >>> scr.plot(figName=psFigureFile)
 
-.. figure:: ../figures/param-scan-bp.png
+.. figure:: ./demo/param-scan-bp.png
    :scale: 25%
    :align: center
-   :alt: top 75 transcripts
+   :alt: parameter scan
    :figclass: align-center
 
 Ideally, we are looking for values of :math:`\sigma` and `k` that maximize our silhouette value, while at the same time maximize the number of clusters that fall into a reasonable size range.  The size range can be set with the ``threshMin`` and ``threshMax`` arguments.  It helps result interpretation if the specified range can be reasonably investigated through visualization.  The top panel shows the average silhouette value for the clustering results over a grid of possible parameter values. For the same grid the bottom panel illustrates the percentage of total genes that fall into clusters of the desired size.  There is usually a trade-off between high silhouette values and the reasonably sized clusters.  The top three optimal values are marked on the plots.  For this example the parameters are maximized at :math:`k=123` and :math:`\sigma=0.08`.  It is worth noting that strongly associated clusters tend to remain mostly intact over a wide range of parameter values.  In the script version of this example this section the parameter estimation is commented out to minimize compute time.
@@ -155,7 +154,7 @@ Then we can constrain the gene set size in terms of the number of transcripts by
    >>> gsc = GeneSetCollection(labelsPath,gene2go)
    >>> gsc.write(blastMap=bmap,transcriptMin=transcriptMin,transcriptMax=transcriptMax,outFile=gsFile)
 
-The class ``GeneSetCollection`` will create two files and the ``write`` method can be used to create these files for different assemblies assuming the BLAST mapper is appropriate.  The file name specified by gsFile will specify where to write `GMT formatted <http://www.broadinstitute.org/cancer/software/gsea/wiki/index.php/Data_formats#GMT:_Gene_Matrix_Transposed_file_format_.28.2A.gmt.29>`_ file.  For convenience and visualization another file (in csv format) with the same  name base will be created to store the gene to transcript mappings.  In this case ``./demo/mf.gmt`` and ``./demo/mf.csv`` will be created.
+The class ``GeneSetCollection`` will create two files and the ``write`` method can be used to create these files for different assemblies assuming the BLAST mapper is appropriate.  The file name specified by gsFile will specify where to write `GMT formatted <http://www.broadinstitute.org/cancer/software/gsea/wiki/index.php/Data_formats#GMT:_Gene_Matrix_Transposed_file_format_.28.2A.gmt.29>`_ file.  For convenience and visualization another file (in csv format) with the same  name base will be created to store the gene to transcript mappings.  In this case ``./demo/bp.gmt`` and ``./demo/bp.csv`` will be created.
 
 (2) Gene set testing (GSA)
 ---------------------------
@@ -176,7 +175,7 @@ Once you have run DESeq the transformed counts are available and GSA can be run.
 
    .. code-block:: bash
 
-      ~$ Rscript run-gsa.R mf
+      ~$ Rscript run-gsa.R bp
 
 Inside of the demo directory a file names ``geneset-results.csv`` will be created identifing the gene sets with FDR values less than 0.5.  Edit the script and refer to the documentation to modify the file to fit you experimental setting.
 
@@ -189,15 +188,15 @@ First, we need to specify a few paths to files that were created duing the gene 
    >>> import numpy as np
    >>> from htsint import GeneSet
    >>> distMat = np.load(os.path.join(".","demo","term-distances.npy"))
-   >>> genesetFile = os.path.join(".","demo","mf.csv")
+   >>> genesetFile = os.path.join(".","demo","bp.csv")
    >>> termsPath = os.path.join(".","demo","go-terms.pickle")
    >>> gsets = GeneSet()
    >>> gsets.load_geneset(genesetFile,termsPath,distMat)
-   >>> genesetId = 'gs-4'
+   >>> genesetId = 'gs-60'
    >>> gsets.draw_figure(genesetId,layout='spring',name='%s.png'%(genesetId),percentile=25)
 
-.. figure:: ../figures/gs-4.png
+.. figure:: ./demo/gs-60.png
    :scale: 15%
    :align: center
-   :alt: top 75 transcripts
+   :alt: example gene set
    :figclass: align-center

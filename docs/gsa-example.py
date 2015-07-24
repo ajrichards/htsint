@@ -13,10 +13,10 @@ homeDir = os.path.join(".","demo")
 if not os.path.isdir(homeDir):
     os.mkdir(homeDir)
 
-_aspect = 'mf'
+_aspect = 'bp'
 aspect = 'biological_process' 
 
-# Create a term graph 
+# Create a term graph
 go = GeneOntology(["8364","8355"],useIea=False,aspect=aspect)
 termsPath = os.path.join(homeDir,"go-terms.pickle")
 graphPath = os.path.join(homeDir,"go-graph.pickle")
@@ -56,7 +56,7 @@ if not os.path.exists(psFigureFile):
     scr.plot(figName=psFigureFile)
 
 ## run spectral clustering
-k = 123
+k = 20
 sigma = 0.08
 
 labelsPath = os.path.join(homeDir,"sc-labels-%s.csv"%(_aspect))
