@@ -34,6 +34,7 @@ htsint/database/__init__.py
 htsint/database/fetchTimeExperiment.py
 htsint/stats/ClusteringData.py
 htsint/stats/ClusteringLib.py
+htsint/stats/EnrichmentTests.py
 htsint/stats/SilValueGenerator.py
 htsint/stats/SpectralClusterParamSearch.py
 htsint/stats/SpectralClusterResults.py

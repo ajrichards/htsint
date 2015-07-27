@@ -1,7 +1,75 @@
 .. pipeline example
 
-Gene set analysis
+Pathway example
 ======================
+
+Lets start with a pathway downloaded from the KEGG database.
+
+  * :download:`hsa00860.txt`
+
+The Python code in this example is available as a script.
+    
+  * :download:`pathway-example.py`    
+
+First lets define a parsing function for the KEGG formatted pathways file.
+
+.. code-block:: python
+
+  def get_genes(pathway):
+      fid = open(os.path.join(".",pathway+".txt"),'r')
+      isGene = False
+      gene2symbol = {}
+      for linja in fid:
+          linja = linja[:-1]
+          if re.search("^GENE",linja):
+              isGene = True
+          elif re.search("^[A-Z]+",linja):
+              isGene = False             
+          if isGene:
+              geneIds = linja.split(";")[0]
+              _geneIds = [re.sub("\s+","",gi) for gi in geneIds.split("  ")]
+              geneIds = []
+              for gid in _geneIds:
+                  if len(gid) > 0 and gid != 'GENE':
+                      geneIds.append(gid)
+              if len(geneIds) != 2:
+                  print("...%s"%str(geneIds))
+                  raise Exception("Could not parse gene names")
+              ncbiId,symbol = geneIds
+              gene2symbol[ncbiId] = symbol            
+     fid.close()
+     return gene2symbol
+
+Extract the genes into a list
+
+>>> pathwayFile = "hsa00860.txt"
+>>> pathway = pathwayFile[:-4]
+>>> geneList = get_genes(pathway)
+>>> print(geneList.items()[:3])
+[('7363', 'UGT2B4'), ('212', 'ALAS2'), ('210', 'ALAD')]
+
+
+Specify a location for the analysis files.
+>>> gsaDir = os.path.join(".","gsa-path")
+>>> if not os.path.exists(gsaDir):
+>>>    os.mkdir(gsaDir)
+
+Make imports and specify variables
+>>> from htsint import GeneOntology,TermDistances
+>>> useIea = True
+>>> aspect = "biological_process"
+>>> _aspect = 'bp'
+>>> taxaList = ['9606']
+>>> go = GeneOntology(taxaList,useIea=useIea,aspect=aspect)
+>>> termsPath = os.path.join(gsaDir,"go-terms-%s.pickle"%(_aspect))
+>>> graphPath = os.path.join(gsaDir,"go-graph-%s.pickle"%(_aspect))
+
+By default ``htsint`` works at the genome level so to get term distances with respect to a subset of genes we need to specify an `accepted` list.
+
+
+
+
+
 
 The procedure in this tutorial example to carry out gene set analysis using ``htsint`` is composed of three main steps. 
 
@@ -9,7 +77,7 @@ The procedure in this tutorial example to carry out gene set analysis using ``ht
    #. Gene set testing
    #. Gene set visualization
 
-This example takes anywhere from 30 minutes to several hours on a modern desktop computer.  To run a shorter example use the ``molecular_function`` domain of the Gene Ontology.  The code used for gene set generation in this document is available as a script for convenience.
+This example takes approximately 30 minutes to complete on a modern desktop computer.  The code used for gene set generation in this document is available as a script for convenience.
 
    * :download:`gsa-example.py`
 

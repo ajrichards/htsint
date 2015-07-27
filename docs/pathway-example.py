@@ -60,25 +60,29 @@ def get_genes(pathway):
 pathwayFile = "hsa00860.txt"
 pathway = pathwayFile[:-4]
 geneList = get_genes(pathway)
-print geneList
+print(geneList.items()[:3])
 
 ## create a directory for the analysis
-gsaDir = os.path.join(".","gsa")
+gsaDir = os.path.join(".","gsa-path")
 if not os.path.exists(gsaDir):
     os.mkdir(gsaDir)
 
-sys.exit()
-
-## CREATE FUNCTIONAL MODULES FOR PATHWAY (LOOP OVER SPECIES OF INTEREST)
-# Create a term graph (biological_process, molecular_function, cellular_component)
-
+## make imports and specify variables
+from htsint import GeneOntology,TermDistances
 useIea = True
 aspect = "biological_process"
 _aspect = 'bp'
 taxaList = ['9606']
 go = GeneOntology(taxaList,useIea=useIea,aspect=aspect)
-termsPath = os.path.join(gsaDir,"go-terms-%s-%s.pickle"%(_aspect))
-graphPath = os.path.join(gsaDir,"go-graph-%s-%s.pickle"%(_aspect))
+termsPath = os.path.join(gsaDir,"go-terms-%s.pickle"%(_aspect))
+graphPath = os.path.join(gsaDir,"go-graph-%s.pickle"%(_aspect))
+
+geneIds = geneList.keys()
+go.create_dicts(termsPath,accepted=geneIds)
+gene2go,go2gene = go.load_dicts(termsPath)
+print("pathway genes with terms:%s/%s"%(len(gene2go.keys()),len(geneIds)))
+
+sys.exit()
 
 if not os.path.exists(termsPath):
     go.create_dicts(termsPath)

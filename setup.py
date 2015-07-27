@@ -28,7 +28,7 @@ DISTNAME = 'htsint'
 LICENSE = 'BSD 3-Clause'
 AUTHOR = "Adam J Richards"
 AUTHOR_EMAIL = "adamricha@gmail.com"
-URL = 'https://github.com/ajrichards/hts-integrate'
+URL = 'https://github.com/ajrichards/htsint'
 CLASSIFIERS = [
     'Development Status :: 3 - Alpha',
     'Operating System :: OS Independent',
