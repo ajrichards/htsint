@@ -9,7 +9,7 @@ The procedure in this tutorial example to carry out gene set analysis using ``ht
    #. Gene set testing
    #. Gene set visualization
 
-This example takes approximately 30 minutes to complete on a modern desktop computer.  The code used for gene set generation in this document is available as a script for convenience.
+This example takes anywhere from 30 minutes to several hours on a modern desktop computer.  To run a shorter example use the ``molecular_function`` domain of the Gene Ontology.  The code used for gene set generation in this document is available as a script for convenience.
 
    * :download:`gsa-example.py`
 
@@ -112,7 +112,7 @@ Plot the parameter search
    >>> scr = SpectralClusterResults(silvalFile,clustersFile)
    >>> scr.plot(figName=psFigureFile)
 
-.. figure:: ./demo/param-scan-bp.png
+.. figure:: ./figures/param-scan-bp.png
    :scale: 25%
    :align: center
    :alt: parameter scan

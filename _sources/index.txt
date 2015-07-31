@@ -55,4 +55,5 @@ Tutorials:
    Gene Ontology annotation fetching <annotation-fetching>
    Gene level differential expression <deseq-example>
    Gene set analysis example <gsa-example>
+   Pathway example <pathway-example>
    References <references>
