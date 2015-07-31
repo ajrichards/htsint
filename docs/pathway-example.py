@@ -6,7 +6,8 @@ Demonstrate how to break a pathway into functional modules
 
 import os,sys,re,cPickle
 import numpy as np
-from htsint import GeneOntology,TermDistances
+from htsint import GeneOntology,TermDistances,GeneDistances
+from htsint.stats import SpectralClusterParamSearch,SpectralClusterResults,SpectralCluster
 
 ## import requests
 # down load all ecoli pathways in xml
@@ -78,56 +79,24 @@ termsPath = os.path.join(gsaDir,"go-terms-%s.pickle"%(_aspect))
 graphPath = os.path.join(gsaDir,"go-graph-%s.pickle"%(_aspect))
 
 geneIds = geneList.keys()
-go.create_dicts(termsPath,accepted=geneIds)
-gene2go,go2gene = go.load_dicts(termsPath)
-print("pathway genes with terms:%s/%s"%(len(gene2go.keys()),len(geneIds)))
-
-sys.exit()
-
 if not os.path.exists(termsPath):
-    go.create_dicts(termsPath)
-    _gene2go,_go2gene = go.load_dicts(termsPath)
+    go.create_dicts(termsPath,accepted=geneIds)
+gene2go,go2gene = go.load_dicts(termsPath)
+print("pathway genes with terms: %s/%s"%(len(gene2go.keys()),len(geneIds)))
 
-    actualGeneList = []
-    actualGeneClasses = []
-    gene2go = {}
-    go2gene = {}
-    for g,gene in enumerate(geneList):
-        if _gene2go.has_key(gene):
-            actualGeneList.append(gene)
-            actualGeneClasses.append(geneClasses[g])
-            terms =  _gene2go[gene]
-            gene2go[gene] = terms
-            
-            for term in terms:
-                if go2gene.has_key(term) == False:
-                    go2gene[term] = set([])
-                go2gene[term].update([gene])
-
-    for term,genes in go2gene.iteritems():
-        go2gene[term] = list(genes)
-
-    ## overwrite dictionaries
-    tmp = open(termsPath,'w')
-    cPickle.dump([gene2go,go2gene],tmp)
-    tmp.close()
-        
-    print "original genes: %s/%s"%(len(geneList), len(_gene2go.keys()))
-    print "actual list: %s/%s"%(len(actualGeneList), len(gene2go.keys()))
-        
+if not os.path.exists(graphPath):        
     G = go.create_gograph(termsPath=termsPath,graphPath=graphPath)
-    print("%s genes have at least one annotation"%(len(gene2go.keys())))
     print("Term graph for with %s nodes successfully created."%(len(G.nodes())))
 
 # Calculate term distances
-termDistancePath = os.path.join(gsaDir,"term-distances-%s-%s.npy"%(expId,aspect))
+termDistancePath = os.path.join(gsaDir,"term-distances-%s.npy"%(_aspect))
 if not os.path.exists(termDistancePath):
     td = TermDistances(termsPath,graphPath)
     print("total distances to evaluate: %s"%td.totalDistances)
-    td.run_with_multiprocessing(termDistancePath,cpus=7)
-    
+    td.run_with_multiprocessing(termDistancePath,cpus=4)
+
 # Calculate gene distances
-geneDistancePath = os.path.join(homeDir,"gene-distances.csv")
+geneDistancePath = os.path.join(gsaDir,"gene-distances-%s.csv"%(_aspect))
 if not os.path.exists(geneDistancePath):
     gd = GeneDistances(termsPath,termDistancePath,outFile=geneDistancePath)
     gd.run()
@@ -137,11 +106,20 @@ silvalFile = re.sub("\.csv","-scparams-sv.csv",geneDistancePath)
 clustersFile = re.sub("\.csv","-scparams-cl.csv",geneDistancePath)
 if not os.path.exists(silvalFile):
     scps = SpectralClusterParamSearch(geneDistancePath,dtype='distance')
-    scps.run(chunks=15)
+    scps.run(chunks=5,kRange=range(3,11))
 
 ## plot the parameter search
-psFigureFile = os.path.join(homeDir,"param-scan-%s.png"%(_aspect))
+psFigureFile = os.path.join(gsaDir,"param-scan-%s.png"%(_aspect))
 if not os.path.exists(psFigureFile):
     scr = SpectralClusterResults(silvalFile,clustersFile)
     scr.plot(figName=psFigureFile)
-                                    
+
+## run spectral clustering
+k = 3
+sigma = 0.43
+
+labelsPath = os.path.join(gsaDir,"sc-labels-%s.csv"%(_aspect))
+if not os.path.exists(labelsPath):
+    sc = SpectralCluster(geneDistancePath,dtype='distance')
+    sc.run(k,sk=None,sigma=sigma,verbose=True)
+    sc.save(labelsPath=labelsPath)

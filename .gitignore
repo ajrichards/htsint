@@ -54,6 +54,7 @@ unittests/blast-parsed_summary.csv
 ## docs
 docs/_sphinx/*
 docs/demo/*
+docs/gsa-path/*
 docs/deseq-samples.csv
 docs/deseq.csv
 

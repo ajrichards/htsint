@@ -42,14 +42,10 @@ class GeneDistances(object):
         ## read in the term distances
         termDist = {}
         mat = np.load(termDistancesPath)
-        print mat
-        print mat.shape
-
 
         for i in range(mat.shape[0]):
             
             linja = mat[i,:]
-
             if not termDist.has_key(linja[0]):
                 termDist[linja[0]] = {}
             if not termDist[linja[0]].has_key(linja[1]):

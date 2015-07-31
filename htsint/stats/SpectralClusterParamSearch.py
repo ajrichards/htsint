@@ -77,7 +77,10 @@ class SpectralClusterParamSearch(object):
         totalCores = totalCores - 1
 
         ## specify the ranges
-        kRange = np.array([int(round(i)) for i in np.linspace(20,500,15)])
+        if not kRange:
+            kRange = np.array([int(round(i)) for i in np.linspace(20,500,15)])
+        elif type(kRange) == type([]):
+            kRange = np.array(kRange)
 
         ## different sigma ranges are appropriate for different GO aspects
         if sigmaRange:

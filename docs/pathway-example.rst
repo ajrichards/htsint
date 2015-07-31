@@ -55,7 +55,7 @@ Specify a location for the analysis files.
 >>>    os.mkdir(gsaDir)
 
 Make imports and specify variables
->>> from htsint import GeneOntology,TermDistances
+>>> from htsint import GeneOntology,TermDistances,GeneDistances
 >>> useIea = True
 >>> aspect = "biological_process"
 >>> _aspect = 'bp'
