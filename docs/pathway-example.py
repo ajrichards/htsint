@@ -93,7 +93,7 @@ termDistancePath = os.path.join(gsaDir,"term-distances-%s.npy"%(_aspect))
 if not os.path.exists(termDistancePath):
     td = TermDistances(termsPath,graphPath)
     print("total distances to evaluate: %s"%td.totalDistances)
-    td.run_with_multiprocessing(termDistancePath,cpus=4)
+    td.run_with_multiprocessing(termDistancePath,cpus=7)
 
 # Calculate gene distances
 geneDistancePath = os.path.join(gsaDir,"gene-distances-%s.csv"%(_aspect))

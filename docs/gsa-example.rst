@@ -112,7 +112,7 @@ Plot the parameter search
    >>> scr = SpectralClusterResults(silvalFile,clustersFile)
    >>> scr.plot(figName=psFigureFile)
 
-.. figure:: ./demo/param-scan-bp.png
+.. figure:: ./figures/param-scan-bp.png
    :scale: 25%
    :align: center
    :alt: parameter scan
