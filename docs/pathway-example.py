@@ -6,24 +6,29 @@ Demonstrate how to break a pathway into functional modules
 
 import os,sys,re,cPickle
 import numpy as np
+import xml.sax
 from htsint import GeneOntology,TermDistances,GeneDistances
 from htsint.stats import SpectralClusterParamSearch,SpectralClusterResults,SpectralCluster
 
-## import requests
-# down load all ecoli pathways in xml
-#ORGANISM = "hsa"
+## get a list of the pathways ids
 #pathwayList = []
+#ORGANISM = "hsa"
 #pathways = requests.get('http://rest.kegg.jp/list/pathway/' + ORGANISM)
 #for line in pathways.content.split('\n'):
 #    pathwayId = line.split('\t')[0].replace('path:', '')
 #    pathwayList.append(pathwayId)
-#    ktxt = requests.get('http://rest.kegg.jp/get/' + pathwayId)
-#    f = open(os.path.join("pathways",pathwayId + ".txt"), 'w')
-#    f.write(ktxt.content)
-#    #kgml = requests.get('http://rest.kegg.jp/get/' + pathwayId + '/kgml')
-#    #f = open(os.path.join("pathways",pathwayId + '.xml'), 'w')
-#    #f.write(kgml.content)
-#    f.close()
+
+## download the txt and xml versions of the pathway
+#pathway = "hsa00860"
+#ktxt = requests.get('http://rest.kegg.jp/get/' + pathway)
+#f = open(os.path.join(".",pathway + ".txt"), 'w')
+#f.write(ktxt.content)
+#f.close()
+#kgml = requests.get('http://rest.kegg.jp/get/' + pathway + '/kgml')
+#f = open(os.path.join(".",pathway + '.xml'), 'w')
+#f.write(kgml.content)
+#f.close()
+#print("%s downloaded"%(pathway))
 
 ## parse the KEGG pathways
 def get_genes(pathway):
@@ -119,7 +124,66 @@ k = 3
 sigma = 0.43
 
 labelsPath = os.path.join(gsaDir,"sc-labels-%s.csv"%(_aspect))
+
+
 if not os.path.exists(labelsPath):
     sc = SpectralCluster(geneDistancePath,dtype='distance')
     sc.run(k,sk=None,sigma=sigma,verbose=True)
     sc.save(labelsPath=labelsPath)
+
+
+import networkx
+from parse_KGML import KGML2Graph
+from KeggPathway import KeggPathway
+    
+p = KeggPathway()
+#p.add_node('gene1', data={'type': 'gene', })
+#p.get_node('gene1')
+#{'type': 'gene'}
+
+graphfile = "%s.xml"%pathway
+graph = KGML2Graph(graphfile)[1]
+
+#To get a list of the nodes, use the .nodes() method
+print graph.nodes()
+print len(graph.nodes())
+#print [graph.get_node(n)['label'] for n in graph.nodes()][0:5]
+#    ['MGAT1', 'MGAT2', 'C01246', 'TITLE:N-Glycan biosynthesis', 'C03862']
+#>>> graph.edges()[0:5]
+#    [('56', '57'), ('54', '55'), ('54', '37'), ('54', '58'), ('60', '62')]
+
+#To get detailed informations on a node, use .get_node:
+#graph.get_node('10')
+#    {'xy': (580, 317), 'type': 'gene', 'label': 'ALG12'}
+
+#All the annotations (such as node type, etc..), are stored in the .label attribute
+#graph.label['10']     #doctest: +ELLIPSIS
+#{'xy': (580, 317), 'type': 'gene', 'label': 'ALG12'}
+
+#To obtain a subgraph with only the genes of the pathway, it is recommended to use get_genes: 
+#genes_graph = graph.get_genes()
+#genes_graph.edges()[0:4]
+#[('60', '62'), ('63', '3'), ('63', '2'), ('63', '72')]
+
+#for (node1, node2) in genes_graph.edges()[0:4]:
+#print genes_graph.get_node(node1)['label'], genes_graph.get_node(node2)
+sys.exit()
+    
+#from xml.dom import minidom
+
+## open xml file
+#from xml.dom.minidom import parse
+#import xml.dom.minidom
+
+# Open XML document using minidom parser
+#DOMTree = xml.dom.minidom.parse("%s.xml"%pathway)
+#collection = DOMTree.documentElement
+
+#print dir(collection)
+#print collection._get_attributes()
+#
+#entries = collection.getElementsByTagName("pathway name")
+#for entry in entries:
+#    print entry
+#
+#print dir(entry)

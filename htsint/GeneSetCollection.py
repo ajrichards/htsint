@@ -1,6 +1,12 @@
 #!/usr/bin/python
 """
 Container class for gene sets generated from a labels file
+
+class to be re-written
+base class will work with simple gene list and create gmt file
+blastMapper capabilities will be additional
+gene2go capabilities will be additional
+
 """
 
 __author__ = "Adam Richards"
@@ -15,7 +21,7 @@ class GeneSetCollection(object):
 
     """
 
-    def __init__(self, labelsFile, gene2go):
+    def __init__(self, labelsFile, gene2go=None):
         """
         Constructor
 
@@ -43,8 +49,9 @@ class GeneSetCollection(object):
 
         self.genes,self.labels = self.read_labels(labelsFile)
         print("loaded file with %s genes and %s clusters"%(self.genes.size,np.unique(self.labels).size))
+
         
-        if type(gene2go) != type({}):
+        if gene2go and type(gene2go) != type({}):
             raise Exception("invalid gene2go dictionary")
         self.gene2go = gene2go
         self.allClusters = np.sort(np.unique(self.labels))
@@ -62,15 +69,19 @@ class GeneSetCollection(object):
         """
 
         print("---------------------")
-        print('There are %s genes with at least one annotation'%(len(self.gene2go.keys())))
+        if self.gene2go:
+            print('There are %s genes with at least one annotation'%(len(self.gene2go.keys())))
         print('There are %s genes in the labels file'%(len(self.genes)))
 
         if blastMap:
             bm = BlastMapper()
             bmGenes = bm.print_summary(blastMap)
             gene2transcript = bm.get_gene_dict(blastMap)
-            usableGenes = list(set(bmGenes).intersection(set(self.gene2go.keys())))
-
+            if self.gene2go:
+                usableGenes = list(set(bmGenes).intersection(set(self.gene2go.keys())))
+            else:
+                usableGenes = bmGenes
+                
         if blastMap:
             print('There are %s genes with at least one BLAST hit'%(len(bmGenes)))
             print('There are %s genes that have both a BLAST hit and an annotation'%(len(usableGenes)))
@@ -91,8 +102,11 @@ class GeneSetCollection(object):
             clusterInds = np.where(self.labels==_k)[0]
             clusterGenes = self.genes[clusterInds]
             gsName = "gs-"+str(_k)
-            description = self.get_description(clusterGenes)
-
+            if self.gene2go:
+                description = self.get_description(clusterGenes)
+            else:
+                description = "kegg pathway"
+                
             ## map the genes
             if blastMap:
                 mapped = set([])
@@ -119,8 +133,8 @@ class GeneSetCollection(object):
                 failedThreshold+=clusterGenes.size
 
         print("-----------------")
-        print("sigma: %s"%self.sigma)
-        print("k: %s"%self.k)
+        #print("sigma: %s"%self.sigma)
+        #print("k: %s"%self.k)
         print('Total clusters: %s '%self.allClusters.size)
         percentAccepted = float(self.genes.size-failedThreshold) / float(self.genes.size)
         print("genes pass threshold %s/%s (%s)"%(self.genes.size-failedThreshold,self.genes.size,round(percentAccepted,2)) + "%)")
@@ -155,8 +169,8 @@ class GeneSetCollection(object):
         reader = csv.reader(fid)
         header1 = reader.next()
         header2 = reader.next()
-        self.k = header1[0].split("=")[1]
-        self.sigma = float(header1[1].split("=")[1])
+        #self.k = header1[0].split("=")[1]
+        #self.sigma = float(header1[1].split("=")[1])
         
         genes,labels = [],[]
         for linja in reader:
