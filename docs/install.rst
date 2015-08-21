@@ -16,6 +16,15 @@ To ensure that you can run BLAST locally install the Suite of `BLAST+ tools <htt
      
       ~$ sudo apt-get install ncbi-blast+
 
+As of the current release the following Python packages are used by ``htsint``.
+
+   * `NumPy <http://www.numpy.org>`_
+   * `SciPy <http://www.scipy.org>`_
+   * `matplotlib <http://matplotlib.org>`_
+   * `NetworkX <https://networkx.github.io>`_
+   * `Biopython <http://biopython.org/wiki/Main_Page>`_
+   * `Psycopg2 <http://initd.org/psycopg>`_
+   * `SQLAlchemy <http://www.sqlalchemy.org>`_
 
 Install hstint
 -------------------
@@ -47,17 +56,17 @@ First install the prerequsite Python packages.  For example,
 
    .. code-block:: bash
 
-   ~$ sudo apt-get install python-numpy python-matplotlib python-networkx python-biopython
-   ~$ sudo apt-get install python-scipy python-psycopg2 python-sqlalchemy 
+      ~$ sudo apt-get install python-numpy python-matplotlib python-networkx python-biopython
+      ~$ sudo apt-get install python-scipy python-psycopg2 python-sqlalchemy 
 
 Then install the database (see previous section for details on setup).
         
 Install ``htsint``
 
-      .. code-block:: bash
+   .. code-block:: bash
 
-         ~$ cd /htsint
-         ~$ sudo python setup.py install
+      ~$ cd /htsint
+      ~$ sudo python setup.py install
 
 Unittests
 ^^^^^^^^^^^^^^
@@ -66,8 +75,8 @@ First you will need to download the data and populate the database.  Instruction
 
    .. code-block:: bash 
       
-         ~$ cd /htsint
-         ~$ python runTests.py
+      ~$ cd /htsint
+      ~$ python runTests.py
 
 Links
 ----------
