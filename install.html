@@ -67,6 +67,18 @@
 </pre></div>
 </div>
 </div></blockquote>
+<p>As of the current release the following Python packages are used by <tt class="docutils literal"><span class="pre">htsint</span></tt>.</p>
+<blockquote>
+<div><ul class="simple">
+<li><a class="reference external" href="http://www.numpy.org">NumPy</a></li>
+<li><a class="reference external" href="http://www.scipy.org">SciPy</a></li>
+<li><a class="reference external" href="http://matplotlib.org">matplotlib</a></li>
+<li><a class="reference external" href="https://networkx.github.io">NetworkX</a></li>
+<li><a class="reference external" href="http://biopython.org/wiki/Main_Page">Biopython</a></li>
+<li><a class="reference external" href="http://initd.org/psycopg">Psycopg2</a></li>
+<li><a class="reference external" href="http://www.sqlalchemy.org">SQLAlchemy</a></li>
+</ul>
+</div></blockquote>
 <div class="section" id="install-hstint">
 <h2>Install hstint<a class="headerlink" href="#install-hstint" title="Permalink to this headline">¶</a></h2>
 <p><tt class="docutils literal"><span class="pre">htsint</span></tt> is at its core a Python package so it may be installed (or upgraded) like most other packages in the <a class="reference external" href="PythonPackageIndex">Python package index</a>.</p>
@@ -92,11 +104,10 @@
 <p>Installation from source requires that the prerequsites are present before proceeding.</p>
 <p>First install the prerequsite Python packages.  For example,</p>
 <blockquote>
-<div><div class="highlight-bash"><div class="highlight"><pre>
+<div><div class="highlight-bash"><div class="highlight"><pre>~<span class="nv">$ </span>sudo apt-get install python-numpy python-matplotlib python-networkx python-biopython
+~<span class="nv">$ </span>sudo apt-get install python-scipy python-psycopg2 python-sqlalchemy
 </pre></div>
 </div>
-<p>~$ sudo apt-get install python-numpy python-matplotlib python-networkx python-biopython
-~$ sudo apt-get install python-scipy python-psycopg2 python-sqlalchemy</p>
 </div></blockquote>
 <p>Then install the database (see previous section for details on setup).</p>
 <p>Install <tt class="docutils literal"><span class="pre">htsint</span></tt></p>
@@ -182,8 +193,8 @@
           
     <div class="footer">
         &copy; Copyright 2015, A. Richards.
-      Last updated on Jul 30, 2015.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+      Last updated on Aug 21, 2015.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
         </div>
         <div class="clearer"></div>
