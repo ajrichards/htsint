@@ -109,6 +109,7 @@ class DatabaseFetch(object):
                         "ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz",
                         "ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene_info.gz",
                         "ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene2go.gz",
+                        "ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene2refseq.gz",
                         "ftp://ftp.ebi.ac.uk/pub/databases/GO/goa/UNIPROT/gene_association.goa_uniprot.gz",
                         uniprotUrl + "idmapping/idmapping.dat.gz",
                         uniprotUrl + "idmapping/LICENSE",

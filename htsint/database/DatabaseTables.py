@@ -69,20 +69,27 @@ class Gene(Base):
     symbol = Column(String)
     synonyms = Column(String)
     taxa_id = Column(Integer,ForeignKey('taxa.id'),nullable=True)
+    chromosome = Column(String)
+    map_location = Column(String)
     
-    def __init__(self,ncbi_id,description,symbol,synonyms,taxa_id):
+    def __init__(self,ncbi_id,description,symbol,synonyms,chromosome,map_location,taxa_id):
         self.ncbi_id = ncbi_id
         self.description = description
         self.symbol = symbol
         self.synonyms = synonyms
+        self.chromosome = chromosome
+        self.map_location = map_location
         self.taxa_id = taxa_id
+
                
     def __repr__(self):
-        return "<Gene('%s','%s','%s','%s','%s')>"%(self.ncbi_id,
-                                                   self.description,
-                                                   self.symbol,
-                                                   self.synonyms,
-                                                   self.taxa_id)
+        return "<Gene('%s','%s','%s','%s','%s','%s','%s')>"%(self.ncbi_id,
+                                                             self.description,
+                                                             self.symbol,
+                                                             self.synonyms,
+                                                             self.chromosome,
+                                                             self.map_location,
+                                                             self.taxa_id)
 
 def gene_mapper(session,ncbiIdList=None,myDict={}):
     """

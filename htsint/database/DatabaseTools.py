@@ -117,7 +117,7 @@ def read_gene_info_file(lineCount=False,short=False):
         map_location = record[7]
         description = record[8]
         if short == False:
-            geneInfo[ncbiId] = [taxId,symbol,synonyms,description]
+            geneInfo[ncbiId] = [taxId,symbol,synonyms,chromosome,map_location,description]
         else:
             geneInfo[ncbiId] = taxId
 
@@ -257,13 +257,13 @@ def populate_gene_table(geneInfoCount,session,engine):
         ncbiId = record[1]
         symbol = record[2]
         synonyms = record[4]
-        #chromosome = record[6]
-        #map_location = record[7]
+        chromosome = record[6]
+        map_location = record[7]
         description = record[8]
        
         ## define the table entry
-        toAdd.append({'ncbi_id':ncbiId,'description':description,
-                      'symbol':symbol,'synonyms':synonyms,'taxa_id':taxId})
+        toAdd.append({'ncbi_id':ncbiId,'description':description,'symbol':symbol,'synonyms':synonyms,
+                      'chromosome':chromosome,'map_location':map_location,'taxa_id':taxId})
         totalRecords += 1
         
         if len(toAdd) >= 200000:

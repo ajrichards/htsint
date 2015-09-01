@@ -17,7 +17,7 @@ it is best to re-run FetchDbdata.py and then this script.
 ### make imports
 import sys,os,re,time,csv
 from htsint import Configure
-from DatabaseTables import Base,Taxon,Gene,Uniprot,GoTerm,GoAnnotation
+from DatabaseTables import Base
 from DatabaseTools import db_connect, get_file_sizes,print_db_summary
 from DatabaseTools import populate_taxon_table,populate_gene_table,populate_uniprot_table
 from DatabaseTools import populate_go_terms, populate_go_annotations
