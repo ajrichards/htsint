@@ -134,6 +134,10 @@ class DatabaseFetch(object):
                 else:
                     self.unzip_file(fileName)
 
+        ## make the uniprot BLAST index
+        self._run_subprocess(self,"makeblastdb -in uniprot_sprot.fasta.db -dbtype 'prot' -out uniprot_sprot")
+
+                    
         push_out("complete.")
         fid.close()
 
