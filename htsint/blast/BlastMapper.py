@@ -36,22 +36,29 @@ class BlastMapper(object):
         self.conn = self.engine.connect()
         self.hits = None
 
-    def create_summarized(self,parsedFilePath,summaryFilePath=None,large=False,refseq=False,species=None,speciesNcbi=None):
+    def create_summarized(self,parsedFilePath,summaryFilePath=None,large=False,uniprot=False,species=None,
+                          taxaList=[],hit2gene=None):
         """
         htsint uses output 5 (XML) and then parses it into a simple csv file
         large - use True if the parsed file as more than a few hundred hits
-        refseq - use True if the target database used RefSeq identifiers
+        uniprot - use True if the target database used is a Uniprot database
         species - if None htsint will try to find the species otherwise the scientific name is given
+        taxaList - assign when BLAST is against a db other than uniprot
+        hit2gene - a dictionary of keys that match the hits with values that match ncbi gene ids
         """
-        
+
         ## error checking
         if not os.path.exists(parsedFilePath):
             raise Exception("cannot find parsed file")
 
+        if not uniprot and len(taxaList) == 0:
+            raise Exception("databases other than Uniprot must have a taxaList")    
+        
         if summaryFilePath == None:
             summaryFilePath = re.sub("\.csv","",parsedFilePath)+ "_summary.csv"
 
         ## input/output
+        timeStart = time.time()
         fidin = open(parsedFilePath,'rU')
         reader = csv.reader(fidin)
         header = reader.next()
@@ -62,7 +69,7 @@ class BlastMapper(object):
         writer.writerow(["queryId","hitId","hitNcbiId","hitSpecies","hitSpeciesNcbiId","e-value"])
 
         ## read through the blast file and extract a unique list of ids 
-        uniprotEntries = set([])
+        hitEntries = set([])
         for linja in reader:
             hitIdLong = linja[2]
             _hitId  = hitIdLong.split(" ")[1].split("|")
@@ -70,43 +77,33 @@ class BlastMapper(object):
                 hitId = _hitId[-2]
             else:
                 hitId = _hitId[-1]
-                
-            uniprotEntries.update([hitId])
+
+            hitEntries.update([hitId])
                  
-        uniprotEntries = list(uniprotEntries)
+        hitEntries = list(hitEntries)
 
-        if refseq:
-            print("Quering %s refseq ids for Uniprot matches"%(len(uniprotEntries)))
-            refseqEntries = uniprotEntries
-            refseq2uniprot = {}
-            results = self.conn.execute(Uniprot.__table__.select(Uniprot.refseq.in_(refseqEntries)))
-            for row in results:
-                refseq2uniprot[str(row.refseq)] = str(row.uniprot_entry)
-            uniprotEntries = list(set(refseq2uniprot.values()))
-        fidin.close()
-
-        print("batch querying %s UniProt entries in the database... this may take some time"%(len(uniprotEntries)))
-        timeStart = time.time()
-        upEntry2Gene, upEntry2Taxa = {},{}
-        if large == False:
-            results = self.conn.execute(Uniprot.__table__.select(Uniprot.uniprot_entry.in_(uniprotEntries)))
-            for row in results:
-                upEntry2Gene[str(row.uniprot_entry)] = str(row.gene_id)
-                upEntry2Taxa[str(row.uniprot_entry)] = str(row.taxa_id)
-        else:
-            ## using htsint's mapper
-            uMapper = uniprot_mapper(self.session,uniprotIdList=uniprotEntries,gene=True,taxa=True)
-            for key,item in uMapper.iteritems():
-                upEntry2Gene[str(key)] = str(item['gene_id'])
-                upEntry2Taxa[str(key)] = str(item['taxa_id'])
+        if uniprot:
+            print("batch querying %s UniProt entries in the database... this may take some time"%(len(hitEntries)))
+            upEntry2Gene, upEntry2Taxa = {},{}
+            if large == False:
+                results = self.conn.execute(Uniprot.__table__.select(Uniprot.uniprot_entry.in_(hitEntries)))
+                for row in results:
+                    upEntry2Gene[str(row.uniprot_entry)] = str(row.gene_id)
+                    upEntry2Taxa[str(row.uniprot_entry)] = str(row.taxa_id)
+            else:
+                ## using htsint's mapper
+                uMapper = uniprot_mapper(self.session,uniprotIdList=hitEntries,gene=True,taxa=True)
+                for key,item in uMapper.iteritems():
+                    upEntry2Gene[str(key)] = str(item['gene_id'])
+                    upEntry2Taxa[str(key)] = str(item['taxa_id'])
        
-        ## query the taxa just to double check
-        taxaList = list(set(upEntry2Taxa.values()))
-        while 'None' in taxaList: taxaList.remove('None')
-        s = select([Taxon.id,Taxon.ncbi_id,Taxon.name]).where(Taxon.id.in_([int(tid) for tid in taxaList]))
-        _taxaQueries = self.conn.execute(s)
-        taxaQueries = _taxaQueries.fetchall()
-        taxaId2Ncbi = dict([(str(tquery['id']),str(tquery['ncbi_id'])) for tquery in taxaQueries])
+            ## query the taxa just to double check
+            taxaList = list(set(upEntry2Taxa.values()))
+            while 'None' in taxaList: taxaList.remove('None')
+            s = select([Taxon.id,Taxon.ncbi_id,Taxon.name]).where(Taxon.id.in_([int(tid) for tid in taxaList]))
+            _taxaQueries = self.conn.execute(s)
+            taxaQueries = _taxaQueries.fetchall()
+            taxaId2Ncbi = dict([(str(tquery['id']),str(tquery['ncbi_id'])) for tquery in taxaQueries])
 
         ## create a single dictionary of all gene information 
         gene2id = {}
@@ -116,7 +113,6 @@ class BlastMapper(object):
             taxaDict = dict([(str(r['id']),str(r['ncbi_id'])) for r in _geneQueries.fetchall()])
             #print("there are  %s genes from %s (%s)"%(len(taxaDict.keys()),tquery['name'],tquery['ncbi_id']))
             gene2id.update(taxaDict)
-        print("uniprot batch query: %s"%time.strftime('%H:%M:%S',time.gmtime(time.time()-timeStart)))
 
         ## read through the file again
         fidin = open(parsedFilePath,'rU')
@@ -154,27 +150,28 @@ class BlastMapper(object):
             if re.findall("[A-Z]=",hitSpecies):
                 hitSpecies = hitSpecies[:re.search("[A-Z]=",hitSpecies).start()-2]
 
-            ## map the uniprot id to gene
-            if refseq and refseq2uniprot.has_key(hitId):
-                hitId = refseq2uniprot[hitId]
-
-            if upEntry2Gene.has_key(hitId) and str(upEntry2Gene[hitId]) != 'None':
+            if uniprot and upEntry2Gene.has_key(hitId) and str(upEntry2Gene[hitId]) != 'None':
                 if gene2id.has_key(upEntry2Gene[hitId]) and str(gene2id[upEntry2Gene[hitId]]) != 'None':
                     hitNcbiId = gene2id[upEntry2Gene[hitId]]
-       
+
+            #print hit2gene.has_key(hitId),hitId,hit2gene.keys()[:3]
+            if hit2gene and hit2gene.has_key(hitId):
+                hitNcbiId = hit2gene[hitId]
+
             ## get taxa id associated with uniprot id
-            if speciesNcbi:
-                hitSpeciesNcbiId = speciesNcbi
-            else:
+            if uniprot:
                 hitSpeciesNcbiId = '-'
                 if upEntry2Taxa.has_key(hitId) and str(upEntry2Taxa[hitId]) != 'None':
                     if taxaId2Ncbi.has_key(upEntry2Taxa[hitId]) and str(taxaId2Ncbi.has_key(upEntry2Taxa[hitId])) != 'None':
                         hitSpeciesNcbiId = taxaId2Ncbi[upEntry2Taxa[hitId]]
                     else:
                         print 'Were in! but taxaId2Ncbi does not have', upEntry2Taxa[hitId]
-           
+            elif len(taxaList) == 1:
+                hitSpeciesNcbiId = taxaList[0]
+                        
             writer.writerow([queryId,hitId,hitNcbiId,hitSpecies,hitSpeciesNcbiId,eScore])
 
+        print("blast summarize: %s"%time.strftime('%H:%M:%S',time.gmtime(time.time()-timeStart)))
         fidin.close()
         fidout.close()
         
