@@ -57,3 +57,13 @@ Tutorials:
    Gene set analysis example <gsa-example>
    Pathway example <pathway-example>
    References <references>
+
+
+Citation
+^^^^^^^^^^^^
+
+If you find ``htsint`` useful for your research or if you want to learn more about the software please refer to the following publication.
+
+  A. J. Richards, A Herrel, & C. Bonneaud.
+  `htsint: a Python library for sequencing pipelines that combines data through gene set generation <http://www.biomedcentral.com/1471-2105/16/307>`_.
+  **BMC Bioinformatics**, 2015, 16, 307
