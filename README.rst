@@ -2,7 +2,7 @@
 Introduction
 ************
 
-:Version: 0.5.1
+:Version: 0.5.2
 :Authors: Adam Richards
 :Web site: https://github.com/ajrichards/htsint
 :Documentation: http://ajrichards.github.io/htsint
