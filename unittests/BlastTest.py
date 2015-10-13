@@ -11,6 +11,7 @@ import sys,os,unittest,time,re,shutil
 from Bio import SeqIO
 from htsint.blast import Blast,ParseBlast,ParallelBlast
 from htsint import __basedir__
+from htsint import Configure
 
 ## test class for the main window function
 class BlastTest(unittest.TestCase):
@@ -24,6 +25,8 @@ class BlastTest(unittest.TestCase):
         """
 
         self.queryFile = os.path.join(os.path.dirname(__file__),"adh.fasta")
+        config = Configure()
+        self.BLASTDB = config.log['data']
 
     def testGetQueryFile(self):
         """
@@ -56,7 +59,7 @@ class BlastTest(unittest.TestCase):
         ## run the blast
         self.blast = Blast(self.queryFile)
         outFile = "adh-0-2.xml"
-        targetDB = "uniprot_sprot.fasta.db"
+        targetDB = os.path.join(self.BLASTDB,"uniprot_sprot")
         start,stop = 0,2
         self.blast.run_blast(targetDB,evalue=0.1,start=start,stop=stop,cmd='blastx')
     

@@ -47,7 +47,6 @@ class DatabaseTest(unittest.TestCase):
 
         ## orm
         query1 = self.session.query(Gene).filter_by(ncbi_id='359').first()
-        print dir(query1)
         self.assertEqual(query1.symbol,'AQP2')
         self.assertEqual(self.session.query(Taxon).filter_by(id=query1.taxa_id).first().ncbi_id,9606)
         self.assertEqual(query1.chromosome,'12')
