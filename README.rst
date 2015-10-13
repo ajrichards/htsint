@@ -13,7 +13,7 @@ Introduction
 Purpose
 =======
 
-``htsint`` (High-Throughput Sequencing INTegrate) is a Python package used to create gene sets for the study of high-throughput sequencing data. The goal is to create functional modules through the integration of heterogeneous types of data. These functional modules are primarily based on the Gene Ontology, but as the package matures additional sources of data will be incorporated. The functional modules produced can be subsequently tested for significance in terms of differential expression in RNA-Seq or microarray studies using gene set enrichment analysis. Shown below is the placement of htsint in an example analysis pipeline.
+``htsint`` (High-Throughput Sequencing INTegrate) is a Python package used to create gene sets for the study of high-throughput sequencing data. The goal is to create functional modules through the integration of heterogeneous types of data. These functional modules are primarily based on the Gene Ontology, but as the package matures additional sources of data will be incorporated. The functional modules produced can be subsequently tested for significance in terms of differential expression in RNA-Seq or microarray studies using gene set enrichment analysis.
 
   * BLAST mapping
   * Gene Ontology queries
