@@ -53,7 +53,7 @@ def red_black_blue():
                        (0.5, 0.0, 0.1),
                        (1.0, 1.0, 1.0)),
 
-             'green': ((0.0, 0.0, 0.0),
+             'black': ((0.0, 0.0, 0.0),
                        (1.0, 0.0, 0.0)),
 
              'blue':  ((0.0, 0.0, 1.0),
@@ -183,6 +183,8 @@ class Heatmap(object):
             cmap = red_black_green()
         elif cmap == 'uy':
             cmap = blue_black_yellow()
+        elif cmap == 'ru':
+            cmap = red_black_blue()
         else:
             cmap = cmap
 
@@ -224,11 +226,17 @@ class Heatmap(object):
 
             print("row: %s (%s), col: %s (%s)"%(col,int(colCoord),row,int(rowCoord)))
             return False, dict()
+        
+        ## set vmin vmax
+        val = np.ceil(np.abs(self.mat).max())
+        maxval = float(val)
+        minval = -1.0*val
 
         ## reorder matrix
         matReordered = self.mat[self.indx['0'],:]
         matReordered = matReordered[:,self.indx['1']]
-        hmap = ax.imshow(matReordered, interpolation='nearest',aspect='auto',cmap=cmap,picker=mat_picker,origin='lower')
+        hmap = ax.imshow(matReordered,interpolation='nearest',aspect='auto',cmap=cmap,picker=mat_picker,origin='lower',
+                         vmin=minval,vmax=maxval)
 
         ## handle axes
         if clabels and len(self.colLabels) > 0:
@@ -249,11 +257,9 @@ class Heatmap(object):
         ## colorbar
         self.plt.sca(self.ax4)
         ax = self.ax4
-
-        val = np.ceil(np.abs(self.mat).max())
-        norm = mpl.colors.Normalize(vmin=-1*val, vmax=val)
+        norm = mpl.colors.Normalize(vmin=minval,vmax=maxval)
         cb1 = mpl.colorbar.ColorbarBase(ax,cmap=cmap,
-                                        ticks=[int(round(i)) for i in np.linspace(-1*val,val,5)],
+                                        ticks=[int(round(i)) for i in np.linspace(-1.0*val,val,5)],
                                         norm=norm,
                                         orientation='horizontal')
 
@@ -290,11 +296,11 @@ if __name__ == "__main__":
     mat = np.vstack((np.random.normal(0,1,(n,m)),np.random.normal(3,1,(n,m))))
     mat[:,3:] = mat[:,3:] -2.0
 
-    hm = Heatmap(colLabels=np.array(["A","B","C","D","E","F"]),\
+    hm = Heatmap(mat,colLabels=np.array(["A","B","C","D","E","F"]),\
                  rowLabels= np.array(["r"+str(i) for i in range(n*2)]))
-    hm.cluster(mat,0)
-    hm.cluster(mat,1)
-    hm.draw_heatmap(mat,cmap='uy',clabels = True, rlabels=True)
+    hm.cluster(0)
+    hm.cluster(1)
+    hm.draw_heatmap(cmap='rg',clabels = True, rlabels=True)
 
     ## error checking
     hm.show()
