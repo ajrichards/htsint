@@ -139,7 +139,7 @@ class Heatmap(object):
         self.cluster(0)
         self.cluster(1)
 
-    def cluster(self,dim,labels=None):
+    def cluster(self,dim,labels=None,link_color_func=None):
         """
         use hierarchical clustering to group the data
         dim = 0 are the rows
@@ -163,9 +163,12 @@ class Heatmap(object):
         distMatrix = squareform(distMatrix)
         linkageMatrix = linkage(distMatrix,method='complete')
 
+        if not link_color_func:
+            link_color_func = lambda k: 'k'
+
         z = dendrogram(linkageMatrix,orientation=orientation,\
                        no_labels=True,color_threshold=1.0,\
-                       link_color_func=lambda k: 'k')
+                       link_color_func=link_color_func)
 
         indx = z['leaves']
         self.indx[str(dim)] = indx
@@ -245,7 +248,7 @@ class Heatmap(object):
         
         if rlabels and len(self.rowLabels) > 0:
                 
-            if n > 200:
+            if n > 1000:
                 print ("WARNING: too many rows to visualize row labels")
                 rowFont = None
 
