@@ -124,8 +124,8 @@ class GeneSetCollection(object):
                 mapped = clusterGenes
 
             ### remove non-unique and versioned genes
-            #if len(mapped) > 0:
-                
+            if type(mapped) == type(np.array([])):
+                mapped = mapped.tolist()
 
             if len(mapped) >= transcriptMin and len(mapped) <= transcriptMax: 
                 writer.writerow([gsName,description] + mapped)
