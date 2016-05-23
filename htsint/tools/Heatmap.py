@@ -149,7 +149,7 @@ class Heatmap(object):
         if dim == 0:
             print("clustering the rows...")
             x = self.mat
-            orientation='right'
+            orientation='left'
             self.plt.sca(self.ax2)
             ax = self.ax2
         if dim == 1:
