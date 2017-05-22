@@ -5,13 +5,18 @@ A class to represent and draw gene sets
 
 __author__ = "Adam Richards"
 
-import os,cPickle,csv,re
+import os,csv,re
 import numpy as np
 import networkx as nx
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from htsint.database import db_connect,Gene,Taxon,GoTerm
 from htsint.blast import BlastMapper
+
+try:
+    import cPickle as pickle
+except:
+    import pickle
 
 class GeneSet(object):
     """
@@ -62,7 +67,7 @@ class GeneSet(object):
             self.gene2go = gene2go
         elif os.path.exists(gene2go):
             tmp = open(gene2go,'r')
-            self.gene2go,self.go2gene = cPickle.load(tmp)
+            self.gene2go,self.go2gene = pickle.load(tmp)
             tmp.close()
         else:
             raise Exception("Argument 'gene2go' must be dictionary or pickle file path for (gene2go,go2gene)")
@@ -168,7 +173,7 @@ class GeneSet(object):
         ## get the percentile threshold
         threshold = np.percentile(mat,percentile)
         if self.verbose:
-            print "percentile threshold: %s (%s)"%(threshold,percentile)
+            print("percentile threshold: %s (%s)"%(threshold,percentile))
 
         termDist = {}
         for i in range(self.distMat.shape[0]):
@@ -482,4 +487,4 @@ class GeneSet(object):
         plt.savefig(name,bbox_inches='tight',dpi=self.dpi)
 
 if __name__ == "__main__":
-    print "Running..."
+    print("Running...")

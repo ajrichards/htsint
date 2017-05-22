@@ -5,9 +5,14 @@ Calcuates the pairwise distances between genes
 
 __author__ = "Adam Richards"
 
-import os,sys,csv,shutil,cPickle,getopt
+import os,sys,csv,shutil,getopt
 import numpy as np
 from basedir import __basedir__
+
+try:
+    import cPickle as pickle
+except:
+    import pickle
 
 class GeneDistances(object):
     """
@@ -36,7 +41,7 @@ class GeneDistances(object):
 
         ## load the graph, the terms and the term distances
         tmp = open(self.termsPath,'r')
-        self.gene2go,self.go2gene = cPickle.load(tmp)
+        self.gene2go,self.go2gene = pickle.load(tmp)
         tmp.close()
 
         ## read in the term distances
@@ -101,7 +106,7 @@ class GeneDistances(object):
             termsI = self.gene2go[geneI]
             
             if i % 20 == 0:
-                print "%s/%s"%(i,int(self.totalGenes))
+                print("%s/%s"%(i,int(self.totalGenes)))
 
             for j,geneJ in enumerate(self.genes):
                 termsJ = self.gene2go[geneJ]

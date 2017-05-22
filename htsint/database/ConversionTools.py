@@ -70,7 +70,7 @@ def convert_gene_ids(geneList,target):
         #Modification_date = record[14]
 
     toReturn = toReturn.tolist()
-    print "convert_gene_ids: %s/%s genes found."%(found,len(toReturn))
+    print("convert_gene_ids: %s/%s genes found."%(found,len(toReturn)))
 
     return toReturn
 
@@ -81,4 +81,4 @@ if __name__ == "__main__":
     geneList = [101738635, 692505, 101738735, 101744422, 101267788, 101745190, 101738329, 101739693, 101260649,100808326]
     
     taxList = convert_gene_ids(geneList,'taxid')
-    print taxList
+    print(taxList)

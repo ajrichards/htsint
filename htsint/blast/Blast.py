@@ -120,12 +120,12 @@ class Blast(object):
             outFilePath = os.path.join(outDir,outFile)
             query = self.queryFile
 
-        print 'Running blast'
+        print('Running blast')
         timeStart = time.time()
         blastx_cline = NcbiblastxCommandline(query=query, db=targetDB, evalue=evalue,
                                              outfmt=5, out=outFilePath,cmd=cmd)
         stdout, stderr = blastx_cline()
-        print "Total run time: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
+        print("Total run time: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart)))
 
         return outFilePath
 
@@ -133,7 +133,7 @@ if __name__ == "__main__":
 
     ## read in input file 
     if len(sys.argv) < 3:
-        print sys.argv[0] + "-f first -l last -q query_file -d database -e evalue -o outdir"
+        print(sys.argv[0] + "-f first -l last -q query_file -d database -e evalue -o outdir")
         sys.exit()
 
     try:

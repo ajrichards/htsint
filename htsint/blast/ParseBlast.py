@@ -68,7 +68,7 @@ class ParseBlast(object):
         """
 
         self.logWriter.writerow([line])
-        print line
+        print(line)
 
     def run(self):
         """
@@ -85,10 +85,10 @@ class ParseBlast(object):
         hasResults = set([])
         noResults = set([])
         totalHits = 0
-        print "parsing... %s"%('0'),
+        print("parsing... %s"%('0'),)
         for record in blast:
             totalHits += 1
-            print "\rparsing... %s"%(totalHits),
+            print("\rparsing... %s"%(totalHits),)
             if record.alignments:
                 query = record.query
                 for align in record.alignments:
@@ -115,6 +115,6 @@ class ParseBlast(object):
             self.fid1.close()
         if self.fid2 != None:
             self.fid2.close()
-        print 'complete.'
+        print('complete.')
 
         return self.outFile

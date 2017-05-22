@@ -220,7 +220,7 @@ class TaxaSummary(object):
         return taxaList
 
 if __name__ == "__main__":
-    print "Running..."
+    print("Running...")
 
     tsum = TaxaSummary(["8364"])
     tsum.print_names_summary()

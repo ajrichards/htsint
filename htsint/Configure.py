@@ -46,7 +46,7 @@ class Configure(object):
             fid = open(self.logFilePath,'w')
             writer = csv.writer(fid)
             
-            for key,item in defaultCONFIG.iteritems():
+            for key,item in defaultCONFIG.items():
                 if item == None:
                     item = 'None'
                 elif type(item) != type('i am a string'):
@@ -73,7 +73,7 @@ class Configure(object):
     def read_project_log(self,logPathName):
         
         if os.path.isfile(logPathName) == False:
-            print "ERROR: invalid model logfile specified",logPathName
+            print("ERROR: invalid model logfile specified",logPathName)
             return None
         else:
             logFileDict = {}
@@ -84,7 +84,7 @@ class Configure(object):
                     try:
                         linja[1] = ast.literal_eval(str(linja[1]))
                     except:
-                        print 'ERROR: Logger -- string literal conversion failed', linja[1]
+                        print('ERROR: Logger -- string literal conversion failed', linja[1])
 
                 logFileDict[linja[0]] = linja[1]
 

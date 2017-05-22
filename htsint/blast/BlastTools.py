@@ -45,7 +45,7 @@ def get_blast_map(resultsFilePath,evalue=0.00001,taxaList=None,asGenes=False,app
     fid = open(resultsFilePath,'rU')
     reader = csv.reader(fid)
     header = reader.next()
-    print header
+    print(header)
 
     ## loop through file and save best
     uniqueQueries = set([])

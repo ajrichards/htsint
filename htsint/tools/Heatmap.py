@@ -290,7 +290,7 @@ class Heatmap(object):
         self.plt.show()
 
 if __name__ == "__main__":
-    print "Running..."
+    print("Running...")
 
 
     n = 10

@@ -33,7 +33,7 @@ class ParseParallelBlast(object):
         use ParseBlast to parse a given xml formatted file
         """
 
-        print '...parsing', resultsFilePath
+        print('...parsing', resultsFilePath)
         parser = ParseBlast(resultsFilePath,fhLog=self.logWriter,fhResults=self.resultsWriter)
         parser.run()
 
@@ -80,6 +80,6 @@ class ParseParallelBlast(object):
         ## cleanup 
         self.fid1.close()
         self.fid2.close()
-        print "\nParsing completed."
-        print "Log file: ", os.path.join(self.resultsDir,resultsNameBase+'_1.log')
-        print "Results : ", os.path.join(self.resultsDir,resultsNameBase+'_1.csv')                                 
+        print("\nParsing completed.")
+        print("Log file: ", os.path.join(self.resultsDir,resultsNameBase+'_1.log'))
+        print("Results : ", os.path.join(self.resultsDir,resultsNameBase+'_1.csv'))

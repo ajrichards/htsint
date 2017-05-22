@@ -165,7 +165,7 @@ class BlastMapper(object):
                     if taxaId2Ncbi.has_key(upEntry2Taxa[hitId]) and str(taxaId2Ncbi.has_key(upEntry2Taxa[hitId])) != 'None':
                         hitSpeciesNcbiId = taxaId2Ncbi[upEntry2Taxa[hitId]]
                     else:
-                        print 'Were in! but taxaId2Ncbi does not have', upEntry2Taxa[hitId]
+                        print('Were in! but taxaId2Ncbi does not have', upEntry2Taxa[hitId])
             elif len(taxaList) == 1:
                 hitSpeciesNcbiId = taxaList[0]
                         
@@ -348,8 +348,8 @@ class BlastMapper(object):
         if figName:
             plt.savefig(figName)
 
-        print 'total species:', len(taxaHits.keys())
-        print 'check', np.array(sizes).sum()
+        print('total species:', len(taxaHits.keys()))
+        print('check', np.array(sizes).sum())
 
         ## save results as csv file
         if not csvName:
@@ -439,4 +439,4 @@ class BlastMapper(object):
 
 
 if __name__ == "__main__":
-    print "Running..."
+    print("Running...")

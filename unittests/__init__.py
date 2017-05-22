@@ -5,9 +5,9 @@ from htsint import Configure
 try:
     optlist, args = getopt.getopt(sys.argv[1:],'v')
 except getopt.GetoptError:
-    print getopt.GetoptError
-    print sys.argv[0] + "-v"
-    print "... the verbose flag (-v) may be used"
+    print(getopt.GetoptError)
+    print(sys.argv[0] + "-v")
+    print("... the verbose flag (-v) may be used")
     sys.exit()
 
 VERBOSE = False
@@ -19,6 +19,7 @@ for o, a in optlist:
 
 ## ensure config is setup
 config = Configure()
+
 if config.log['dbname'] == '':
     raise Exception("Config file is not setup")
 

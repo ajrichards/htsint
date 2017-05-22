@@ -435,7 +435,7 @@ def fetch_taxa_annotations(identifiers,engine,aspect='biological_process',
                         gene2uniprot[geneNcbi].append(str(uquery['uniprot_ac']))
                         uniprot2gene[uniprotAc] = geneNcbi
                     else:
-                        print "could not find", uquery['gene_id'], 'but we have', uniprotAc
+                        print("could not find", uquery['gene_id'], 'but we have', uniprotAc)
 
         ## gene centric results
         for aq in annotQueries:

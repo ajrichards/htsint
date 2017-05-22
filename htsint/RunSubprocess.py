@@ -41,8 +41,8 @@ class RunSubprocess(object):
         if timeout != None:
             self.thread.join(timeout)
             if self.thread.is_alive():
-                print 'The subprocess was auto-terminated due to timeout'
-                print "...", self.process.poll()
+                print('The subprocess was auto-terminated due to timeout')
+                print("...", self.process.poll())
                 self.process.terminate()
                 self.thread.join()
         
@@ -70,8 +70,8 @@ if __name__ == '__main__':
     
     ## test should pass
     returnCode = myProcess.run(timeout=10)
-    print 'pass return code', returnCode
+    print('pass return code', returnCode)
 
     ## test should fail
     returnCode = myProcess.run(timeout=1)
-    print 'fail return code', returnCode
+    print('fail return code', returnCode)

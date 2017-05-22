@@ -6,10 +6,16 @@ that are produced with 'GeneDistances.py'
 
 __author__ = "Adam Richards"
 
-import os,sys,csv,shutil,re,cPickle,getopt
+import os,sys,csv,shutil,re,getopt
 import numpy as np
 import networkx as nx
 from basedir import __basedir__
+
+try:
+    import cPickle as pickle
+except:
+    import pickle
+
 
 class AssembleDistances(object):
     """
@@ -48,7 +54,7 @@ class AssembleDistances(object):
         ## load the term graph and the terms
         self.G = nx.read_gpickle(self.termGraphPath)
         tmp = open(self.termsPath,'r')
-        self.gene2go,self.go2gene = cPickle.load(tmp)
+        self.gene2go,self.go2gene = pickle.load(tmp)
         tmp.close()
 
         ## variables
@@ -73,7 +79,7 @@ class AssembleDistances(object):
         if stopPoints[-1] < self.totalDistances:
             stopPoints = np.hstack([stopPoints[1:],np.array([self.totalDistances])])
 
-        print '...assembling results - %s jobs with %s distances'%(len(stopPoints),self.totalDistances)
+        print('...assembling results - %s jobs with %s distances'%(len(stopPoints),self.totalDistances))
 
         ## create scripts
         mat = np.zeros((self.totalDistances,3),).astype(str)
@@ -102,7 +108,7 @@ class AssembleDistances(object):
         ## print total
         print("saving...")
         np.save(self.resultsPath,mat)
-        print "%s/%s distances appended"%(self.appendedDistances,self.totalDistances)
+        print("%s/%s distances appended"%(self.appendedDistances,self.totalDistances))
 
     def append_file(self,outFile):
         """

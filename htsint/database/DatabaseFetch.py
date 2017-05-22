@@ -148,6 +148,6 @@ class DatabaseFetch(object):
 
 
 if __name__ == "__main__":
-    print "Running..."
+    print("Running...")
     dbf = DatabaseFetch()
     dbf.run()

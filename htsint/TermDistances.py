@@ -5,16 +5,22 @@ Calcuates the pairwise distances between genes
 
 __author__ = "Adam Richards"
 
-import os,sys,csv,shutil,cPickle,getopt
+import os,sys,csv,shutil,getopt
 import numpy as np
 import networkx as nx
 from basedir import __basedir__
 from multiprocessing import Pool, cpu_count
 
-def mp_worker((source,sink,graphPath)):
+try:
+    import cPickle as pickle
+except:
+    import pickle
+
+def mp_worker(args):
     """
     find shortest path length
     """
+    source,sink,graphPath = args
     G = nx.read_gpickle(graphPath)
     minDistance = 1e8
     if G.has_node(source) and G.has_node(sink):
@@ -55,7 +61,7 @@ class TermDistances(object):
         ## load the term graph and the terms
         self.G = nx.read_gpickle(self.termGraphPath)
         tmp = open(self.termsPath,'r')
-        self.gene2go,self.go2gene = cPickle.load(tmp)
+        self.gene2go,self.go2gene = pickle.load(tmp)
         tmp.close()
 
         ## variables
@@ -81,7 +87,7 @@ class TermDistances(object):
         if stopPoints[-1] < self.totalDistances:
             stopPoints = np.hstack([stopPoints[1:],np.array([self.totalDistances])])
 
-        print '... submitting %s jobs'%(len(stopPoints))
+        print('... submitting %s jobs'%(len(stopPoints)))
 
         ## create scripts
         begin = 0
@@ -135,7 +141,7 @@ class TermDistances(object):
         for i,termI in enumerate(self.terms):
             
             if i % 20 == 0:
-                print "%s/%s"%(i,len(self.terms))
+                print("%s/%s"%(i,len(self.terms)))
 
             for j,termJ in enumerate(self.terms):
                 if j >= i:
@@ -205,7 +211,7 @@ class TermDistances(object):
 if __name__ == "__main__":
     ## read in input file      
     if len(sys.argv) < 3:
-        print sys.argv[0] + "-f first -l last -q query_file -d database -e evalue -o outdir"
+        print(sys.argv[0] + "-f first -l last -q query_file -d database -e evalue -o outdir")
         sys.exit()
 
     try:

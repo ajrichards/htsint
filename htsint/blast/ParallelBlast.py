@@ -61,7 +61,7 @@ class ParallelBlast(object):
         if stopPoints[-1] < total:
             stopPoints = np.hstack([stopPoints[1:],np.array([total])])
         
-        print '... submitting %s jobs'%(len(stopPoints))
+        print('... submitting %s jobs'%(len(stopPoints)))
              
         begin = 0
         for i,chunk in enumerate(range(stopPoints.size)):

@@ -182,4 +182,4 @@ class GeneSetCollection(object):
         return np.array(genes),np.array(labels)
         
 if __name__ == "__main__":
-    print "Running..."
+    print("Running...")

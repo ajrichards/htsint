@@ -1,9 +1,15 @@
-import sys,os,cPickle
+import sys,os
 import numpy as np
 import networkx as nx
 from sqlalchemy.sql import select
 from htsint.database import Base,Taxon,Gene,Uniprot,GoTerm,GoAnnotation,db_connect
 from htsint.database import read_ontology_file,fetch_taxa_annotations
+
+try:
+    import cPickle as pickle
+except:
+    import pickle
+
 
 """
 Classes used to interact with gene ontology data
@@ -139,7 +145,7 @@ class GeneOntology(object):
         
         ## pickle the dictionaries    
         tmp = open(termsPath,'w')
-        cPickle.dump([gene2go,go2gene],tmp)
+        pickle.dump([gene2go,go2gene],tmp)
         tmp.close()
 
     def load_dicts(self,termsPath=None,log=None):
@@ -152,7 +158,7 @@ class GeneOntology(object):
 
         if termsPath != None and os.path.exists(termsPath):
             tmp = open(termsPath,'r')
-            gene2go,go2gene = cPickle.load(tmp)
+            gene2go,go2gene = pickle.load(tmp)
             tmp.close()
             return gene2go,go2gene
 
@@ -167,7 +173,7 @@ class GeneOntology(object):
         The genes have to be present in the database
         """
 
-        print '...creating gograph'
+        print('...creating gograph')
         ## error checking
         if self.aspect not in ['biological_process','molecular_function','cellular_component']:
             raise Exception("Invalid aspect specified%s"%self.aspect)
@@ -188,7 +194,7 @@ class GeneOntology(object):
         _goDict = read_ontology_file()
         goDict = _goDict[self.aspect]
         
-        print "...creating go term graph -- this may take several minutes or hours depending on the number of genes"
+        print("...creating go term graph -- this may take several minutes or hours depending on the number of genes")
         ## calculate the term-term edges using term IC (-ln(p(term)))
         edgeDict = self.get_weights_by_ic(goDict,go2gene)
 
@@ -300,7 +306,7 @@ class GeneOntology(object):
         ## save mst to pickle format
         if graphPath != None:
             nx.write_gpickle(G, graphPath)
-            print '...saving pickle graph'
+            print('...saving pickle graph')
 
         return G
 
@@ -310,7 +316,7 @@ class GeneOntology(object):
         returns a networkx edge dictionary
         """
 
-        print "...... terms", len(go2gene.keys())
+        print("...... terms", len(go2gene.keys()))
         
         total = 0
         for term,genes in go2gene.iteritems():

@@ -114,6 +114,6 @@ class DatabaseCreate(object):
         fid.close()
 
 if __name__ == "__main__":
-    print "Running..."
+    print("Running...")
     dbc = DatabaseCreate()
     dbc.run()

@@ -20,7 +20,7 @@ def check_version():
     ensure that sqlalchemy is at least 0.8
     """
     if float(sqlalchemy.__version__[:-2]) < 0.8:
-        print "ERROR: SQLAlchemy version is less than required version"
+        print("ERROR: SQLAlchemy version is less than required version")
         sys.exit()
 
 def ask_upass():
@@ -71,13 +71,13 @@ def db_connect(verbose=False,upass=''):
             
     ## create connection to db and create necessary tables 
     if verbose:
-        print "connecting to database: %s"%dbname
+        print("connecting to database: %s"%dbname)
     engine = create_engine('postgresql://%s:%s@%s:%s/%s'%(uname,upass,dbhost,port,dbname),echo=verbose)
     connection = engine.connect()
     Session = sessionmaker(bind=engine)
     session = Session()
     if verbose:
-        print 'connected.'
+        print('connected.')
 
     return session,engine
 
@@ -150,7 +150,7 @@ def get_file_sizes():
         records.update([record[0]])
 
     idmappingFid.close()
-    print 'debug. totalRecords %s, records %s, geneInfoCount %s'%(totalRecords, len(list(records)), geneInfoCount)
+    print('debug. totalRecords %s, records %s, geneInfoCount %s'%(totalRecords, len(list(records)), geneInfoCount))
     return len(list(records)),geneInfoCount
 
 def populate_taxon_table(engine):
@@ -748,14 +748,14 @@ def print_go_summary(outfile=os.path.join(".","go_summary.csv")):
         geneQuery = session.query(Gene).filter_by(taxa_id=taxQuery.id)
         annotQuery = session.query(GoAnnotation).filter_by(taxa_id=taxQuery.id)
         
-        print "..."
-        print "TaxID:       %s"%taxQuery.ncbi_id
-        print "Species:     %s"%taxQuery.name
-        print "Common Name 1: %s"%taxQuery.common_name_1
-        print "Common Name 2: %s"%taxQuery.common_name_2
-        print "Common Name 3: %s"%taxQuery.common_name_3
-        print "Num. Genes:  %s"%geneQuery.count()
-        print "Num. GO Annotations:  %s"%annotQuery.count()
+        print("...")
+        print("TaxID:       %s"%taxQuery.ncbi_id)
+        print("Species:     %s"%taxQuery.name)
+        print("Common Name 1: %s"%taxQuery.common_name_1)
+        print("Common Name 2: %s"%taxQuery.common_name_2)
+        print("Common Name 3: %s"%taxQuery.common_name_3)
+        print("Num. Genes:  %s"%geneQuery.count())
+        print("Num. GO Annotations:  %s"%annotQuery.count())
 
         if taxQuery.common_name_1 == '':
             taxQuery.common_name_1 = 'None'
