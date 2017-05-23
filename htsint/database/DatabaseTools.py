@@ -15,14 +15,6 @@ from .DatabaseTables import Base,Taxon,Gene,Uniprot,GoTerm,GoAnnotation
 from .DatabaseTables import taxa_mapper,gene_mapper,uniprot_mapper,goterm_mapper
 from htsint.database import get_annotation_file, get_ontology_file, get_gene2go_file
 
-def check_version():
-    """
-    ensure that sqlalchemy is at least 0.8
-    """
-    if float(sqlalchemy.__version__[:-2]) < 0.8:
-        print("ERROR: SQLAlchemy version is less than required version")
-        sys.exit()
-
 def ask_upass():
     """
     returns the pass word for the database
@@ -35,7 +27,6 @@ def ask_upass():
         if config.log[key] == '':
             raise Exception("You must modify the config file before running DatabaseFetch.py")
     
-    check_version()
     upass = config.log['dbpass']
     if upass == '':
         upass = getpass.getpass()
@@ -54,8 +45,6 @@ def db_connect(verbose=False,upass=''):
         if config.log[key] == '':
             raise Exception("You must modify the config file before running DatabaseFetch.py")
     
-    check_version()
-
     ## declare variables
     uname = config.log['dbuser']
     dbhost = config.log['dbhost']
@@ -305,6 +294,7 @@ def populate_gene_table(geneInfoCount,session,engine):
 
     ## clean up
     geneInfoFid.close()
+
     timeStr = "...total time taken: %s"%time.strftime('%H:%M:%S', time.gmtime(time.time()-timeStart))
     addedStr = "...%s unique genes were added."%totalRecords
     return timeStr,addedStr
