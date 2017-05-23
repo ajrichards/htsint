@@ -35,8 +35,6 @@ s = select([widget.id,widget.ncbi_id])
 _result = conn.execute(s)  
 result = [row for row in _result]
 print("core: %s"%time.strftime('%H:%M:%S',time.gmtime(time.time()-timeStart)))
-print result[:5]
-print result[0]['ncbi_id']
 sys.exit()
 
 timeStart = time.time()

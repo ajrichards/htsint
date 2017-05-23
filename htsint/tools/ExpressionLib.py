@@ -21,7 +21,7 @@ def read_RSEM_counts_files(geneFilePath,isoformFilePath):
     ## load the gene counts
     fid1 = open(geneFilePath,'rU')
     reader1 = csv.reader(fid1,delimiter="\t")
-    header1 = reader1.next()    
+    header1 = reader1.__next__()    
     results1 = {}
     check = 0
     gc.disable()
@@ -61,7 +61,7 @@ def read_matrix(matFilePath,delimiter=",",mtype='float'):
 
     """
 
-    print 'reading', matFilePath
+    print('reading', matFilePath)
 
     if mtype not in ['int','float']:
         raise Exception("mtype must be 'int' or 'float'")
@@ -104,7 +104,7 @@ def read_de_results(filePath,delimiter=",",tool="edgeR"):
 
     """
 
-    print 'reading', filePath
+    print('reading', filePath)
 
     if not os.path.exists(filePath):
         raise Exception("Cannot find matFilePath\n%s"%filePath)

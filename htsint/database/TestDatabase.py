@@ -25,37 +25,37 @@ testID = '7227'
 query = session.query(Taxon).filter_by(ncbi_id=testID).first() 
 
 if query == None:
-    print "ERROR: init taxon not found."
+    print("ERROR: init taxon not found.")
     sys.exit()
 
 if int(query.ncbi_id) != int(testID):
-    print "ERROR: Bad match to taxon id"
+    print("ERROR: Bad match to taxon id")
     print query.ncbi_id,testID
 
 if query.name != "Drosophila melanogaster":
-    print "ERROR: Bad match to taxon name"
-    print query.name
+    print("ERROR: Bad match to taxon name")
+    print(query.name)
     sys.exit()
 
 if "fruit fly" not in [query.common_name_1, query.common_name_2, query.common_name_3]:
-    print "ERROR: Bad match to common name"
+    print("ERROR: Bad match to common name")
     sys.exit()
 
 ## test the 'Gene' table
 if session.query(Gene).count() < 4:
-    print "ERROR: not enough genes found"
+    print("ERROR: not enough genes found")
     sys.exit()
 
 query = session.query(Gene).filter_by(ncbi_id='3771877').first() 
 
 if query.symbol != 'Adh':
-    print "ERROR: bad gene symbol found"
-    print query.symbol
+    print("ERROR: bad gene symbol found")
+    print(query.symbol)
     sys.exit()
 
 ## test the 'Uniprot' table
 if session.query(Uniprot).count() < 100:
-    print "ERROR: not enough uniprot found"
+    print("ERROR: not enough uniprot found")
     sys.exit()
 
 if createGraph == True:
@@ -69,6 +69,6 @@ if createGraph == True:
     graph.write_svg('dbschema.svg')                     # write out the file 
     #graph.write_png('dbschema.png')                     # write out the file 
 else:
-    print "Not creating schema figure because 'sqlalchemy_schemadisplay' is not installed"
+    print("Not creating schema figure because 'sqlalchemy_schemadisplay' is not installed")
 
-print 'all tests pass.'
+print('all tests pass.')

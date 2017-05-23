@@ -16,11 +16,12 @@ import numpy as np
 from htsint.stats import SpectralCluster
 
 
-def mp_worker((k,sigma,distancePath,dtype)):
+def mp_worker(args):
     """
     run spectral clustering
     """
-
+    k,sigma,distancePath,dtype = args
+    
     sc = SpectralCluster(distancePath,dtype=dtype)
     sc.run(k,sk=None,sigma=sigma,verbose=True)
     
@@ -131,7 +132,7 @@ class SpectralClusterParamSearch(object):
                 self.run_sc(toRun,begin,stop)
                 begin = stop
 
-        print "complete."
+        print("complete.")
         outFid1.close()
         outFid2.close()
 

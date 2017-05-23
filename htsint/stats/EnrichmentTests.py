@@ -39,12 +39,12 @@ def enrichment_hypergeo(termList, entityList, species, useIea=True, asGenes=True
         entity2go = uniprotAnnots
 
     go2entity = {}
-    for entity,go in entity2go.iteritems():
+    for entity,go in entity2go.items():
         for term in go:
-            if not go2entity.has_key(term):
+            if term not in go2entity:
                 go2entity[term] = set([])
             go2entity[term].update([entity])
-    for go,entity in go2entity.iteritems():
+    for go,entity in go2entity.items():
         go2entity[go] = list(entity)
 
     print('total go terms - %s'%(len(go2entity.keys())))
@@ -78,7 +78,7 @@ def enrichment_hypergeo(termList, entityList, species, useIea=True, asGenes=True
 
 
 if __name__ == "__main__":
-    print "Running..."
+    print("Running...")
 
     ## terms to be tested
     termList = ['GO:1902600','GO:0022904','GO:0055114','GO:0042773']

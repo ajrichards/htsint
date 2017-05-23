@@ -26,22 +26,22 @@ print("...extraction time 1: %s"%time.strftime('%H:%M:%S',time.gmtime(time.time(
 timeStart = time.time()
 for geneQuery in geneQueries:
     annotations[geneQuery.ncbi_id] = set([])
-    print geneQuery.ncbi_id
+    print(geneQuery.ncbi_id)
     annotations[geneQuery.ncbi_id].update(session.query(GoAnnotation).filter_by(gene_id=geneQuery.id).all())
 print("...extraction q1: %s"%time.strftime('%H:%M:%S',time.gmtime(time.time()-timeStart)))
 
-for key,items in annotations.iteritems():
+for key,items in annotations.items():
     annotations[key] = list(items)
     if None in items:
         annotations[key].remove(None)
 
 for at in annotations['30970']:
-    print at,session.query(GoTerm).filter_by(id = at.go_term_id).first().aspect
+    print(at,session.query(GoTerm).filter_by(id = at.go_term_id).first().aspect)
 
 ## get results with table join by aspect
 timeStart = time.time()
 
-print 'filtered results'
+print('filtered results')
 for geneQuery in geneQueries:
     results = session.query(GoAnnotation).join(GoTerm).\
               filter(GoAnnotation.gene_id==geneQuery.id).\
@@ -49,4 +49,4 @@ for geneQuery in geneQueries:
               filter(GoTerm.aspect=='molecular_function').all()
     
     for r in results:
-        print r, session.query(GoTerm).filter_by(id = r.go_term_id).first().aspect
+        print(r, session.query(GoTerm).filter_by(id = r.go_term_id).first().aspect)

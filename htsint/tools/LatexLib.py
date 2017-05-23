@@ -17,11 +17,11 @@ class LatexReportCreator():
 
         ## error check
         if type(self.extraPackages) != type([]):
-            print "INPUT ERROR: extra packages must be in list form"
+            print("INPUT ERROR: extra packages must be in list form")
 
         if os.path.isdir(self.docDir) == False:
             if self.verbose == True:
-                print "...making report directory"
+                print("...making report directory")
             os.mkdir(self.docDir)
         
         self.fid = open(os.path.join(self.docDir,self.docName + ".tex"),'w')
@@ -94,7 +94,7 @@ class LatexReportCreator():
 
     def include_figure(self,figPath,caption=None,label=None,scale=0.65):
         if os.path.isfile(figPath) == False:
-            print "ERROR: could not include figure does not exist", figPath
+            print("ERROR: could not include figure does not exist", figPath)
 
         self.fid.write("\\begin{figure}[!ht]\n")
         self.begin("center")
@@ -119,9 +119,9 @@ class LatexReportCreator():
 
         ## error checking
         if type(rowDict) != type({}):
-            print "ERROR: rowDict for include_table must be of type dict"
+            print("ERROR: rowDict for include_table must be of type dict")
         if type(rowDict[rowDict.keys()[0]]) != type([]):
-            print "ERROR: the values in rowDict for included_table must be of type list"
+            print("ERROR: the values in rowDict for included_table must be of type list")
 
         numCols = len(rowDict[rowDict.keys()[0]])
         if justifications == None and numericKeys == False:

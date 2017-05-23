@@ -164,4 +164,4 @@ class SpectralClusterResults(object):
         plt.savefig(figName,dpi=400) 
 
 if __name__ == "__main__":
-    print "Running..."
+    print("Running...")

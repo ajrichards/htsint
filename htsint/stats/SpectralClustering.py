@@ -109,7 +109,7 @@ class SpectralCluster(object):
 
         ## create the affinity matrix
         if verbose == True:
-            print "\tsimilarity to affinity matrix..."
+            print("\tsimilarity to affinity matrix...")
 
         k = int(round(k))
 
@@ -120,13 +120,13 @@ class SpectralCluster(object):
         
         ## create the diagonal matrix D
         if verbose == True:
-            print "\tcreating diagonal matrix..."
+            print("\tcreating diagonal matrix...")
 
         self.D = np.diag(self.A.sum(axis=1)**-0.5)
         
         ## create the L matrix
         if verbose == True:
-            print "\tcreating laplacian matrix..."
+            print("\tcreating laplacian matrix...")
 
         _L = np.dot(self.D,self.A)                      # multiply A and D^{-1/2}
         self.L = np.dot(_L,self.D)                      # multiply the above result times D^{-1/2}
@@ -136,13 +136,13 @@ class SpectralCluster(object):
         testFinite = np.where(np.isfinite(self.L) == False)
 
         if np.array([len(z) for z in testFinite]).sum() > 0:
-            print "WARNING: failed finite check"
+            print("WARNING: failed finite check")
         elif np.array([len(z) for z in testNan]).sum() > 0:
-            print "WARNING: failed nan check"
+            print("WARNING: failed nan check")
 
         ## find the k largest eigenvectors of L
         if verbose == True:
-            print "\tfinding eigenvalues and eigenvectors..."
+            print("\tfinding eigenvalues and eigenvectors...")
 
         eigVals, eigVecs = np.linalg.eig(self.L)
         eigVecs = -1.0 * eigVecs
@@ -151,7 +151,7 @@ class SpectralCluster(object):
 
         ## compute normalized matrix Y from X
         if verbose == True:
-             print "\tnormalizing Y matrix..."
+             print("\tnormalizing Y matrix...")
 
         n,k = np.shape(self.X)
         self.Y = np.zeros([n,k])
@@ -162,7 +162,7 @@ class SpectralCluster(object):
 
         ## cluster the rows of Y using Kmeans
         if verbose == True:
-            print "\tkmeans clustering to get labels..."
+            print("\tkmeans clustering to get labels...")
 
         tries = 0
         iters = 0
@@ -212,7 +212,7 @@ class SpectralCluster(object):
             A = np.zeros(dMat.shape)
 
             if dMat == None:
-                print "ERROR: distance matrix is None cannot find affinity"
+                print("ERROR: distance matrix is None cannot find affinity")
                 return None
 
             ## get sigma k for each row
@@ -252,7 +252,7 @@ class SpectralCluster(object):
         print("labels saved (sigma=%s,k=%s)."%(self.sigma,self.k))
 
 if __name__ == "__main__":
-    print "Running..."
+    print("Running...")
 
     from htsint.stats import dataScatter,dataScatterLabels
     from htsint.stats import dataCircle,dataCircleLabels

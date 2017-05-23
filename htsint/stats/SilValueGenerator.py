@@ -16,7 +16,7 @@ class SilValueGenerator():
         ## error checking
         matRows,matCols = np.shape(mat)
         if matRows != len(labels):
-            print "INPUT ERROR: SilValueGenerator must have matching matrix and labels"
+            print("INPUT ERROR: SilValueGenerator must have matching matrix and labels")
 
         self.mat = mat
         self.labels = np.array([l for l in labels])
@@ -29,7 +29,7 @@ class SilValueGenerator():
     def _get_silhouette_values(self):
 
         if self.dMetric != 'euclidean':
-            print "ERROR: SilValueGenerator bad distance metric specified"
+            print("ERROR: SilValueGenerator bad distance metric specified")
             return None
 
         ## get dims
