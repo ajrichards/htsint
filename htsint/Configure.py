@@ -61,7 +61,7 @@ class Configure(object):
     def save(self):
         writer = csv.writer(open(self.logFilePath,'w'))
 
-        for key,item in self.log.iteritems():
+        for key,item in self.log.items():
             if item == None:
                 item = 'None'
             elif type(item) != type('i am a string'):
