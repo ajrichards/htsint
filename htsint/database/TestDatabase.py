@@ -30,7 +30,7 @@ if query == None:
 
 if int(query.ncbi_id) != int(testID):
     print("ERROR: Bad match to taxon id")
-    print query.ncbi_id,testID
+    print(query.ncbi_id,testID)
 
 if query.name != "Drosophila melanogaster":
     print("ERROR: Bad match to taxon name")

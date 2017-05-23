@@ -28,14 +28,14 @@ class LatexReportCreator():
 
     def write_beginning(self,title,author,shortTitle='report',shortAuthor='',toc=False):
         self.fid.write("\documentclass[letterpaper,10pt]{%s}\n"%self.docType)
-        self.fid.write("\usepackage{pgf,graphics,color,hyperref,fullpage,natbib,algorithm,algorithmic,amsmath,ulem,bm,morefloats}\n")
+        self.fid.write("\\usepackage{pgf,graphics,color,hyperref,fullpage,natbib,algorithm,algorithmic,amsmath,ulem,bm,morefloats}\n")
         for package in self.extraPackages:
             self.fid.write("\usepackage{%s}\n"%package)
         self.fid.write("\definecolor{darkblue}{rgb}{0.0,0.0,0.50}\n")
         self.fid.write("\definecolor{darkgreen}{rgb}{0.0,0.35,0.0}\n")
         self.fid.write("\hypersetup{colorlinks=true, linkcolor=darkblue, citecolor=darkblue, urlcolor=darkblue}\n")
         self.fid.write("\hypersetup{pdfauthor={%s}, pdftitle={%s}}\n"%(shortAuthor,shortTitle))
-        self.fid.write("\usepackage{titlesec}\\titleformat{\chapter}{\centering\\normalfont\Large\\bfseries}{\\thechapter}{1em}{}\n")
+        self.fid.write("\\usepackage{titlesec}\\titleformat{\chapter}{\centering\\normalfont\Large\\bfseries}{\\thechapter}{1em}{}\n")
 
         ## beginning materials
         self.fid.write("\\begin{document}\n")
