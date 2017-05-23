@@ -11,8 +11,8 @@ import numpy as np
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from htsint import Configure
-from DatabaseTables import Base,Taxon,Gene,Uniprot,GoTerm,GoAnnotation
-from DatabaseTables import taxa_mapper,gene_mapper,uniprot_mapper,goterm_mapper
+from .DatabaseTables import Base,Taxon,Gene,Uniprot,GoTerm,GoAnnotation
+from .DatabaseTables import taxa_mapper,gene_mapper,uniprot_mapper,goterm_mapper
 from htsint.database import get_annotation_file, get_ontology_file, get_gene2go_file
 
 def check_version():
@@ -90,7 +90,7 @@ def read_gene_info_file(lineCount=False,short=False):
     taxaList = config.log['taxa']
     geneInfoFile = os.path.join(config.log['data'],"gene_info.db")
     geneInfoFid = open(geneInfoFile,'rU')
-    header = geneInfoFid.next()
+    header = geneInfoFid.__next__()
     geneInfo ={}
     totalLines = 0
 
@@ -192,7 +192,7 @@ def populate_taxon_table(engine):
             continue
                 
         ## if record does not exist
-        if not toAdd.has_key(taxaID):
+        if taxaID not in toAdd:
             taxaCount += 1
             if len(toAdd) >= 300000:
                 with engine.begin() as connection:
@@ -204,9 +204,9 @@ def populate_taxon_table(engine):
                             'common_name_2':None,'common_name_3':None}
         
         ## if record exists add a common name 
-        if toAdd.has_key(taxaID) and scientificName != None:
+        if taxaID in toAdd and scientificName != None:
             toAdd[taxaID]['name'] = scientificName
-        elif toAdd.has_key(taxaID) and commonName != None:
+        elif taxaID in toAdd and commonName != None:
             if  toAdd[taxaID]['common_name_1'] == None:
                 toAdd[taxaID]['common_name_1'] = commonName
             elif  toAdd[taxaID]['common_name_2'] == None:
@@ -239,7 +239,7 @@ def populate_gene_table(geneInfoCount,session,engine):
     wayPoints = [round(int(w)) for w in np.linspace(0,total,20)]
     geneInfoFile = os.path.join(config.log['data'],"gene_info.db")
     geneInfoFid = open(geneInfoFile,'rU')
-    header = geneInfoFid.next()
+    header = geneInfoFid.__next__()
     taxaIdMap = taxa_mapper(session)
 
     for record in geneInfoFid:
@@ -269,7 +269,7 @@ def populate_gene_table(geneInfoCount,session,engine):
         if len(toAdd) >= 200000:
             toRemove = []
             for ta in toAdd:
-                if taxaIdMap.has_key(ta['taxa_id']):
+                if ta['taxa_id'] in taxaIdMap:
                     ta['taxa_id'] = taxaIdMap[ta['taxa_id']]
                 else:
                     toRemove.append(ta)
@@ -290,7 +290,7 @@ def populate_gene_table(geneInfoCount,session,engine):
     print('committing changes...')
     toRemove = []
     for ta in toAdd:
-        if taxaIdMap.has_key(ta['taxa_id']):
+        if ta['taxa_id'] in taxaIdMap:
             ta['taxa_id'] = taxaIdMap[ta['taxa_id']]
         else:
             toRemove.append(ta)
@@ -341,18 +341,18 @@ def populate_uniprot_table(lineCount,session,engine):
             ## convert the gene id to a database key (check old names if we cannot find it)
             if entry['gene-id'] == None:
                 pass
-            elif geneIdMap.has_key(entry['gene-id']):
+            elif entry['gene-id'] in geneIdMap:
                 db_gene_id = geneIdMap[entry['gene-id']]
-            elif not geneIdMap.has_key(entry['gene-id']):
+            elif entry['gene-id'] not in geneIdMap:
                 _geneIds = [re.sub("\s+","",_ncid) for _ncid in entry['gene-id'].split(";")]
                 db_gene_id = None
         
                 for _gid in _geneIds:
-                    if geneIdMap.has_key(_gid):
+                    if _gid in geneIdMap:
                         db_gene_id= _gid
 
             ## convert the taxa id to a database key
-            if entry['ncbi-taxa-id'] and taxonIdMap.has_key(entry['ncbi-taxa-id']):
+            if entry['ncbi-taxa-id'] and entry['ncbi-taxa-id'] in taxonIdMap:
                 db_taxa_id = taxonIdMap[entry['ncbi-taxa-id']]
 
             ## check that the linked gene taxa is the same as the entry taxa
@@ -416,7 +416,7 @@ def populate_uniprot_table(lineCount,session,engine):
             ncbiId = record[2]
         elif record[1] == 'UniProtKB-ID':
             uniprotKbEntry = record[2]
-            if not ac2kbMap.has_key(uniprotKbAc):
+            if uniprotKbAc not in ac2kbMap:
                 ac2kbMap[uniprotKbAc] = uniprotKbEntry
         elif record[1] == 'RefSeq':
             refseq = record[2]
@@ -424,14 +424,14 @@ def populate_uniprot_table(lineCount,session,engine):
             continue
 
         ## skip the XXXX-1 like uniprot ac
-        if ac2kbMap.has_key(uniprotKbAc) == False:
+        if uniprotKbAc not in ac2kbMap:
             continue
 
         ## get current key
         uniprotKbEntry = ac2kbMap[uniprotKbAc] 
 
         ## make new entry if necessary
-        if uniprotKbEntry and not toAdd.has_key(uniprotKbEntry):
+        if uniprotKbEntry and uniprotKbEntry not in toAdd:
 
             ## queue entries in blocks
             totalRecords += 1 
@@ -554,7 +554,7 @@ def populate_go_annotations(totalAnnotations,session,engine):
     def queue_entry(goId,evidenceCode,pubmedRefs,uniprotId,geneId,taxon,toAdd,mapper,ignoredAnnotations):
 
         ## remove invalid term ids
-        if not termIdMap.has_key(goId):
+        if not goId in termIdMap:
             queryTerm = session.query(GoTerm).filter_by(alternate_id=goId).first()
             if queryTerm == None:
                 return
@@ -563,7 +563,7 @@ def populate_go_annotations(totalAnnotations,session,engine):
             go_db_id = termIdMap[goId]
 
         ## remove invalid uniprot ids
-        if uniprotId and not mapper.has_key(uniprotId):
+        if uniprotId and uniprotId not in mapper:
             return
         if uniprotId:
             uniprot_db_id = mapper[uniprotId]
@@ -571,7 +571,7 @@ def populate_go_annotations(totalAnnotations,session,engine):
             uniprot_db_id = None
 
         ## remove invalid gene ids
-        if geneId and not mapper.has_key(geneId):
+        if geneId and geneId not in mapper:
             return
         if geneId:
             gene_db_id = mapper[geneId]
@@ -579,7 +579,7 @@ def populate_go_annotations(totalAnnotations,session,engine):
             gene_db_id = None
 
         ## ignore annotations that have an outdated taxon
-        if not taxaIdMap.has_key(taxon):
+        if taxon not in taxaIdMap:
             ignoredAnnotations += 1
             return
 
@@ -653,7 +653,7 @@ def populate_go_annotations(totalAnnotations,session,engine):
     gene2goFid = open(gene2goFile,'rU')
     ignoredAnnotationsGene = 0 
     print("...getting annotations from gene2go")
-    header = gene2goFid.next()
+    header = gene2goFid.__next__()
     geneIdMap = gene_mapper(session)
     toAdd = []
 

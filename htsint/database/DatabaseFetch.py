@@ -66,15 +66,11 @@ class DatabaseFetch(object):
 
     def _run_subprocess(self,cmd):
         proc = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stdin=subprocess.PIPE)
-        while True:
-            try:
-                next_line = proc.stdout.readline()
-                proc.wait()
-                if next_line == '' and proc.poll() != None:
-                    break
-            except:
-                proc.wait()
-                break
+        try:
+            outs, errs = proc.communicate(timeout=22000)
+        except TimeoutExpired:
+            proc.kill()
+            outs, errs = proc.communicate()
 
     def fetch_file(self,fetchURL):
         cmd = "%s -N %s"%(self.wgetPath,fetchURL)

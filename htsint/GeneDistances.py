@@ -7,7 +7,7 @@ __author__ = "Adam Richards"
 
 import os,sys,csv,shutil,getopt
 import numpy as np
-from basedir import __basedir__
+from .basedir import __basedir__
 
 try:
     import cPickle as pickle

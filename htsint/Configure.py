@@ -8,7 +8,7 @@ config file
 __author__ = "A Richards"
 
 import os,csv,re,ast
-from version import __version__
+from .version import __version__
 
 
 defaultCONFIG = {'data':'/usr/local/share/htsint',
@@ -16,7 +16,7 @@ defaultCONFIG = {'data':'/usr/local/share/htsint',
                  'dbuser':"",
                  'dbpass':"",
                  'dbhost':"localhost",
-                 'dbport':"5432",
+                 'dbport':"5433",
                  'taxa': ['3702','4932','5476','7227','7955','8355','8364','9031','9606',\
                           '10090','10566','10116','28377']
 }

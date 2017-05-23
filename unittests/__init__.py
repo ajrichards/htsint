@@ -24,21 +24,21 @@ if config.log['dbname'] == '':
     raise Exception("Config file is not setup")
 
 ## Database tests
-from DatabaseTest import *
+from .DatabaseTest import *
 DatabaseTestSuite = unittest.TestLoader().loadTestsFromTestCase(DatabaseTest)
 DatabaseSuite = unittest.TestSuite([DatabaseTestSuite])
 
 ## GeneOntology tests
-from GeneOntologyTest import *
+from .GeneOntologyTest import *
 GeneOntologyTestSuite = unittest.TestLoader().loadTestsFromTestCase(GeneOntologyTest)
 GeneOntologySuite = unittest.TestSuite([GeneOntologyTestSuite])
 
 ## Blast Tests
-from BlastTest import *
+from .BlastTest import *
 BlastTestSuite = unittest.TestLoader().loadTestsFromTestCase(BlastTest)
 BlastSuite = unittest.TestSuite([BlastTestSuite])
 
-from BlastMapperTest import *
+from .BlastMapperTest import *
 BlastMapperTestSuite = unittest.TestLoader().loadTestsFromTestCase(BlastMapperTest)
 BlastMapperSuite = unittest.TestSuite([BlastMapperTestSuite])
 

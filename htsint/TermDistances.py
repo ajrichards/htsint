@@ -8,8 +8,8 @@ __author__ = "Adam Richards"
 import os,sys,csv,shutil,getopt
 import numpy as np
 import networkx as nx
-from basedir import __basedir__
 from multiprocessing import Pool, cpu_count
+from .basedir import __basedir__
 
 try:
     import cPickle as pickle

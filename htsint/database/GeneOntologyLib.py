@@ -6,7 +6,7 @@ library of functions for use with the GeneOntology class
 import os,sys,re,time
 from sqlalchemy.sql import select
 from htsint import Configure
-from DatabaseTables import Taxon,Uniprot,Gene,GoTerm,GoAnnotation
+from .DatabaseTables import Taxon,Uniprot,Gene,GoTerm,GoAnnotation
 
 def remove_empty(lst):
     if None in lst:
@@ -138,7 +138,7 @@ def get_total_annotations():
 
     gene2goFile = get_gene2go_file()
     gene2goFid = open(gene2goFile,'rU')
-    header = gene2goFid.next()
+    header = gene2goFid.__next__()
 
     for record in gene2goFid:
         totalAnnotations += 1

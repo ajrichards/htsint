@@ -9,7 +9,7 @@ __author__ = "Adam Richards"
 import os,sys,csv,shutil,re,getopt
 import numpy as np
 import networkx as nx
-from basedir import __basedir__
+from .basedir import __basedir__
 
 try:
     import cPickle as pickle

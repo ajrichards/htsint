@@ -242,3 +242,8 @@ class GoAnnotation(Base):
                                                                 self.uniprot_id,
                                                                 self.gene_id,
                                                                 self.taxa_id)
+
+
+
+if __name__ == "__main__":
+    print("test")
