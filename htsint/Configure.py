@@ -59,7 +59,8 @@ class Configure(object):
         
     ## effectivly the only action necessary to save a project in its current state
     def save(self):
-        writer = csv.writer(open(self.logFilePath,'w'))
+        fid = open(self.logFilePath,'w')
+        writer = csv.writer(fid)
 
         for key,item in self.log.items():
             if item == None:
@@ -68,6 +69,7 @@ class Configure(object):
                 item = str(item)
 
             writer.writerow([key,item])
+        fid.close()
             
     ## reads the log file assciated with the current project and returns a dict
     def read_project_log(self,logPathName):
@@ -77,7 +79,8 @@ class Configure(object):
             return None
         else:
             logFileDict = {}
-            reader = csv.reader(open(logPathName,'r'))
+            fid = open(logPathName,'r')
+            reader = csv.reader(fid)
             for linja in reader:
 
                 if re.search("\[|\{|None",str(linja[1])):
@@ -87,5 +90,6 @@ class Configure(object):
                         print('ERROR: Logger -- string literal conversion failed', linja[1])
 
                 logFileDict[linja[0]] = linja[1]
-
+            fid.close()
+                
             return logFileDict

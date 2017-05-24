@@ -47,7 +47,7 @@ def read_ontology_file():
         if not re.search("GO\:",source) or not re.search("GO\:",sink[0]):
             raise Exception("Invalid go id in ontology file: %s, %s"%(source,sink[0]))
 
-        if goDict[goNamespace].has_key(source) == False:
+        if source not in goDict[goNamespace]:
             goDict[goNamespace][source] = set([])
         goDict[goNamespace][source].update(sink)
 
@@ -87,7 +87,8 @@ def read_ontology_file():
         #if re.search("^relationship\:",linja):
         #    part_of_sink = re.findall("GO\:\d+",linja)
         #    add_term(goNamespace,goId,part_of_sink)
-            
+    fid.close()
+        
     return goDict
 
 def get_annotation_file():
@@ -342,7 +343,7 @@ def fetch_annotations(identifiers,engine,aspect='biological_process',
                     annotations[uniprotAc].update(results)
         
     ## remove any null results
-    for key,items in annotations.iteritems():
+    for key,items in annotations.items():
         while () in items:
             items.remove(())
 
@@ -425,8 +426,8 @@ def fetch_taxa_annotations(identifiers,engine,aspect='biological_process',
                 uniprotAc = str(uquery['uniprot_ac'])
                 uniprot2id[str(uquery['id'])] = uniprotAc
                 if uquery['gene_id']:
-                    if not gene2uniprot.has_key(str(uquery['gene_id'])):
-                        if gene2Id.has_key(str(uquery['gene_id'])):
+                    if str(uquery['gene_id']) not in gene2uniprot:
+                        if str(uquery['gene_id']) in gene2Id:
                             geneNcbi = gene2Id[str(uquery['gene_id'])] 
                             gene2uniprot[geneNcbi] = []
                         else:
@@ -442,34 +443,34 @@ def fetch_taxa_annotations(identifiers,engine,aspect='biological_process',
             result = [str(aq[0])]
             if aq[3]:
                 geneNcbiId = gene2Id[str(aq[3])]
-                if not geneAnnotations.has_key(geneNcbiId):
+                if geneNcbiId not in geneAnnotations:
                     geneAnnotations[geneNcbiId] = set([])
                 geneAnnotations[geneNcbiId].update(result)
             if aq[2]:
                 uniprotAc = uniprot2id[str(aq[2])]
-                if not uniprotAnnotations.has_key(uniprotAc):
+                if uniprotAc not in uniprotAnnotations:
                     uniprotAnnotations[uniprotAc] = set([])
                 uniprotAnnotations[uniprotAc].update(result)
                 
             ## check if we can map gene annotation to uniprot products
             if aq[3]:
-                if gene2uniprot.has_key(geneNcbiId) and len(gene2uniprot[geneNcbiId]) > 0:
+                if geneNcbiId not in gene2uniprot and len(gene2uniprot[geneNcbiId]) > 0:
                     for newUniprotAc in gene2uniprot[geneNcbiId]:
-                        if not uniprotAnnotations.has_key(newUniprotAc):
+                        if newUniprotAc not in uniprotAnnotations:
                             uniprotAnnotations[newUniprotAc] = set([])
                         uniprotAnnotations[newUniprotAc].update(result)
             
             ## check if we can map uniprot annotation to gene products
             if aq[2]:
-                if uniprot2gene.has_key(uniprotAc):
+                if uniprotAc in uniprot2gene:
                     newGeneId = uniprot2gene[uniprotAc]
-                    if not geneAnnotations.has_key(newGeneId):
+                    if newGeneId not in geneAnnotations:
                         geneAnnotations[newGeneId] = set([])
                     geneAnnotations[newGeneId].update(result)
 
     ## prep the results
     for annotations in [geneAnnotations,uniprotAnnotations]:
-        for key,items in annotations.iteritems():
+        for key,items in annotations.items():
             annotations[key] = list(items)
 
     return geneAnnotations,uniprotAnnotations
@@ -509,7 +510,7 @@ def read_annotation_file():
         if re.search("\|",taxon):
             continue
 
-        if not result.has_key(dbObjectId):
+        if dbObjectId not in result:
             result[dbObjectId] = {'names':set([]),'annots':{},'taxon':taxon}
 
         result[dbObjectId]['annots'][goID] = [aspect,evidenceCode]

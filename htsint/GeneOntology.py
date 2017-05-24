@@ -71,8 +71,8 @@ class GeneOntology(object):
 
         ## check for unmatched genes
         unmatched = 0
-        for gene in gene2go.iterkeys():
-            if not gene2id.has_key(gene):
+        for gene in gene2go.items():
+            if gene not in  gene2id:
                 unmatched += 1
         
         print("Summary")
@@ -88,13 +88,13 @@ class GeneOntology(object):
                                                    useIea=self.useIea)
 
         total= 0
-        for k,v in _gene2go.iteritems():
+        for k,v in _gene2go.items():
             total += len(v)
         print('RefTaxa genes: %s'%(len(refGenes.keys())))
         print('Only RefTaxa: %s annotated genes, %s total annotations'%(len(_gene2go.keys()), total))
         
         total= 0
-        for k,v in gene2go.iteritems():
+        for k,v in gene2go.items():
             total += len(v)
         print('With additional taxa: %s annotated genes, %s total annotations'%(len(gene2go.keys()), total))
         print('Percent annotation: %s'%(float(len(gene2go.keys())) / float(len(refGenes.keys()))))
@@ -130,21 +130,21 @@ class GeneOntology(object):
         print("...creating go2gene dictionary -- this may take several minutes")
         go2gene = {}
         gene2go = {}
-        for gene,terms in _gene2go.iteritems():
+        for gene,terms in _gene2go.items():
             if accepted and gene not in accepted:
                 continue
 
             gene2go[gene] = terms
             for term in terms:
-                if go2gene.has_key(term) == False:
+                if term not in go2gene:
                     go2gene[term] = set([])
                 go2gene[term].update([gene])
 
-        for term,genes in go2gene.iteritems():
+        for term,genes in go2gene.items():
             go2gene[term] = list(genes)
         
         ## pickle the dictionaries    
-        tmp = open(termsPath,'w')
+        tmp = open(termsPath,'wb')
         pickle.dump([gene2go,go2gene],tmp)
         tmp.close()
 
@@ -157,7 +157,7 @@ class GeneOntology(object):
             raise Exception("Invalid aspect specified%s"%self.aspect)
 
         if termsPath != None and os.path.exists(termsPath):
-            tmp = open(termsPath,'r')
+            tmp = open(termsPath,'rb')
             gene2go,go2gene = pickle.load(tmp)
             tmp.close()
             return gene2go,go2gene
@@ -205,9 +205,9 @@ class GeneOntology(object):
         print("...finding term-term distances")
         allDistances = np.array(edgeDict.values())
         maxDistance = allDistances.max()
-        for parent,children in goDict.iteritems():
+        for parent,children in goDict.items():
             for child in list(children):
-                if edgeDict.has_key(parent+"#"+child) or edgeDict.has_key(child+"#"+parent):
+                if parent+"#"+child in edgeDict  or child+"#"+parent in edgeDict:
                     continue
                 edgeDict[parent+"#"+child] = maxDistance
 
@@ -216,10 +216,10 @@ class GeneOntology(object):
             print('...adding term-term edges through shared genes')
             p5 = np.percentile(allDistances,0.05)
             newEdges = 0
-            for termI,genesI in go2gene.iteritems():
-                for termJ,genesJ in go2gene.iteritems():
+            for termI,genesI in go2gene.items():
+                for termJ,genesJ in go2gene.items():
 
-                    if edgeDict.has_key(termI+"#"+termJ) or edgeDict.has_key(termJ+"#"+termI):
+                    if termI+"#"+termJ in edgeDict or termJ+"#"+termI in edgeDict:
                         continue
 
                     sharedGenes = len(list(set(genesI).intersection(set(genesJ))))
@@ -232,7 +232,7 @@ class GeneOntology(object):
 
         ## initialize the graph
         G = nx.Graph()
-        for nodes,weight in edgeDict.iteritems():
+        for nodes,weight in edgeDict.items():
             parent,child = nodes.split("#")
             G.add_edge(parent,child,weight=weight)
         
@@ -243,12 +243,12 @@ class GeneOntology(object):
 
             degreeDict = nx.degree(G)
             removed = 0
-            for node,degree in degreeDict.iteritems():
+            for node,degree in degreeDict.items():
 
                 if degree > 1:
                     continue
 
-                if go2gene.has_key(node):
+                if node in go2gene:
                     continue
 
                 removed += 1
@@ -270,12 +270,12 @@ class GeneOntology(object):
         toRemove = []
         toAdd    = []
         degreeDict = nx.degree(G)
-        for node,degree in degreeDict.iteritems():
+        for node,degree in degreeDict.items():
 
             if degree != 2:
                 continue
 
-            if go2gene.has_key(node):
+            if node in go2gene:
                 continue
 
             neighbors = [x for x in nx.all_neighbors(G,node)]
@@ -319,17 +319,17 @@ class GeneOntology(object):
         print("...... terms", len(go2gene.keys()))
         
         total = 0
-        for term,genes in go2gene.iteritems():
+        for term,genes in go2gene.items():
             total += len(genes)
 
         edgeDict = {}
-        for parent,children in goDict.iteritems():
-            if go2gene.has_key(parent) == False:
+        for parent,children in goDict.items():
+            if parent in go2gene == False:
                 continue
 
             parentIC = -np.log(float(len(list(go2gene[parent])))  / float(total))
             for child in list(children):
-                if go2gene.has_key(child) == False:
+                if chile in go2gene == False:
                     continue
 
                 childIC = -np.log(float(len(list(go2gene[child])))  / float(total))

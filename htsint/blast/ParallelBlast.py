@@ -49,7 +49,7 @@ class ParallelBlast(object):
         ## variables
         script = os.path.join(__basedir__,"blast","Blast.py")
 
-        handleIn = open(self.queryFile, "rU")
+        handleIn = open(self.queryFile, "r")
         total = 0
         for record in SeqIO.parse(handleIn,"fasta") :
             total += 1

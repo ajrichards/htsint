@@ -59,9 +59,9 @@ class BlastMapper(object):
 
         ## input/output
         timeStart = time.time()
-        fidin = open(parsedFilePath,'rU')
+        fidin = open(parsedFilePath,'r')
         reader = csv.reader(fidin)
-        header = reader.next()
+        header = reader.__next__()
 
         ## prepare out file         
         fidout = open(summaryFilePath,'w')
@@ -79,7 +79,8 @@ class BlastMapper(object):
                 hitId = _hitId[-1]
 
             hitEntries.update([hitId])
-                 
+
+        fidin.close()    
         hitEntries = list(hitEntries)
 
         if uniprot:
@@ -93,7 +94,7 @@ class BlastMapper(object):
             else:
                 ## using htsint's mapper
                 uMapper = uniprot_mapper(self.session,uniprotIdList=hitEntries,gene=True,taxa=True)
-                for key,item in uMapper.iteritems():
+                for key,item in uMapper.items():
                     upEntry2Gene[str(key)] = str(item['gene_id'])
                     upEntry2Taxa[str(key)] = str(item['taxa_id'])
        
@@ -115,9 +116,9 @@ class BlastMapper(object):
             gene2id.update(taxaDict)
 
         ## read through the file again
-        fidin = open(parsedFilePath,'rU')
+        fidin = open(parsedFilePath,'r')
         reader = csv.reader(fidin)
-        header = reader.next()
+        header = reader.__next__()
 
         for linja in reader:
             query = linja[0]
@@ -150,19 +151,18 @@ class BlastMapper(object):
             if re.findall("[A-Z]=",hitSpecies):
                 hitSpecies = hitSpecies[:re.search("[A-Z]=",hitSpecies).start()-2]
 
-            if uniprot and upEntry2Gene.has_key(hitId) and str(upEntry2Gene[hitId]) != 'None':
-                if gene2id.has_key(upEntry2Gene[hitId]) and str(gene2id[upEntry2Gene[hitId]]) != 'None':
+            if uniprot and hitId in upEntry2Gene and str(upEntry2Gene[hitId]) != 'None':
+                if upEntry2Gene[hitId] in gene2id and str(gene2id[upEntry2Gene[hitId]]) != 'None':
                     hitNcbiId = gene2id[upEntry2Gene[hitId]]
 
-            #print hit2gene.has_key(hitId),hitId,hit2gene.keys()[:3]
-            if hit2gene and hit2gene.has_key(hitId):
+            if hit2gene and hitId in hit2gene:
                 hitNcbiId = hit2gene[hitId]
 
             ## get taxa id associated with uniprot id
             if uniprot:
                 hitSpeciesNcbiId = '-'
-                if upEntry2Taxa.has_key(hitId) and str(upEntry2Taxa[hitId]) != 'None':
-                    if taxaId2Ncbi.has_key(upEntry2Taxa[hitId]) and str(taxaId2Ncbi.has_key(upEntry2Taxa[hitId])) != 'None':
+                if hitId in upEntry2Taxa and str(upEntry2Taxa[hitId]) != 'None':
+                    if upEntry2Taxa[hitId] in taxaId2Ncbi and str(upEntry2Taxa[hitId]) != 'None':
                         hitSpeciesNcbiId = taxaId2Ncbi[upEntry2Taxa[hitId]]
                     else:
                         print('Were in! but taxaId2Ncbi does not have', upEntry2Taxa[hitId])
@@ -211,9 +211,9 @@ class BlastMapper(object):
 
         ## read the results
         results = {}
-        fid = open(filePath,'rU')
+        fid = open(filePath,'r')
         reader = csv.reader(fid)
-        header = reader.next()
+        header = reader.__next__()
 
         uniqueQueries = set([])
         totalQueries = 0
@@ -246,7 +246,7 @@ class BlastMapper(object):
                 continue
 
             ## use the best evalue 
-            if not results.has_key(queryId):
+            if queryId not in results:
                 if best:
                     results[queryId] = (hitId,hitNcbiId,hitSpecies,hitSpeciesNcbiId,_evalue)
                 else:
@@ -264,6 +264,7 @@ class BlastMapper(object):
                 elif not best and _evalue >= results[queryId][0][4]:
                     results[queryId].append((hitId,hitNcbiId,hitSpecies,hitSpeciesNcbiId,_evalue))
 
+        fid.close()            
         print("queries filtered due to evalue > %s: %s"%(evalue,evalueFilter))
         print("queries filtered due to taxa: %s"%(taxaFilter))
         print("total hits: %s"%totalHits)
@@ -282,13 +283,13 @@ class BlastMapper(object):
         """
 
         taxaHits = {}
-        for transcriptId, items in bmap.iteritems():
+        for transcriptId, items in bmap.items():
             hitId,hitNcbiId,hitSpecies,hitSpeciesNcbiId,evalue = items
     
             if removeStrain:
                 hitSpecies = re.sub("\s+$","",re.sub("\(.+\)","",hitSpecies))
 
-            if not taxaHits.has_key(hitSpecies):
+            if hitSpecies not in taxaHits:
                 taxaHits[hitSpecies] = 0
             taxaHits[hitSpecies] += 1
 
@@ -330,7 +331,7 @@ class BlastMapper(object):
 
         ## shorten long names
         longNames = {"Schizosaccharomyces pombe":"S. pombe"}
-        for ln1,ln2 in longNames.iteritems():
+        for ln1,ln2 in longNames.items():
             if ln1 in labels:
                 lnind = labels.index(ln1)
                 labels[lnind] = ln2
@@ -397,7 +398,7 @@ class BlastMapper(object):
         """
          
         gene2transcript = {}
-        for key,item in bmap.iteritems():
+        for key,item in bmap.items():
 
             if type(item) == type([]):
                 genes =  [i[1] for i in item]
@@ -407,7 +408,7 @@ class BlastMapper(object):
             for gene in genes:
                 if gene == '-':
                     continue
-                if not gene2transcript.has_key(gene):
+                if gene not in gene2transcript:
                     gene2transcript[gene] = []
                 gene2transcript[gene].append(key)
 
@@ -420,7 +421,7 @@ class BlastMapper(object):
         """
          
         hit2transcript = {}
-        for key,item in bmap.iteritems():
+        for key,item in bmap.items():
 
             if type(item) == type([]):
                 hits =  [i[0] for i in item]
@@ -430,7 +431,7 @@ class BlastMapper(object):
             for hit in hits:
                 if hit == '-':
                     continue
-                if not hit2transcript.has_key(hit):
+                if hit not in hit2transcript:
                     hit2transcript[hit] = []
                 hit2transcript[hit].append(key)
 

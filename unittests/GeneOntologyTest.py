@@ -54,20 +54,20 @@ class GeneOntologyTest(unittest.TestCase):
         print("there are %s terms"%(len(go2gene.keys())))
 
     
-    def test02CreateGoGraph(self):
-        """
-        ensure we can create, save and retrieve the gograph
-        """
-
-        termsPickle = 'terms.pickle'
-        graphPickle = 'graph.pickle'
-        
-        go = GeneOntology(self.taxId,upass=UPASS,idType='ncbi',useIea=True)
-        G = go.create_gograph(termsPath=termsPickle,graphPath=graphPickle)
-
-        for picklePath in [termsPickle,graphPickle]:
-            if os.path.exists(picklePath):
-                os.remove(picklePath)
+    #def test02CreateGoGraph(self):
+    #    """
+    #    ensure we can create, save and retrieve the gograph
+    #    """
+    #
+    #    termsPickle = 'terms.pickle'
+    #    graphPickle = 'graph.pickle'
+    #    
+    #    go = GeneOntology(self.taxId,upass=UPASS,idType='ncbi',useIea=True)
+    #    G = go.create_gograph(termsPath=termsPickle,graphPath=graphPickle)
+    #
+    #    for picklePath in [termsPickle,graphPickle]:
+    #        if os.path.exists(picklePath):
+    #            os.remove(picklePath)
     
 ### Run the tests
 if __name__ == '__main__':

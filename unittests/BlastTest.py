@@ -42,7 +42,7 @@ class BlastTest(unittest.TestCase):
         queryFilePath = os.path.join(".",re.sub("\.\w+","",queryFileName,flags=re.IGNORECASE)+"-%s-%s.fasta"%(start,stop))
         self.assertTrue(os.path.exists(queryFilePath))
 
-        handleIn = open(newQueryFile, "rU")
+        handleIn = open(newQueryFile, "r")
         total = 0
         for record in SeqIO.parse(handleIn,"fasta") :
             total += 1

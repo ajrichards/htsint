@@ -67,7 +67,7 @@ class Blast(object):
 
         queryFileName = os.path.split(self.queryFile)[-1]
         newQueryFile = os.path.join(outDir,re.sub("\.\w+","",queryFileName,flags=re.IGNORECASE)+"-%s-%s.fasta"%(start,stop))
-        handleIn = open(self.queryFile, "rU")
+        handleIn = open(self.queryFile, "r")
         handleOut = open(newQueryFile, "w")
         toWrite = []
 

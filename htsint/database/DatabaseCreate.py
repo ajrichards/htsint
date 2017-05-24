@@ -18,11 +18,12 @@ it is best to re-run FetchDbdata.py and then this script.
 import sys,os,re,time,csv
 from htsint import Configure
 from sqlalchemy.ext.declarative import declarative_base
-Base = declarative_base()
 from .DatabaseTools import db_connect, get_file_sizes,print_db_summary
 from .DatabaseTools import populate_taxon_table,populate_gene_table,populate_uniprot_table
 from .DatabaseTools import populate_go_terms, populate_go_annotations
 from .GeneOntologyLib import read_annotation_file,get_annotation_file,get_total_annotations
+
+Base = declarative_base()
 
 class DatabaseCreate(object):
     """

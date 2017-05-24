@@ -111,10 +111,16 @@ class ParseBlast(object):
         self.push_out("sequences without any matches: %s"%len(noResults))
 
         ## clean up
-        if self.fid1 != None:
-            self.fid1.close()
-        if self.fid2 != None:
-            self.fid2.close()
-        print('complete.')
+        #if self.fid1 != None:
 
+        try:
+            self.fid1.close()
+        except:
+            pass
+        try:
+            self.fid2.close()
+        except:
+            pass
+        
+        print('complete.')
         return self.outFile

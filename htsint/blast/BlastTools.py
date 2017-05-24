@@ -95,7 +95,7 @@ def get_blast_map(resultsFilePath,evalue=0.00001,taxaList=None,asGenes=False,app
                 results[queryId] = (hitNcbiId,_evalue)
                 
     uniqueQueries = list(uniqueQueries)
-    
+    fid.close()
     print("total queries: %s"%totalQueries)
     print("unfiltered queries: %s"%unfilteredQueries)
     print("unique: %s"%len(uniqueQueries))
