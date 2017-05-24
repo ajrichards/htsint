@@ -201,7 +201,7 @@ class Heatmap(object):
 
         n,m = self.mat.shape
         
-        if not self.indx.has_key('0') or not self.indx.has_key('1'):
+        if '0' not in self.indx or '1' not in self.indx:
             raise Exception("cluster before plotting heatmap")
 
         ## setup event handler
@@ -297,7 +297,7 @@ if __name__ == "__main__":
     m = 6
 
     mat = np.vstack((np.random.normal(0,1,(n,m)),np.random.normal(3,1,(n,m))))
-    mat[:,3:] = mat[:,3:] -2.0
+    #mat[:,3:] = mat[:,3:] -2.0
 
     hm = Heatmap(mat,colLabels=np.array(["A","B","C","D","E","F"]),\
                  rowLabels= np.array(["r"+str(i) for i in range(n*2)]))
