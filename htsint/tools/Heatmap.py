@@ -297,12 +297,8 @@ if __name__ == "__main__":
     m = 6
 
     mat = np.vstack((np.random.normal(0,1,(n,m)),np.random.normal(3,1,(n,m))))
-    #mat[:,3:] = mat[:,3:] -2.0
-
     hm = Heatmap(mat,colLabels=np.array(["A","B","C","D","E","F"]),\
                  rowLabels= np.array(["r"+str(i) for i in range(n*2)]))
-    hm.cluster(0)
-    hm.cluster(1)
     hm.draw_heatmap(cmap='rg',clabels = True, rlabels=True)
 
     ## error checking
