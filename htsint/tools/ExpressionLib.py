@@ -21,7 +21,7 @@ def read_RSEM_counts_files(geneFilePath,isoformFilePath):
     ## load the gene counts
     fid1 = open(geneFilePath,'rU')
     reader1 = csv.reader(fid1,delimiter="\t")
-    header1 = reader1.__next__()    
+    header1 = next(reader1)
     results1 = {}
     check = 0
     gc.disable()
@@ -37,7 +37,7 @@ def read_RSEM_counts_files(geneFilePath,isoformFilePath):
     ## load the isoform results
     fid2 = open(isoformFilePath,'rU')
     reader2 = csv.reader(fid2,delimiter="\t")
-    header2 = reader2.next()    
+    header2 = next(reader2)    
     results2 = {}
     check = 0
 
@@ -68,9 +68,9 @@ def read_matrix(matFilePath,delimiter=",",mtype='float'):
     if not os.path.exists(matFilePath):
         raise Exception("Cannot find matFilePath\n%s"%matFilePath)
 
-    fid = open(matFilePath,'rb')
+    fid = open(matFilePath,'r')
     reader = csv.reader(fid,delimiter=delimiter)
-    header = reader.next()
+    header = next(reader)
 
     ## get the gene and sample ids
     transcriptIds = []
@@ -84,9 +84,9 @@ def read_matrix(matFilePath,delimiter=",",mtype='float'):
 
     ## fill in the matrix
     mat = np.zeros((transcriptIds.shape[0],sampleIds.shape[0]),dtype=mtype)
-    fid = open(matFilePath,'rb')
+    fid = open(matFilePath,'r')
     reader = csv.reader(fid,delimiter=delimiter)
-    header = reader.next()
+    header = next(reader)
     row = 0 
     for linja in reader:
         if mtype == 'int':
@@ -112,11 +112,11 @@ def read_de_results(filePath,delimiter=",",tool="edgeR"):
     if tool not in ["edgeR","DESeq"]:
         raise Exception("invalid tool specified use 'edgeR' or 'DESeq'")
 
-    fid = open(filePath,'rb')
+    fid = open(filePath,'r')
     reader = csv.reader(fid,delimiter=delimiter)
     
     ## get columnIds
-    header = reader.next()
+    header = next(reader)
     columnIds = np.array(header[1:])
 
     ## get the gene and sample ids
@@ -131,9 +131,9 @@ def read_de_results(filePath,delimiter=",",tool="edgeR"):
 
     ## fill in the matrix
     mat = np.zeros((transcriptIds.shape[0],columnIds.shape[0]))
-    fid = open(filePath,'rb')
+    fid = open(filePath,'r')
     reader = csv.reader(fid,delimiter=delimiter)
-    header = reader.next()
+    header = next(reader)
     row = 0 
     for linja in reader:
         _row = [re.sub("NA","NaN",i) for i in linja[1:]]             
